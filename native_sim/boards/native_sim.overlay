@@ -1,0 +1,55 @@
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	//emulated gpio description
+    gpio_emul0: gpio_emul_0 {
+		status = "okay";
+		compatible = "zephyr,gpio-emul";
+		rising-edge;
+		falling-edge;
+		high-level;
+		low-level;
+		gpio-controller;
+		ngpios = <3>; // Number of GPIO pins
+		#gpio-cells = <2>;
+	
+	};
+	
+	resources {
+		compatible = "test-gpio-basic-api";
+		out-gpios = <&gpio_emul0 0 0>; /* Pin 0 */
+		in-gpios = <&gpio_emul0 0 0>,<&gpio_emul0 1 0>;
+	};
+	
+	keys: keys {
+		compatible = "gpio-keys";
+		key1: key1 {
+			gpios = <&gpio_emul0 0 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+		key2: key2 {
+			gpios = <&gpio_emul0 1 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_1>;
+		};
+		key3: key3 {
+			gpios = <&gpio_emul0 2 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_2>;
+		};
+	};
+	
+	aliases {
+		sw0 = &key1;
+		sw1 = &key2;
+	};
+};
+
+&gpio_emul0 {
+	ngpios = <3>;
+
+	sdl_gpio {
+		status = "okay";
+		compatible = "zephyr,gpio-emul-sdl";
+		/* Skip pin 0 with the unknown code 0 */
+		scancodes = <30 31 32>;
+	};
+};
