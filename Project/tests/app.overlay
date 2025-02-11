@@ -1,0 +1,570 @@
+
+
+
+/ {
+	soc {
+		pinctrl: pin-controller@58020000 {
+			//disable pins
+			adc1_inp15_pa3: adc1_inp15_pa3 {
+				status = "disabled";
+			};
+			adc3_inp5_pf3: adc3_inp5_pf3 {
+				status = "disabled";
+			};
+			dac1_out1_pa4: dac1_out1_pa4 {
+				status = "disabled";
+			};
+			eth_crs_dv_pa7: eth_crs_dv_pa7 {
+				status = "disabled";
+			};
+			eth_mdc_pc1: eth_mdc_pc1 {
+				status = "disabled";
+			};
+			eth_mdio_pa2: eth_mdio_pa2 {
+				status = "disabled";
+			};
+			eth_ref_clk_pa1: eth_ref_clk_pa1 {
+				status = "disabled";
+			};
+			eth_rxd0_pc4: eth_rxd0_pc4 {
+				status = "disabled";
+			};
+			eth_rxd1_pc5: eth_rxd1_pc5 {
+				status = "disabled";
+			};
+			eth_txd0_pg13: eth_txd0_pg13 {
+				status = "disabled";
+			};
+			eth_txd1_pb13: eth_txd1_pb13 {
+				status = "disabled";
+			};
+			eth_tx_en_pg11: eth_tx_en_pg11 {
+				status = "disabled";
+			};
+			fdcan1_rx_pd0: fdcan1_rx_pd0 {
+				status = "disabled";
+			};
+			fdcan1_tx_pd1: fdcan1_tx_pd1 {
+				status = "disabled";
+			};
+			i2c1_scl_pb8: i2c1_scl_pb8 {
+				status = "disabled";
+			};
+			i2c1_sda_pb9: i2c1_sda_pb9 {
+				status = "disabled";
+			};
+			spi1_miso_pa6: spi1_miso_pa6 {
+				status = "disabled";
+			};
+			spi1_mosi_pb5: spi1_mosi_pb5 {
+				status = "disabled";
+			};
+			spi1_sck_pa5: spi1_sck_pa5 {
+				status = "disabled";
+			};
+			tim12_ch1_pb14: tim12_ch1_pb14 {
+				status = "okay";
+			};
+			usart3_rx_pd9: usart3_rx_pd9 {
+				status = "disabled";
+			};
+			usart3_tx_pd8: usart3_tx_pd8 {
+				status = "disabled";
+			};
+
+			//enable and configure pins
+			usb_otg_fs_dm_pa11: usb_otg_fs_dm_pa11 {
+				pinmux = < 0x16a >;
+				phandle = < 0x22 >;
+				status = "okay";
+			};
+			usb_otg_fs_dp_pa12: usb_otg_fs_dp_pa12 {
+				pinmux = < 0x18a >;
+				phandle = < 0x23 >;
+				status = "okay";
+			};
+			usart1_rx_pb6: usart1_rx_pb6 {
+				pinmux = <STM32_PINMUX('B', 6, AF7)>;
+				status = "okay";
+			};
+			usart1_tx_pb7: usart1_tx_pb7 {
+				pinmux = <STM32_PINMUX('B', 7, AF7)>;
+				bias-pull-up;
+				status = "okay";
+			};
+			usart2_rx_pb3: usart2_tx_pa3 {
+				pinmux = <STM32_PINMUX('a', 3, AF7)>;
+				status = "okay";
+			};
+			usart2_tx_pb2: usart2_tx_pa2 {
+				pinmux = <STM32_PINMUX('a', 2, AF7)>;
+				bias-pull-up;
+				status = "okay";
+			};
+			i2c1_scl_pb8: i2c1_scl_pb8 {
+				pinmux = < 0x304 >;
+				bias-pull-up;
+				drive-open-drain;
+				status = "okay";
+				phandle = < 0xb >;
+			};
+			i2c1_sda_pb9: i2c1_sda_pb9 {
+				pinmux = < 0x324 >;
+				bias-pull-up;
+				drive-open-drain;
+				status = "okay";
+				phandle = < 0xc >;
+			};
+			adc1_inp2_pf11: adc1_inp2_pf11 {
+				pinmux = <STM32_PINMUX('f', 11, AF10)>;
+				status = "okay";
+			};
+		};
+	};
+
+	gpioCustom {
+		compatible = "gpio-keys";
+
+		shift_Data_In_16x16: gpioc_8 {
+			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Output_Enable_16x16: gpioc_7 {
+			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Clock_16x16: gpioc_6 {
+			gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_A_16x16: gpiog_8 {
+			gpios = <&gpiog 8 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_B_16x16: gpiog_7 {
+			gpios = <&gpiog 7 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_C_16x16: gpiog_6 {
+			gpios = <&gpiog 6 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_D_16x16: gpiog_5 {
+			gpios = <&gpiog 5 GPIO_ACTIVE_HIGH>;
+		};
+		gyro_interrupt_1: gpiog_3 {
+			gpios = <&gpiog 3 GPIO_ACTIVE_HIGH>;
+		};
+		gyro_interrupt_2: gpiog_2 {
+			gpios = <&gpiog 2 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Data_In_Circle: gpiod_9 {
+			gpios = <&gpiod 9 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Output_Enable_Circle: gpiod_8 {
+			gpios = <&gpiod 8 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Clock_Circle: gpiob_15 {
+			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_C_Circle: gpiob_14 {
+			gpios = <&gpiob 14 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_B_Circle: gpiob_13 {
+			gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_A_Circle: gpiob_12 {
+			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
+		};
+		buzzer3: gpioe_14 {
+			gpios = <&gpioe 14 GPIO_ACTIVE_HIGH>;
+		};
+		buzzer2: gpioe_13 {
+			gpios = <&gpioe 13 GPIO_ACTIVE_HIGH>;
+		};
+		buzzer1: gpioe_12 {
+			gpios = <&gpioe 12 GPIO_ACTIVE_HIGH>;
+		};
+		decimal_Point_7_Segment: gpioe_10 {
+			gpios = <&gpioe 10 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_DIG4_7_Segment: gpioe_9 {
+			gpios = <&gpioe 9 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_DIG3_7_Segment: gpioe_8 {
+			gpios = <&gpioe 8 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_DIG2_7_Segment: gpioe_7 {
+			gpios = <&gpioe 7 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_DIG1_7_Segment: gpiog_1 {
+			gpios = <&gpiog 1 GPIO_ACTIVE_HIGH>;
+		};
+		BCD_D_7_Segment: gpiog_0 {
+			gpios = <&gpiog 0 GPIO_ACTIVE_HIGH>;
+		};
+		BCD_C_7_Segment: gpiof_15 {
+			gpios = <&gpiof 15 GPIO_ACTIVE_HIGH>;
+		};
+		BCD_B_7_Segment: gpiof_14 {
+			gpios = <&gpiof 14 GPIO_ACTIVE_HIGH>;
+		};
+		BCD_A_7_Segment: gpiof_13 {
+			gpios = <&gpiof 13 GPIO_ACTIVE_HIGH>;
+		};
+		battery_low_led: gpiob_2 {
+			gpios = <&gpiob 2 GPIO_ACTIVE_HIGH>;
+		};
+		button_1_4x4: gpiob_0 {
+			gpios = <&gpiob 0 GPIO_PULL_UP>;
+		};
+		button_2_4x4: gpioc_5 {
+			gpios = <&gpioc 5 GPIO_PULL_UP>;
+		};
+		button_3_4x4: gpioc_4 {
+			gpios = <&gpioc 4 GPIO_PULL_UP>;
+		};
+		button_4_4x4: gpioa_7 {
+			gpios = <&gpioa 7 GPIO_PULL_UP>;
+		};
+		button_5_4x4: gpioa_6 {
+			gpios = <&gpioa 6 GPIO_PULL_UP>;
+		};
+		button_6_4x4: gpioa_5 {
+			gpios = <&gpioa 5 GPIO_PULL_UP>;
+		};
+		button_7_4x4: gpioc_3 {
+			gpios = <&gpioc 3 GPIO_PULL_UP>;
+		};
+		button_8_4x4: gpioc_2 {
+			gpios = <&gpioc 2 GPIO_PULL_UP>;
+		};
+		button_9_4x4: gpioc_1 {
+			gpios = <&gpioc 1 GPIO_PULL_UP>;
+		};
+		button_10_4x4: gpioc_0 {
+			gpios = <&gpioc 0 GPIO_PULL_UP>;
+		};
+		button_11_4x4: gpiof_10 {
+			gpios = <&gpiof 10 GPIO_PULL_UP>;
+		};
+		button_12_4x4: gpiof_9 {
+			gpios = <&gpiof 9 GPIO_PULL_UP>;
+		};
+		button_13_4x4: gpiof_8 {
+			gpios = <&gpiof 8 GPIO_PULL_UP>;
+		};
+		button_14_4x4: gpiof_7 {
+			gpios = <&gpiof 7 GPIO_PULL_UP>;
+		};
+		button_15_4x4: gpiof_6 {
+			gpios = <&gpiof 6 GPIO_PULL_UP>;
+		};
+		button_16_4x4: gpiof_5 {
+			gpios = <&gpiof 5 GPIO_PULL_UP>;
+		};
+		shift_Data_in_4x4: gpiof_4 {
+			gpios = <&gpiof 4 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Output_Enable_4x4: gpiof_3 {
+			gpios = <&gpiof 3 GPIO_ACTIVE_HIGH>;
+		};
+		shift_Clock_4x4: gpiof_2 {
+			gpios = <&gpiof 2 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_B_4x4: gpiof_1 {
+			gpios = <&gpiof 1 GPIO_ACTIVE_HIGH>;
+		};
+		MUX_A_4x4: gpiof_0 {
+			gpios = <&gpiof 0 GPIO_ACTIVE_HIGH>;
+		};
+		ABC_button_a: gpioc_13 {
+			gpios = <&gpioc 13 GPIO_PULL_UP>;
+		};
+		ABC_led_a: gpioe_6 {
+			gpios = <&gpioe 6 GPIO_ACTIVE_HIGH>;
+		};
+		ABC_button_b: gpioe_5 {
+			gpios = <&gpioe 5 GPIO_PULL_UP>;
+		};
+		ABC_led_b: gpioe_4 {
+			gpios = <&gpioe 4 GPIO_ACTIVE_HIGH>;
+		};
+		ABC_button_c: gpioe_3 {
+			gpios = <&gpioe 3 GPIO_PULL_UP>;
+		};
+		ABC_led_c: gpioe_2 {
+			gpios = <&gpioe 2 GPIO_ACTIVE_HIGH>;
+		};
+		switches_1_On: gpioe_1 {
+			gpios = <&gpioe 1 GPIO_PULL_UP>;
+		};
+		switches_1_Off: gpioe_0 {
+			gpios = <&gpioe 0 GPIO_PULL_UP>;
+		};
+		switches_2_On: gpiob_4 {
+			gpios = <&gpiob 4 GPIO_PULL_UP>;
+		};
+		switches_2_Off: gpiob_3 {
+			gpios = <&gpiob 3 GPIO_PULL_UP>;
+		};
+		switches_3_On: gpiog_15 {
+			gpios = <&gpiog 15 GPIO_PULL_UP>;
+		};
+		switches_3_Off: gpiog_14 {
+			gpios = <&gpiog 14 GPIO_PULL_UP>;
+		};
+		switches_4_On: gpiog_13 {
+			gpios = <&gpiog 13 GPIO_PULL_UP>;
+		};
+		switches_4_Off: gpiog_12 {
+			gpios = <&gpiog 12 GPIO_PULL_UP>;
+		};
+		switches_5_On: gpiog_11 {
+			gpios = <&gpiog 11 GPIO_PULL_UP>;
+		};
+		switches_5_Off: gpiog_10 {
+			gpios = <&gpiog 10 GPIO_PULL_UP>;
+		};
+		LCD_Display_E: gpiog_9 {
+			gpios = <&gpiog 9 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_RS: gpiod_7 {
+			gpios = <&gpiod 7 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_Backlight_Enable: gpiod_6 {
+			gpios = <&gpiod 6 GPIO_ACTIVE_HIGH>;
+		};
+		start_Button: gpiod_5 {
+			gpios = <&gpiod 5 GPIO_PULL_UP>;
+		};
+		start_Led: gpiod_4 {
+			gpios = <&gpiod 4 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D7: gpiod_3 {
+			gpios = <&gpiod 3 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D6: gpiod_2 {
+			gpios = <&gpiod 2 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D5: gpiod_1 {
+			gpios = <&gpiod 1 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D4: gpiod_0 {
+			gpios = <&gpiod 0 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D3: gpioc_12 {
+			gpios = <&gpioc 12 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D2: gpioc_11 {
+			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D1: gpioc_10 {
+			gpios = <&gpioc 10 GPIO_ACTIVE_HIGH>;
+		};
+		LCD_Display_D0: gpioa_15 {
+			gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
+		};
+		data_ready_3d_compass: gpioa_9 {
+			gpios = <&gpioa 9 GPIO_PULL_UP>;
+		};
+		interupt_3d_compass: gpioa_8 {
+			gpios = <&gpioa 8 GPIO_PULL_UP>;
+		};
+
+	};
+
+	aliases {
+		gnss = &gnss;
+		shiftdatain16x16 = &shift_Data_In_16x16;
+		shiftenable16x16 = &shift_Output_Enable_16x16;
+		shiftclock16x16 = &shift_Clock_16x16;
+		muxa16x16 = &MUX_A_16x16;
+		muxb16x16 = &MUX_B_16x16;
+		muxc16x16 = &MUX_C_16x16;
+		muxd16x16 = &MUX_D_16x16;
+		gyrointerrupt1 = &gyro_interrupt_1;
+		gyrointerrupt2 = &gyro_interrupt_2;
+		shiftdataincircle = &shift_Data_In_Circle;
+		shiftoutputenablecircle = &shift_Output_Enable_Circle;
+		shiftclockcircle = &shift_Clock_Circle;
+		muxacircle = &MUX_A_Circle;
+		muxbcircle = &MUX_B_Circle;
+		muxccircle = &MUX_C_Circle;
+		buzzer1 = &buzzer1;
+		buzzer2 = &buzzer2;
+		buzzer3 = &buzzer3;
+		decimalpoint7segment = &decimal_Point_7_Segment;
+		muxdig17segment = &MUX_DIG1_7_Segment;
+		muxdig27segment = &MUX_DIG2_7_Segment;
+		muxdig37segment = &MUX_DIG3_7_Segment;
+		muxdig47segment = &MUX_DIG4_7_Segment;
+		bcdd7segment = &BCD_D_7_Segment;
+		bcdc7segment = &BCD_C_7_Segment;
+		bcdb7segment = &BCD_B_7_Segment;
+		bcda7segment = &BCD_A_7_Segment;
+		batterylowled = &battery_low_led;		
+		button14x4 = &button_1_4x4;
+		button24x4 = &button_2_4x4;
+		button34x4 = &button_3_4x4;
+		button44x4 = &button_4_4x4;
+		button54x4 = &button_5_4x4;
+		button64x4 = &button_6_4x4;
+		button74x4 = &button_7_4x4;
+		button84x4 = &button_8_4x4;
+		button94x4 = &button_9_4x4;
+		button104x4 = &button_10_4x4;
+		button114x4 = &button_11_4x4;
+		button124x4 = &button_12_4x4;
+		button134x4 = &button_13_4x4;
+		button144x4 = &button_14_4x4;
+		button154x4 = &button_15_4x4;
+		button164x4 = &button_16_4x4;
+		shiftdatain4x4 = &shift_Data_in_4x4;
+		shiftoutputenable4x4 = &shift_Output_Enable_4x4;
+		shiftclock4x4 = &shift_Clock_4x4;
+		muxa4x4 = &MUX_A_4x4;
+		muxb4x4 = &MUX_B_4x4;
+		abcbuttona = &ABC_button_a;
+		abcleda = &ABC_led_a;
+		abcbuttonb = &ABC_button_b;
+		abcledb = &ABC_led_b;
+		abcbuttonc = &ABC_button_c;
+		abcledc = &ABC_led_c;
+		switches1on = &switches_1_On;
+		switches1off = &switches_1_Off;
+		switches2on = &switches_2_On;
+		switches2off = &switches_2_Off;
+		switches3on = &switches_3_On;
+		switches3off = &switches_3_Off;
+		switches4on = &switches_4_On;
+		switches4off = &switches_4_Off;
+		switches5on = &switches_5_On;
+		switches5off = &switches_5_Off;
+		lcddisplaye = &LCD_Display_E;
+		lcddisplayrs = &LCD_Display_RS;
+		lcddisplaybacklightenable = &LCD_Display_Backlight_Enable;
+		startbutton = &start_Button;
+		startled = &start_Led;
+		lcddisplayd7 = &LCD_Display_D7;
+		lcddisplayd6 = &LCD_Display_D6;
+		lcddisplayd5 = &LCD_Display_D5;
+		lcddisplayd4 = &LCD_Display_D4;
+		lcddisplayd3 = &LCD_Display_D3;
+		lcddisplayd2 = &LCD_Display_D2;
+		lcddisplayd1 = &LCD_Display_D1;
+		lcddisplayd0 = &LCD_Display_D0;
+		3dcompassdataready = &data_ready_3d_compass;
+		3dcompassintterupt = &interupt_3d_compass;
+	};
+
+	 chosen {
+		zephyr,console = &usart2;
+		zephyr,shell-uart = &usart2;
+	};
+};
+
+
+//disable unused
+
+
+&adc1{
+		status = "okay";
+		pinctrl-0 = < &adc1_inp2_pf11 >;
+};
+
+&adc3{
+		status = "disabled";
+};
+
+&dac1{
+		status = "disabled";
+};
+
+&usart3 {
+		status = "disabled";
+};
+
+&spi1 {
+		status = "disabled";
+};
+
+&fdcan1{
+		status = "disabled";
+};
+
+
+
+&leds{
+		status = "disabled";
+};
+
+&red_pwm_led {
+		status = "disabled";
+};
+
+&user_button {
+		status = "disabled";
+};
+
+&clk_hse {
+		status = "disabled";
+};
+
+//enable used
+
+&usart1 {
+		pinctrl-0 = < &usart1_tx_pb7 &usart1_rx_pb6 >;
+		pinctrl-names = "default";
+        current-speed = <9600>;
+        status = "okay";
+        gnss: gnss-nmea-generic {
+                compatible = "gnss-nmea-generic";
+        };
+};
+
+&usart2 {
+		pinctrl-0 = < &usart2_tx_pa2 &usart2_rx_pa3 >;
+		pinctrl-names = "default";
+        current-speed = <115200>;
+        status = "okay";
+};
+
+
+&i2c1{
+		status = "okay";
+		pinctrl-0 = < &i2c1_scl_pb8 &i2c1_sda_pb9 >;
+		gyro: lis3mdl-magn@1e {
+			compatible = "st,lis3mdl-magn";
+			reg = <0x1E>;
+			irq-gpios = <&gpiob 8 GPIO_ACTIVE_HIGH>;
+		};
+};
+
+&clk_hsi{
+	status = "okay";
+	hsi-div = <1>;
+};
+
+&clk_hsi48{
+	status = "okay";
+};
+
+&rng{
+	status = "okay";
+};
+
+&pll {
+	div-m = <4>;
+	mul-n = <40>;
+	div-p = <2>;
+	div-q = <3>;
+	div-r = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(320)>;
+	d1cpre = < 0x1 >;
+	hpre = < 0x2 >;
+	d1ppre = < 0x2 >;
+	d2ppre1 = < 0x2 >;
+	d2ppre2 = < 0x2 >;
+	d3ppre = < 0x2 >;
+};

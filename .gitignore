@@ -1,32 +1,14 @@
-# Prerequisites
-*.d
+# Ignore everything in the .vscode directory (setting folder)
+.vscode/*
+Project/.vscode/*
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Add other directories:
+Project/build/*
+build/*
 
-# Precompiled Headers
-*.gch
-*.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# Ignore specfic files:
+Zephyr.code-workspace
+h7ConfigScriptOzone.jdebug.user
 
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+Project/h7ConfigScriptOzone.jdebug.user
