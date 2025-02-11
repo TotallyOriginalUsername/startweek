@@ -1,3 +1,26 @@
+# Setup
+- Virtual machine with ubuntu 20.04
+- Zephyr 4.0 (for LVGL 8.4)
+- Visual Studio Code
+	- Task Buttons extension
+
+Build:
+```
+source ~/zephyrproject/.venv/bin/activate && west build -b native_sim applications/StartWeekAvans25/native_sim
+```
+Run:
+```
+west build -t run
+```
+
+Above commands can be added as tasks to vs code for one-step building and running.
+
+# Troubleshooting
+## Black display
+- Clear build folder and build again
+- Have "display_blanking_off(display_dev);"
+
+## asm/errno.h: No such file or directory
 ```
 /usr/include/linux/errno.h:1:10: fatal error: asm/errno.h: No such file or directory
     1 | #include <asm/errno.h>
@@ -10,6 +33,8 @@ FATAL ERROR: command exited with status 1: /usr/bin/cmake --build /home/npc/zeph
 
 sudo apt-get install gcc-multilib
 
+## SDL2/_real_SDL_config.h: No such file or directory
+
 ```
 /usr/include/SDL2/SDL_config.h:4:10: fatal error: SDL2/_real_SDL_config.h: No such file or directory
     4 | #include <SDL2/_real_SDL_config.h>
@@ -18,7 +43,7 @@ compilation terminated.
 ```
 sudo apt install libsdl2-dev:i386
 
-
+## GPIO emul
 ```
 [00:00:00.000,000] <inf> gpio_emul_sdl: GPIO sdl_gpio:0 = 30
 [00:00:00.000,000] <inf> gpio_emul_sdl: GPIO sdl_gpio:1 = 31
