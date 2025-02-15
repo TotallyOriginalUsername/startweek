@@ -15,6 +15,7 @@ west build -t run
 
 Above commands can be added as tasks to vs code for one-step building and running.
 
+
 # Troubleshooting
 ## Black display
 - Clear build folder and build again
@@ -67,3 +68,10 @@ gpio_emul0: gpio_emul_0 {
 	
 	};
 	Needs rising-edge; to low-level;
+```
+
+# Add to research later
+keys: defining additional keys
+lvgl_button_input: mapping touch
+sdl_gpio: actual keyboard scancodes being used for the keys, which can be found here:
+[page 53](https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf)

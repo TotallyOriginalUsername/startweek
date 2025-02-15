@@ -36,7 +36,7 @@
 		};
 		key4: key4 {
 			gpios = <&gpio_emul0 3 GPIO_ACTIVE_HIGH>;
-			zephyr,code = <INPUT_KEY_R>;
+			zephyr,code = <INPUT_KEY_3>;
 		};
 	};
 
@@ -46,13 +46,6 @@
 		input-codes = <INPUT_KEY_B>;
 		coordinates = <160 120>;
 	};
-
-	lvgl_keypad_input {
-		compatible = "zephyr,lvgl-keypad-input";
-		input = <&keys>;
-		input-codes = <INPUT_KEY_LEFT INPUT_KEY_RIGHT INPUT_KEY_ENTER>;
-		lvgl-codes = <LV_KEY_LEFT LV_KEY_RIGHT LV_KEY_ENTER>;
-	};
 };
 
 &gpio_emul0 {
@@ -61,12 +54,12 @@
 	sdl_gpio {
 		status = "okay";
 		compatible = "zephyr,gpio-emul-sdl";
-		scancodes = <30 31 32 5>;
+		scancodes = <30 31 5 4>;
 	};
 };
 
 // Display
 &sdl_dc {
-    width = <300>;
-    height = <300>;
+    width = <500>;
+    height = <500>;
 };
