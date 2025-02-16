@@ -3,49 +3,108 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(app, CONFIG_LOG_DEFAULT_LEVEL);
 
-void setup_ui(lv_obj_t * parent) {
+#define MAIN_WIDTH 520
+#define MAIN_HEIGHT 520
+
+void setup_cont_buttons1(lv_obj_t *parent){
+    static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    lv_obj_t *cont = lv_obj_create(parent);
+    //lv_obj_set_flex_grow(cont, 2);
+    lv_obj_set_size(cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    //lv_obj_align(parent, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_grid_dsc_array(cont, col_dsc, row_dsc);
+    lv_obj_set_layout(cont, LV_LAYOUT_GRID);
+    lv_obj_center(cont);
+
+    lv_obj_update_layout(parent);
+
+    lv_obj_t *btn1 = lv_btn_create(cont);
+    lv_obj_set_grid_cell(btn1, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_set_style_bg_color(btn1, lv_color_hex(0xFF0000), 0);
+    
+    lv_obj_t *btn2 = lv_btn_create(cont);
+    lv_obj_set_grid_cell(btn2, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_set_style_bg_color(btn2, lv_color_hex(0x00FF00), 0);
+    
+    lv_obj_t *btn3 = lv_btn_create(cont);
+    lv_obj_set_grid_cell(btn3, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_set_style_bg_color(btn3, lv_color_hex(0x0000FF), 0);
+}
+
+void setup_cont_buttons2(lv_obj_t *parent){
+    static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
+    lv_obj_t *cont = lv_obj_create(parent);
+    lv_obj_set_size(cont, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_grid_dsc_array(cont, col_dsc, row_dsc);
+    lv_obj_set_layout(cont, LV_LAYOUT_GRID);
+    lv_obj_center(cont);
+
+    for (int row = 0; row < 4; row++) {
+        for (int col = 0; col < 4; col++) {
+            lv_obj_t *btn = lv_btn_create(cont);
+            lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
+            lv_obj_set_style_bg_color(btn, lv_color_hex(0xFF0000), 0);
+        }
+    }
+}
+
+void setup_ui(lv_obj_t *parent) {
+    static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
+    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
+    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
+    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
+    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
     // Create a main container with a green background
-    lv_obj_t * cont_main = lv_obj_create(parent);
-    lv_obj_set_size(cont_main, lv_obj_get_width(parent), lv_obj_get_height(parent));
+    lv_obj_t *cont_main = lv_obj_create(parent);
+    lv_obj_set_size(cont_main, MAIN_WIDTH, MAIN_HEIGHT);
+    lv_obj_align(parent, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(cont_main, lv_color_hex(0x00FF00), 0);
+    
+    lv_obj_set_grid_dsc_array(cont_main, col_dsc, row_dsc);
+    lv_obj_set_layout(cont_main, LV_LAYOUT_GRID);
 
-    int32_t width = lv_obj_get_width(cont_main);
-    int32_t height = lv_obj_get_height(cont_main);
-    printk("Width: %d, Height: %d\n", width, height);
-
-    // Create containers for all groups
-    lv_obj_t * cont_switches = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_switches, 6 * LV_HOR_RES / 13, LV_VER_RES / 13);
-    lv_obj_set_pos(cont_switches, 5 * LV_HOR_RES / 13, 1 * LV_VER_RES / 13);
+    // Create containers and place them in the grid
+    lv_obj_t *cont_switches = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_switches, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 0, 2);
     lv_obj_set_style_bg_color(cont_switches, lv_color_hex(0x808080), 0);
 
-    lv_obj_t * cont_buttons1 = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_buttons1, 4 * LV_HOR_RES / 13, LV_VER_RES / 13);
-    lv_obj_set_pos(cont_buttons1, 2 * LV_HOR_RES / 13, 2 * LV_VER_RES / 13);
+    lv_obj_t *cont_buttons1 = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_buttons1, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_STRETCH, 2, 2);
     lv_obj_set_style_bg_color(cont_buttons1, lv_color_hex(0xFFFFFF), 0);
 
-    lv_obj_t * cont_buttons2 = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_buttons2, 4 * LV_HOR_RES / 13, 4 * LV_VER_RES / 13);
-    lv_obj_set_pos(cont_buttons2, 1 * LV_HOR_RES / 13, 3 * LV_VER_RES / 13);
+    lv_obj_t *cont_buttons2 = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_buttons2, LV_GRID_ALIGN_STRETCH, 0, 6, LV_GRID_ALIGN_STRETCH, 4, 6);
     lv_obj_set_style_bg_color(cont_buttons2, lv_color_hex(0x808080), 0);
 
-    lv_obj_t * cont_buttons3 = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_buttons3, LV_HOR_RES / 13, LV_VER_RES / 13);
-    lv_obj_set_pos(cont_buttons3, 12 * LV_HOR_RES / 13, 2 * LV_VER_RES / 13);
+    lv_obj_t *cont_buttons3 = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_buttons3, LV_GRID_ALIGN_STRETCH, 11, 2, LV_GRID_ALIGN_STRETCH, 2, 2);
     lv_obj_set_style_bg_color(cont_buttons3, lv_color_hex(0xFFFFFF), 0);
 
-    lv_obj_t * cont_label = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_label, 6 * LV_HOR_RES / 13, LV_VER_RES / 13);
-    lv_obj_set_pos(cont_label, 6 * LV_HOR_RES / 13, 2 * LV_VER_RES / 13);
+    lv_obj_t *cont_label = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_label, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 2, 2);
     lv_obj_set_style_bg_color(cont_label, lv_color_hex(0xFFFF00), 0);
 
-    lv_obj_t * cont_array = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_array, 4 * LV_HOR_RES / 13, 4 * LV_VER_RES / 13);
-    lv_obj_set_pos(cont_array, 10 * LV_HOR_RES / 13, 3 * LV_VER_RES / 13);
+    lv_obj_t *cont_array = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_array, LV_GRID_ALIGN_STRETCH, 7, 6, LV_GRID_ALIGN_STRETCH, 4, 6);
     lv_obj_set_style_bg_color(cont_array, lv_color_hex(0xFF0000), 0);
 
-    lv_obj_t * cont_label2 = lv_obj_create(cont_main);
-    lv_obj_set_size(cont_label2, 4 * LV_HOR_RES / 13, LV_VER_RES / 13);
-    lv_obj_set_pos(cont_label2, 4 * LV_HOR_RES / 13, 8 * LV_VER_RES / 13);
+    lv_obj_t *cont_label2 = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_label2, LV_GRID_ALIGN_STRETCH, 4, 4, LV_GRID_ALIGN_STRETCH, 10, 2);
     lv_obj_set_style_bg_color(cont_label2, lv_color_hex(0xFF0000), 0);
+
+    //Fill in the containers
+    setup_cont_buttons1(cont_buttons1);
+    setup_cont_buttons2(cont_buttons2);
+    lv_obj_t *btn3 = lv_btn_create(cont_buttons3);
+
+    lv_obj_t *label = lv_label_create(cont_label);
+	lv_label_set_text(label, "Hello world\n");
+
+    lv_obj_t *label2 = lv_label_create(cont_label2);
+	lv_label_set_text(label2, "1 2 3 4\n");
 }
