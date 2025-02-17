@@ -128,8 +128,8 @@
 	lvgl_button_input {
 		compatible = "zephyr,lvgl-button-input";
 		input = <&keys>;
-		input-codes = <INPUT_KEY_B>;
-		coordinates = <160 120>;
+		input-codes = <INPUT_KEY_1>;
+		coordinates = <221 69>;
 	};
 };
 

@@ -12,25 +12,11 @@
 #include <zephyr/kernel.h>
 #include <lvgl_input_device.h>
 #include "../inc/lvgl_ui.h"
+#include "../inc/hardware.h"
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app);
-
-static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(
-		DT_ALIAS(sw0), gpios, {0});
-static struct gpio_callback button_callback;
-
-static void button_isr_callback(const struct device *port,
-				struct gpio_callback *cb,
-				uint32_t pins)
-{
-	//Keyboard press
-	ARG_UNUSED(port);
-	ARG_UNUSED(cb);
-	ARG_UNUSED(pins);
-	printk("Button pressed GPIO \n");
-}
 
 static void lv_btn_click_callback(lv_event_t *e)
 {
@@ -50,31 +36,8 @@ int main(void)
 		return 0;
 	}
 
-	if (gpio_is_ready_dt(&button_gpio)) {
-		int err;
-
-		err = gpio_pin_configure_dt(&button_gpio, GPIO_INPUT);
-		if (err) {
-			LOG_ERR("failed to configure button gpio: %d", err);
-			return 0;
-		}
-
-		gpio_init_callback(&button_callback, button_isr_callback,
-				   BIT(button_gpio.pin));
-
-		err = gpio_add_callback(button_gpio.port, &button_callback);
-		if (err) {
-			LOG_ERR("failed to add button callback: %d", err);
-			return 0;
-		}
-
-		err = gpio_pin_interrupt_configure_dt(&button_gpio,
-						      GPIO_INT_EDGE_TO_ACTIVE);
-		if (err) {
-			LOG_ERR("failed to enable button callback: %d", err);
-			return 0;
-		}
-	}
+	buttons4x4Config();
+	buttons4x4Init();
 
 	//lv_obj_t * cont_screen = lv_obj_create(lv_scr_act());
 	//lv_obj_set_size(cont_screen, 490, 490);
@@ -87,6 +50,16 @@ int main(void)
 
 	while (1) {
 		lv_task_handler();
+		for(int i = 0; i < 1; i++){
+			uint8_t button_state = buttons4x4GetLVGL(i);
+			if (button_state < 0) {
+				printk("Failed to read button state: %d", button_state);
+			} else {
+				printk("Button %d state: %s\n", i, button_state ? "Pressed" : "Released");
+			}
+		}
+		printk("\n ----------- \n");
+
 		k_sleep(K_MSEC(10));
 	}
 }

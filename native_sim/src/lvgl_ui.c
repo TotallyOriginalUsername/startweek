@@ -6,6 +6,18 @@ LOG_MODULE_DECLARE(app, CONFIG_LOG_DEFAULT_LEVEL);
 #define MAIN_WIDTH 520
 #define MAIN_HEIGHT 520
 
+lv_obj_t *buttons[15];
+
+uint8_t get_button_state(uint8_t selectedbtn){
+    int button_state;
+    if(lv_obj_get_state(buttons[selectedbtn]) == LV_EVENT_PRESSING){
+        return 0;
+    }
+    else{
+        return 1;
+    }
+}
+
 void setup_cont_buttons1(lv_obj_t *parent){
     static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
@@ -33,6 +45,7 @@ void setup_cont_buttons1(lv_obj_t *parent){
 }
 
 void setup_cont_buttons2(lv_obj_t *parent){
+    int index = 0;
     static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
 
@@ -44,11 +57,15 @@ void setup_cont_buttons2(lv_obj_t *parent){
 
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 4; col++) {
-            lv_obj_t *btn = lv_btn_create(cont);
-            lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
-            lv_obj_set_style_bg_color(btn, lv_color_hex(0xFF0000), 0);
+            buttons[index] = lv_btn_create(cont);
+            lv_obj_set_grid_cell(buttons[index], LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
+            lv_obj_set_style_bg_color(buttons[index], lv_color_hex(0xFF0000), 0);
+            //lv_obj_add_state(buttons[index], LV_STATE_PRESSED);
+            lv_obj_clear_state(buttons[index], LV_STATE_PRESSED);
+            index++;
         }
     }
+    
 }
 
 void setup_ui(lv_obj_t *parent) {

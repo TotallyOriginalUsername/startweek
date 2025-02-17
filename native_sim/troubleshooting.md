@@ -69,6 +69,30 @@ gpio_emul0: gpio_emul_0 {
 	};
 	Needs rising-edge; to low-level;
 ```
+## Undefined reference
+```
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c: In function âmainâ:
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:46:12: warning: unused variable âhello_world_labelâ [-Wunused-variable]
+   46 |  lv_obj_t *hello_world_label;
+      |            ^~~~~~~~~~~~~~~~~
+At top level:
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:36:13: warning: âlv_btn_click_callbackâ defined but not used [-Wunused-function]
+   36 | static void lv_btn_click_callback(lv_event_t *e)
+      |             ^~~~~~~~~~~~~~~~~~~~~
+[3/6] Linking C executable zephyr/zephyr.elf
+Generating files from /home/npc/zephyrproject/build/zephyr/zephyr.elf for board: native_sim
+[4/6] Building native simulator runner, and linking final executable
+FAILED: zephyr/CMakeFiles/native_runner_executable zephyr/zephyr.exe /home/npc/zephyrproject/build/zephyr/CMakeFiles/native_runner_executable /home/npc/zephyrproject/build/zephyr/zephyr.exe 
+cd /home/npc/zephyrproject/build/zephyr && /usr/bin/make -f /home/npc/zephyrproject/zephyr/scripts/native_simulator/Makefile all --warn-undefined-variables -r NSI_CONFIG_FILE=/home/npc/zephyrproject/build/zephyr/NSI/nsi_config
+/usr/bin/ld: /home/npc/zephyrproject/build/zephyr/NSI/home/npc/zephyrproject/build/zephyr/zephyr.elf.loc_cpusw.o: in function `main':
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:92: undefined reference to `buttons4x4Get'
+collect2: error: ld returned 1 exit status
+make: *** [/home/npc/zephyrproject/zephyr/scripts/native_simulator/Makefile:131: /home/npc/zephyrproject/build/zephyr/zephyr.exe] Error 1
+ninja: build stopped: subcommand failed.
+
+```
+Do a pristine rebuild to make sure the project gets build with new header files.
+
 # LVGL
 
 ## Getting parent width/height
@@ -91,6 +115,18 @@ lv_obj_update_layout(); also doesnt cause a proper scaling to parent's size.
 Above solutions have worked in other cases, so need to figure out why the scaling is odd here.
 Flex grow also doesnt cause it to grow to parent size.
 Might need to adjust styling
+
+## Button reporting pressed at start
+Add default state doesnt work. Removing pressed state doesnt work.
+```
+lv_obj_add_state(buttons[index], LV_STATE_PRESSED);
+            lv_obj_clear_state(buttons[index], LV_STATE_PRESSED);
+```
+gives:
+```
+*** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
+[00:00:00.000,000] <err> lvgl: (0.000, +0)	 _lv_obj_style_create_transition: Asserted at expression: tr != NULL (Out of memory) 	(in lv_obj_style.c line #355)
+```
 
 # Add to research later
 keys: defining additional keys
