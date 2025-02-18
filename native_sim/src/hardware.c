@@ -85,7 +85,6 @@ uint8_t buttons4x4GetLVGL(uint8_t selectedbtn)
 	if(selectedbtn < 16 && selectedbtn >= 0)
 	{
         lvgl_state = get_button_state(selectedbtn);
-        //printk("LVGL state: %d\n", lvgl_state);
         if(lvgl_state == 1){
             return 1;
         }

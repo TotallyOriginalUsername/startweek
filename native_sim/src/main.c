@@ -39,10 +39,6 @@ int main(void)
 	buttons4x4Config();
 	buttons4x4Init();
 
-	//lv_obj_t * cont_screen = lv_obj_create(lv_scr_act());
-	//lv_obj_set_size(cont_screen, 490, 490);
-    //lv_obj_align(cont_screen, LV_ALIGN_CENTER, 0, 0);
-	//task_handler needs to be called after setting cont size
 	lv_task_handler();
 	display_blanking_off(display_dev);
 
@@ -50,7 +46,7 @@ int main(void)
 
 	while (1) {
 		lv_task_handler();
-		for(int i = 0; i < 1; i++){
+		for(int i = 0; i < 16; i++){
 			uint8_t button_state = buttons4x4GetLVGL(i);
 			if (button_state < 0) {
 				printk("Failed to read button state: %d", button_state);

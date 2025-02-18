@@ -9,12 +9,13 @@ LOG_MODULE_DECLARE(app, CONFIG_LOG_DEFAULT_LEVEL);
 lv_obj_t *buttons[15];
 
 uint8_t get_button_state(uint8_t selectedbtn){
+
     int button_state;
-    if(lv_obj_get_state(buttons[selectedbtn]) == LV_EVENT_PRESSING){
-        return 0;
+    if(lv_obj_get_state(buttons[selectedbtn]) & LV_STATE_PRESSED){
+        return 1;
     }
     else{
-        return 1;
+        return 0;
     }
 }
 
@@ -60,12 +61,9 @@ void setup_cont_buttons2(lv_obj_t *parent){
             buttons[index] = lv_btn_create(cont);
             lv_obj_set_grid_cell(buttons[index], LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
             lv_obj_set_style_bg_color(buttons[index], lv_color_hex(0xFF0000), 0);
-            //lv_obj_add_state(buttons[index], LV_STATE_PRESSED);
-            lv_obj_clear_state(buttons[index], LV_STATE_PRESSED);
             index++;
         }
     }
-    
 }
 
 void setup_ui(lv_obj_t *parent) {
