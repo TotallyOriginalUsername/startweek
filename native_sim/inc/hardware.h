@@ -2,6 +2,16 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 
+#define LEDMATRIXLEDSINROW		16
+#define LEDMATRIXROWS 			16
+#ifndef HIGH
+#define HIGH 1
+#endif
+
+#ifndef LOW
+#define LOW 0
+#endif
+
 static const struct gpio_dt_spec buttonsButtonMatrix[16] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios),
 	GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios),
@@ -25,3 +35,5 @@ bool buttons4x4Config();
 uint8_t buttons4x4Init();
 uint8_t buttons4x4Get(uint8_t selectedbtn);
 uint8_t buttons4x4GetLVGL(uint8_t selectedbtn);
+
+int8_t ledMatrixSet(int16_t data[16]);

@@ -96,3 +96,23 @@ uint8_t buttons4x4GetLVGL(uint8_t selectedbtn)
 	}
 	
 }
+
+int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
+{
+	for (size_t row = 0; row < LEDMATRIXROWS; row++)
+	{
+		for (size_t led = 0; led < LEDMATRIXLEDSINROW; led++)
+		{
+			int index = row * LEDMATRIXLEDSINROW + led;
+			if(data[row] & 0x1<<led)
+			{
+				set_led((index), 1);
+			}
+			else
+			{
+				set_led((index), 0);
+			}
+		}
+	}
+	return 0;
+}

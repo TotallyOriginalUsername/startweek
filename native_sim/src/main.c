@@ -36,6 +36,25 @@ int main(void)
 		return 0;
 	}
 
+	int16_t bad_apple_frame[16] = {
+        0b0000000001000000,
+        0b0000000001110000,
+        0b0000000011111000,
+        0b0000000111111100,
+        0b0000000111111100,
+        0b0000000111111100,
+        0b0000000111111100,
+        0b0000000011111110,
+        0b0000000001111110,
+        0b0000100001111110,
+        0b0001100001111000,
+        0b0001110001111000,
+        0b0000111011111000,
+        0b0000111111111000,
+        0b0000111111111110,
+        0b0000111101111100
+    };
+
 	buttons4x4Config();
 	buttons4x4Init();
 
@@ -43,6 +62,8 @@ int main(void)
 	display_blanking_off(display_dev);
 
 	setup_ui(lv_scr_act());
+
+	ledMatrixSet(bad_apple_frame);
 
 	while (1) {
 		lv_task_handler();
