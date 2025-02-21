@@ -97,6 +97,29 @@ uint8_t buttons4x4GetLVGL(uint8_t selectedbtn)
 	
 }
 
+uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
+{
+	for (size_t row = 0; row < CIRCLEMATRIXROWS; row++)
+	{
+		for (size_t led = 0; led < CIRCLEMATRIXLEDSINROW; led++)
+		{
+			int index = row * CIRCLEMATRIXLEDSINROW + led;
+			if(data[row] & 0x1<<led)
+			{
+				set_led_circle((index), 1);
+			}
+			else
+			{
+				set_led_circle((index), 0);
+			}
+		}
+
+		//TODO: determine this k_sleep delay
+		k_sleep(K_USEC(2000));
+	}
+	return 0;
+}
+
 int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
 {
 	for (size_t row = 0; row < LEDMATRIXROWS; row++)

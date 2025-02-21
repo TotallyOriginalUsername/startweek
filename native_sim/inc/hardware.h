@@ -4,6 +4,9 @@
 
 #define LEDMATRIXLEDSINROW		16
 #define LEDMATRIXROWS 			16
+#define CIRCLEMATRIXLEDSINROW		8
+#define CIRCLEMATRIXROWS 			8
+
 #ifndef HIGH
 #define HIGH 1
 #endif
@@ -35,5 +38,6 @@ bool buttons4x4Config();
 uint8_t buttons4x4Init();
 uint8_t buttons4x4Get(uint8_t selectedbtn);
 uint8_t buttons4x4GetLVGL(uint8_t selectedbtn);
+uint8_t circleMatrixSet(uint8_t data[8]);
 
 int8_t ledMatrixSet(int16_t data[16]);

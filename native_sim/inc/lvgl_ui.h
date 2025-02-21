@@ -7,8 +7,11 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 #include <lvgl_input_device.h>
+#include <math.h>
 
 void set_led(int led, int state);
+void set_led_circle(int led, int state);
+
 uint8_t get_button_state(uint8_t selectedbtn);
 /* Setup UI*/
 void setup_ui(lv_obj_t * parent);

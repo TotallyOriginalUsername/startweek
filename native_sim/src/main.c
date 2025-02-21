@@ -55,6 +55,10 @@ int main(void)
         0b0000111101111100
     };
 
+	int8_t led_circle_data[8] = 	{0b10101010, 0b10101010, 0b10101010, 0b10101010, 
+						0b10101010, 0b10101010, 0b10101010, 0b10101010,
+						};
+
 	buttons4x4Config();
 	buttons4x4Init();
 
@@ -63,10 +67,12 @@ int main(void)
 
 	setup_ui(lv_scr_act());
 
+	circleMatrixSet(led_circle_data);
 	ledMatrixSet(bad_apple_frame);
 
 	while (1) {
 		lv_task_handler();
+		/*
 		for(int i = 0; i < 16; i++){
 			uint8_t button_state = buttons4x4GetLVGL(i);
 			if (button_state < 0) {
@@ -76,6 +82,7 @@ int main(void)
 			}
 		}
 		printk("\n ----------- \n");
+		*/
 
 		k_sleep(K_MSEC(10));
 	}

@@ -8,6 +8,7 @@ LOG_MODULE_DECLARE(app, CONFIG_LOG_DEFAULT_LEVEL);
 
 lv_obj_t *buttons[15];
 lv_obj_t *leds[256];
+lv_obj_t *leds_circle[64];
 
 void set_led(int led, int state){
     if(state == 1){
@@ -18,6 +19,18 @@ void set_led(int led, int state){
     }
     else{
         printk("set_led received an improper state");
+    }
+}
+
+void set_led_circle(int led, int state){
+    if(state == 1){
+        lv_obj_set_style_bg_color(leds_circle[led], lv_color_hex(0xFF0000), 0);
+    }
+    else if(state == 0){
+        lv_obj_set_style_bg_color(leds_circle[led], lv_color_hex(0x000000), 0);
+    }
+    else{
+        printk("set_led_circle received an improper state");
     }
 }
 
@@ -58,13 +71,13 @@ void setup_cont_buttons1(lv_obj_t *parent){
     static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     lv_obj_t *cont = lv_obj_create(parent);
     //lv_obj_set_flex_grow(cont, 2);
-    lv_obj_set_size(cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_size(cont, LV_PCT(100), LV_PCT(100));
     //lv_obj_align(parent, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_grid_dsc_array(cont, col_dsc, row_dsc);
     lv_obj_set_layout(cont, LV_LAYOUT_GRID);
     lv_obj_center(cont);
 
-    lv_obj_update_layout(parent);
+    lv_obj_set_style_pad_all(parent, 0, 0);
 
     lv_obj_t *btn1 = lv_btn_create(cont);
     lv_obj_set_grid_cell(btn1, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
@@ -90,6 +103,8 @@ void setup_cont_buttons2(lv_obj_t *parent){
     lv_obj_set_layout(cont, LV_LAYOUT_GRID);
     lv_obj_center(cont);
 
+    lv_obj_set_style_pad_all(parent, 0, 0);
+
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 4; col++) {
             buttons[index] = lv_btn_create(cont);
@@ -104,14 +119,14 @@ void setup_cont_buttons2(lv_obj_t *parent){
 
 void setup_led_array(lv_obj_t *parent){
     int index = 0;
-    //214/16
-    int led_size = 13;
+    //191/16
+    double led_size = 11.6;
 
     lv_obj_t *cont = lv_obj_create(parent);
     lv_obj_set_size(cont, LV_PCT(100), LV_PCT(100));
-    lv_obj_center(cont);
     lv_obj_set_style_pad_all(parent, 0, 0);
     lv_obj_set_style_pad_all(cont, 0, 0);
+    lv_obj_center(cont);
 
     for (int row = 0; row < 16; row++) {
         for (int col = 0; col < 16; col++) {
@@ -124,56 +139,88 @@ void setup_led_array(lv_obj_t *parent){
     }
 }
 
+void setup_led_circle(lv_obj_t * parent) {
+    int center_x = 525 / 2;
+    int center_y = 525 / 2;
+    int radius = 500 / 2;
+
+    lv_obj_t *cont = lv_obj_create(parent);
+    lv_obj_set_size(cont, LV_PCT(100), LV_PCT(100));
+    lv_obj_center(cont);
+    lv_obj_set_style_pad_all(parent, 0, 0);
+    lv_obj_set_style_pad_all(cont, 0, 0);
+    lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
+
+    for (int i = 0; i < 64; i++) {
+        float angle = 2 * 3.14 * i / 64;
+        int x = center_x + radius * cos(angle);
+        int y = center_y + radius * sin(angle);
+
+        leds_circle[i] = lv_obj_create(cont);
+        lv_obj_set_size(leds_circle[i], 9, 9);
+        lv_obj_set_pos(leds_circle[i], x - 10, y - 10);
+        lv_obj_set_style_bg_color(leds_circle[i], lv_color_hex(0x000000), 0);
+    }
+}
+
 void setup_ui(lv_obj_t *parent) {
     static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
     LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
-    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
     LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
-    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
 
     // Create a main container with a green background
+    lv_obj_t *cont_led_circle = lv_obj_create(parent);
+    lv_obj_set_size(cont_led_circle, MAIN_WIDTH, MAIN_HEIGHT);
+    lv_obj_align(cont_led_circle, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_bg_color(cont_led_circle, lv_color_hex(0x00FF00), 0);
+
     lv_obj_t *cont_main = lv_obj_create(parent);
-    lv_obj_set_size(cont_main, MAIN_WIDTH, MAIN_HEIGHT);
+    lv_obj_set_size(cont_main, MAIN_WIDTH - 10, MAIN_HEIGHT - 10);
     lv_obj_align(parent, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(cont_main, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_style_bg_opa(cont_main, LV_OPA_TRANSP, 0);
     
     lv_obj_set_grid_dsc_array(cont_main, col_dsc, row_dsc);
     lv_obj_set_layout(cont_main, LV_LAYOUT_GRID);
 
     // Create containers and place them in the grid
     lv_obj_t *cont_switches = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_switches, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 0, 2);
+    lv_obj_set_grid_cell(cont_switches, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 1, 2);
     lv_obj_set_style_bg_color(cont_switches, lv_color_hex(0x808080), 0);
 
     lv_obj_t *cont_buttons1 = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_buttons1, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_STRETCH, 2, 2);
+    lv_obj_set_grid_cell(cont_buttons1, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_STRETCH, 3, 2);
     lv_obj_set_style_bg_color(cont_buttons1, lv_color_hex(0xFFFFFF), 0);
 
     lv_obj_t *cont_buttons2 = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_buttons2, LV_GRID_ALIGN_STRETCH, 0, 6, LV_GRID_ALIGN_STRETCH, 4, 6);
+    lv_obj_set_grid_cell(cont_buttons2, LV_GRID_ALIGN_STRETCH, 1, 6, LV_GRID_ALIGN_STRETCH, 5, 6);
     lv_obj_set_style_bg_color(cont_buttons2, lv_color_hex(0x808080), 0);
 
     lv_obj_t *cont_buttons3 = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_buttons3, LV_GRID_ALIGN_STRETCH, 11, 2, LV_GRID_ALIGN_STRETCH, 2, 2);
+    lv_obj_set_grid_cell(cont_buttons3, LV_GRID_ALIGN_STRETCH, 11, 2, LV_GRID_ALIGN_STRETCH, 3, 2);
     lv_obj_set_style_bg_color(cont_buttons3, lv_color_hex(0xFFFFFF), 0);
 
     lv_obj_t *cont_label = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_label, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 2, 2);
+    lv_obj_set_grid_cell(cont_label, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 3, 2);
     lv_obj_set_style_bg_color(cont_label, lv_color_hex(0xFFFF00), 0);
 
     lv_obj_t *cont_led_matrix = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_led_matrix, LV_GRID_ALIGN_STRETCH, 7, 6, LV_GRID_ALIGN_STRETCH, 4, 6);
+    lv_obj_set_grid_cell(cont_led_matrix, LV_GRID_ALIGN_STRETCH, 7, 6, LV_GRID_ALIGN_STRETCH, 5, 6);
     lv_obj_set_style_bg_color(cont_led_matrix, lv_color_hex(0xFF0000), 0);
 
     lv_obj_t *cont_label2 = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_label2, LV_GRID_ALIGN_STRETCH, 4, 4, LV_GRID_ALIGN_STRETCH, 10, 2);
+    lv_obj_set_grid_cell(cont_label2, LV_GRID_ALIGN_STRETCH, 4, 4, LV_GRID_ALIGN_STRETCH, 11, 2);
     lv_obj_set_style_bg_color(cont_label2, lv_color_hex(0xFF0000), 0);
 
     //Fill in the containers
     setup_cont_buttons1(cont_buttons1);
     setup_cont_buttons2(cont_buttons2);
     setup_led_array(cont_led_matrix);
+    setup_led_circle(cont_led_circle);
+
     lv_obj_t *btn3 = lv_btn_create(cont_buttons3);
 
     lv_obj_t *label = lv_label_create(cont_label);
