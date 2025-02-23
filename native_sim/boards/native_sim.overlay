@@ -23,6 +23,15 @@
 		sw17 = &key18;
 		sw18 = &key19;
 		sw19 = &key20;
+		sw20 = &key21;
+		sw21 = &key22;
+		sw22 = &key23;
+		sw23 = &key24;
+		sw24 = &key25;
+		sw25 = &key26;
+		sw26 = &key27;
+		sw27 = &key28;
+		sw28 = &key29;
 	};
 
 	//emulated gpio description
@@ -34,7 +43,7 @@
 		high-level;
 		low-level;
 		gpio-controller;
-		ngpios = <20>; // Number of GPIO pins
+		ngpios = <29>; // Number of GPIO pins
 		#gpio-cells = <2>;
 	
 	};
@@ -106,7 +115,7 @@
 			gpios = <&gpio_emul0 15 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_V>;
 		};
-		//4 keys for the buttons on top
+		//3 ABC buttons
 		key17: key17 {
 			gpios = <&gpio_emul0 16 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_5>;
@@ -119,9 +128,46 @@
 			gpios = <&gpio_emul0 18 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_7>;
 		};
+		// 10 for switches
 		key20: key20 {
 			gpios = <&gpio_emul0 19 GPIO_ACTIVE_HIGH>;
-			zephyr,code = <INPUT_KEY_8>;
+			zephyr,code = <INPUT_KEY_T>;
+		};
+		key21: key21 {
+			gpios = <&gpio_emul0 20 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_Y>;
+		};
+		key22: key22 {
+			gpios = <&gpio_emul0 21 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_U>;
+		};
+		key23: key23 {
+			gpios = <&gpio_emul0 22 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_I>;
+		};
+		key24: key24 {
+			gpios = <&gpio_emul0 23 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_O>;
+		};
+		key25: key25 {
+        	gpios = <&gpio_emul0 24 GPIO_ACTIVE_HIGH>;
+        	zephyr,code = <INPUT_KEY_G>;
+		};
+		key26: key26 {
+			gpios = <&gpio_emul0 25 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_H>;
+		};
+		key27: key27 {
+			gpios = <&gpio_emul0 26 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_J>;
+		};
+		key28: key28 {
+			gpios = <&gpio_emul0 27 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_K>;
+		};
+		key29: key29 {
+			gpios = <&gpio_emul0 28 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_L>;
 		};
 	};
 
@@ -134,7 +180,7 @@
 };
 
 &gpio_emul0 {
-	ngpios = <20>;
+	ngpios = <29>;
 
 	sdl_gpio {
 		status = "okay";
@@ -143,7 +189,9 @@
 					20 26 8 21
 					4 22 7 9
 					29 27 6 25
-					34 35 36 37>;
+					34 35 36 
+					23 28 24 12 18
+					10 11 13 14 15>;
 	};
 };
 

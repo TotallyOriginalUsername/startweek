@@ -15,6 +15,12 @@
 #define LOW 0
 #endif
 
+static const struct gpio_dt_spec abcbutton[3] = {
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw16), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw17), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw18), gpios),
+};
+
 static const struct gpio_dt_spec buttonsButtonMatrix[16] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios),
 	GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios),
@@ -34,10 +40,34 @@ static const struct gpio_dt_spec buttonsButtonMatrix[16] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(sw15), gpios)
 };
 
+static const struct gpio_dt_spec switchon[5] = {
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw19), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw20), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw21), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw22), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw23), gpios),
+};
+
+static const struct gpio_dt_spec switchoff[5] = {
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw24), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw25), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw26), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw27), gpios),
+	GPIO_DT_SPEC_GET(DT_ALIAS(sw28), gpios),
+};
+
+uint8_t abcbuttonsInit();
 bool buttons4x4Config();
 uint8_t buttons4x4Init();
+uint8_t switchesInit();
+
+uint8_t lcdStringWrite(char *msg);
+
+uint8_t buttonsAbcGetLVGL(char selectedbtn);
 uint8_t buttons4x4Get(uint8_t selectedbtn);
 uint8_t buttons4x4GetLVGL(uint8_t selectedbtn);
-uint8_t circleMatrixSet(uint8_t data[8]);
+uint8_t switchesGet(uint8_t selectedswitch);
 
+uint8_t circleMatrixSet(uint8_t data[8]);
 int8_t ledMatrixSet(int16_t data[16]);
+uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition);

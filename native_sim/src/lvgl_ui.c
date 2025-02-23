@@ -7,8 +7,16 @@ LOG_MODULE_DECLARE(app, CONFIG_LOG_DEFAULT_LEVEL);
 #define MAIN_HEIGHT 520
 
 lv_obj_t *buttons[15];
+lv_obj_t *buttons_abc[3];
 lv_obj_t *leds[256];
 lv_obj_t *leds_circle[64];
+lv_obj_t *lcd_display_label;
+lv_obj_t *segmented_display_label;
+
+// Set functions
+void set_lcd_display(char *msg){
+    lv_label_set_text(lcd_display_label, msg);
+}
 
 void set_led(int led, int state){
     if(state == 1){
@@ -34,7 +42,11 @@ void set_led_circle(int led, int state){
     }
 }
 
-static void event_cb(lv_event_t * e)
+void set_segmented_display(char input[4],uint8_t dpPosition){
+    lv_label_set_text(segmented_display_label, input);
+}
+
+static void button_cb(lv_event_t * e)
 {
     /*The original target of the event. Can be the buttons or the container*/
     lv_obj_t * target = lv_event_get_target(e);
@@ -55,9 +67,11 @@ static void event_cb(lv_event_t * e)
     }
 }
 
+// Get functions
 uint8_t get_button_state(uint8_t selectedbtn){
 
     int button_state;
+    
     if(lv_obj_get_state(buttons[selectedbtn]) & LV_STATE_USER_1){
         return 1;
     }
@@ -66,7 +80,50 @@ uint8_t get_button_state(uint8_t selectedbtn){
     }
 }
 
-void setup_cont_buttons1(lv_obj_t *parent){
+uint8_t get_button_abc_state(char selectedbtn)
+{
+    int button_state;
+
+    switch (selectedbtn)
+    {
+    case 'a':
+        if (lv_obj_get_state(buttons_abc[0]) & LV_STATE_USER_1)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+        break;
+    case 'b':
+        if (lv_obj_get_state(buttons_abc[1]) & LV_STATE_USER_1)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+        break;
+    case 'c':
+        if (lv_obj_get_state(buttons_abc[2]) & LV_STATE_USER_1)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+        break;
+    default:
+        return 2;
+        break;
+    }
+}
+
+// UI setup
+void setup_cont_butons_abc(lv_obj_t *parent){
     static lv_coord_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     lv_obj_t *cont = lv_obj_create(parent);
@@ -79,17 +136,14 @@ void setup_cont_buttons1(lv_obj_t *parent){
 
     lv_obj_set_style_pad_all(parent, 0, 0);
 
-    lv_obj_t *btn1 = lv_btn_create(cont);
-    lv_obj_set_grid_cell(btn1, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
-    lv_obj_set_style_bg_color(btn1, lv_color_hex(0xFF0000), 0);
-    
-    lv_obj_t *btn2 = lv_btn_create(cont);
-    lv_obj_set_grid_cell(btn2, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
-    lv_obj_set_style_bg_color(btn2, lv_color_hex(0x00FF00), 0);
-    
-    lv_obj_t *btn3 = lv_btn_create(cont);
-    lv_obj_set_grid_cell(btn3, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
-    lv_obj_set_style_bg_color(btn3, lv_color_hex(0x0000FF), 0);
+    for(int i = 0; i < 3; i++){
+        buttons_abc[i] = lv_btn_create(cont);
+        lv_obj_set_grid_cell(buttons_abc[i], LV_GRID_ALIGN_STRETCH, i, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+        lv_obj_set_style_bg_color(buttons_abc[i], lv_color_hex(0xFF0000), 0);
+        lv_obj_add_flag(buttons_abc[i], LV_OBJ_FLAG_EVENT_BUBBLE);
+    }
+
+    lv_obj_add_event_cb(cont, button_cb, LV_EVENT_CLICKED, NULL);
 }
 
 void setup_cont_buttons2(lv_obj_t *parent){
@@ -114,7 +168,7 @@ void setup_cont_buttons2(lv_obj_t *parent){
             index++;
         }
     }
-    lv_obj_add_event_cb(cont, event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(cont, button_cb, LV_EVENT_CLICKED, NULL);
 }
 
 void setup_led_array(lv_obj_t *parent){
@@ -191,9 +245,9 @@ void setup_ui(lv_obj_t *parent) {
     lv_obj_set_grid_cell(cont_switches, LV_GRID_ALIGN_STRETCH, 5, 6, LV_GRID_ALIGN_STRETCH, 1, 2);
     lv_obj_set_style_bg_color(cont_switches, lv_color_hex(0x808080), 0);
 
-    lv_obj_t *cont_buttons1 = lv_obj_create(cont_main);
-    lv_obj_set_grid_cell(cont_buttons1, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_STRETCH, 3, 2);
-    lv_obj_set_style_bg_color(cont_buttons1, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_t *cont_butons_abc = lv_obj_create(cont_main);
+    lv_obj_set_grid_cell(cont_butons_abc, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_STRETCH, 3, 2);
+    lv_obj_set_style_bg_color(cont_butons_abc, lv_color_hex(0xFFFFFF), 0);
 
     lv_obj_t *cont_buttons2 = lv_obj_create(cont_main);
     lv_obj_set_grid_cell(cont_buttons2, LV_GRID_ALIGN_STRETCH, 1, 6, LV_GRID_ALIGN_STRETCH, 5, 6);
@@ -216,16 +270,16 @@ void setup_ui(lv_obj_t *parent) {
     lv_obj_set_style_bg_color(cont_label2, lv_color_hex(0xFF0000), 0);
 
     //Fill in the containers
-    setup_cont_buttons1(cont_buttons1);
+    setup_cont_butons_abc(cont_butons_abc);
     setup_cont_buttons2(cont_buttons2);
     setup_led_array(cont_led_matrix);
     setup_led_circle(cont_led_circle);
 
     lv_obj_t *btn3 = lv_btn_create(cont_buttons3);
 
-    lv_obj_t *label = lv_label_create(cont_label);
-	lv_label_set_text(label, "Hello world\n");
+    lcd_display_label = lv_label_create(cont_label);
+	lv_label_set_text(lcd_display_label, "Hello world\n");
 
-    lv_obj_t *label2 = lv_label_create(cont_label2);
-	lv_label_set_text(label2, "1 2 3 4\n");
+    segmented_display_label = lv_label_create(cont_label2);
+	lv_label_set_text(segmented_display_label, "1 2 3 4\n");
 }

@@ -44,6 +44,98 @@ uint8_t buttons4x4Init()
 	return 0;
 }
 
+uint8_t abcbuttonsInit()
+{
+	//check if gpio is available
+	uint8_t ret = 0;
+	uint8_t amount = 3;
+	for (uint8_t i = 0; i < amount; i++)
+	{
+		ret += gpio_is_ready_dt(&abcbutton[i]);
+	}
+	if(ret != amount)
+	{
+		return 1;
+	}
+
+	for (uint8_t j = 0; j < amount; j++)
+	{
+		ret += gpio_pin_configure_dt(&abcbutton[j],GPIO_INPUT);
+	}
+	if (ret != 0) 
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+uint8_t switchesInit(){
+	uint8_t ret = 0;
+	uint8_t amount = 5;
+	//check if gpio is available
+	for (uint8_t i = 0; i < amount; i++)
+	{
+		ret += gpio_is_ready_dt(&switchon[i]);
+	}
+	for (uint8_t i = 0; i < amount; i++)
+	{
+		ret += gpio_is_ready_dt(&switchoff[i]);
+	}
+	if(ret != (amount*2))
+	{
+		return 1;
+	}
+
+	for (uint8_t i = 0; i < amount; i++)
+	{
+		ret += gpio_pin_configure_dt(&switchon[i],GPIO_INPUT);
+	}
+	for (uint8_t i = 0; i < amount; i++)
+	{
+		ret += gpio_pin_configure_dt(&switchoff[i],GPIO_INPUT);
+	}
+	if (ret != 0) {
+		return 1;
+	}
+
+	return 0;
+}
+// Get functions
+
+uint8_t buttonsAbcGetLVGL(char selectedbtn)
+{	
+    uint8_t lvgl_state = 2;
+
+	switch (selectedbtn)
+	{
+	case 'a':
+		lvgl_state = get_button_abc_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(abcbutton[0].port, abcbutton[0].pin);
+		break;
+	case 'b':
+		lvgl_state = get_button_abc_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(abcbutton[1].port, abcbutton[1].pin);
+		break;
+	case 'c':
+		lvgl_state = get_button_abc_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(abcbutton[2].port, abcbutton[2].pin);
+		break;
+	default:
+		return 2;
+		break;
+	}
+}
+
 /** 
  * @brief reads value from buttons in small matrix
  * 
@@ -96,6 +188,32 @@ uint8_t buttons4x4GetLVGL(uint8_t selectedbtn)
 	}
 	
 }
+/*
+ * @return Returns 0 when the switch is in the on state
+ * Returns a 1 when the switch is in the off state
+ * Returns a 2 when the switch is in the middle state
+ */ 
+uint8_t switchesGet(uint8_t selectedswitch)
+{
+	bool switchonState = false,switchoffState = false;
+	switchonState = gpio_pin_get(switchon[selectedswitch].port, switchon[selectedswitch].pin);
+	switchoffState = gpio_pin_get(switchoff[selectedswitch].port, switchoff[selectedswitch].pin);
+
+	if(!switchonState)
+	{
+		return 0;		
+	}
+	else if(!switchoffState)
+	{
+		return 1;
+	}
+	else
+	{
+		return 2;
+	}
+}
+
+// Set functions
 
 uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
 {
@@ -137,5 +255,21 @@ int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
 			}
 		}
 	}
+	return 0;
+}
+
+uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
+{
+	set_segmented_display(input, dpPosition);
+	//needs to be determined
+	k_msleep(4);
+
+	return 0;
+}
+
+uint8_t lcdStringWrite(char *msg)
+{
+	set_lcd_display(msg);
+
 	return 0;
 }

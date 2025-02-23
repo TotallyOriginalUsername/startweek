@@ -15,6 +15,9 @@ west build -t run
 
 Above commands can be added as tasks to vs code for one-step building and running.
 
+# GDB
+gdb ./build/zephyr/zephyr.exe
+https://ftp.gnu.org/old-gnu/Manuals/gdb/html_node/gdb_42.html#SEC43
 
 # Troubleshooting
 ## Black display
@@ -92,6 +95,149 @@ ninja: build stopped: subcommand failed.
 
 ```
 Do a pristine rebuild to make sure the project gets build with new header files.
+
+## Math not found
+Clear build folder and build again.
+
+## Segmentation faults
+```
+*** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
+Segmentation fault (core dumped)
+FAILED: zephyr/CMakeFiles/run_native /home/npc/zephyrproject/build/zephyr/CMakeFiles/run_native 
+cd /home/npc/zephyrproject/build && /home/npc/zephyrproject/build/zephyr/zephyr.exe
+ninja: build stopped: subcommand failed.
+FATAL ERROR: command exited with status 1: /usr/bin/cmake --build /home/npc/zephyrproject/build --target run
+```
+gdb debugging
+```
+[New Thread 0xea4bbb40 (LWP 2528)]
+[Thread 0xea4bbb40 (LWP 2525) exited]
+[00:00:00.000,000] <inf> sdl_input: Init 'input-sdl-touch' device
+[New Thread 0xe7ee5b40 (LWP 2529)]
+*** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
+[New Thread 0xe76e4b40 (LWP 2530)]
+[New Thread 0xe6ee3b40 (LWP 2531)]
+
+Thread 12 "main" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0xe9cbab40 (LWP 2526)]
+--Type <RET> for more, q to quit, c to continue without paging--RET
+0x080590d2 in lv_obj_get_state (obj=0x0)
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/core/lv_obj.c:336
+336	    return obj->state;
+(gdb) 
+--Type <RET> for more, q to quit, c to continue without paging--bt
+0x0804c3f3 in cbvprintf_package (packaged=0x0, len=<optimized out>, flags=0, 
+    fmt=0x8095248 "s state: %s\n", ap=0xe9abc1d8 "7R\t\bl\272\004\b`\267\n\b@")
+    at /home/npc/zephyrproject/zephyr/lib/os/cbprintf_packaged.c:676
+676	
+```
+Fixed by printing the char properly
+
+```
+[New Thread 0xea2bbb40 (LWP 2913)]
+[00:00:00.000,000] <inf> sdl_input: Init 'input-sdl-touch' device
+[New Thread 0xe7ce5b40 (LWP 2914)]
+*** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
+[New Thread 0xe74e4b40 (LWP 2915)]
+[New Thread 0xe6ce3b40 (LWP 2916)]
+
+Thread 12 "main" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0xe9abab40 (LWP 2911)]
+0x080590d2 in lv_obj_get_state (obj=0x0)
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/core/lv_obj.c:336
+--Type <RET> for more, q to quit, c to continue without paging--bt
+336	    return obj->state;
+(gdb) 
+```
+
+Might be time to rename this entire segmentation fault part. It's kinda the catch-all error name.
+```
+Thread 12 "main" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0xe9abcb40 (LWP 17172)]
+--Type <RET> for more, q to quit, c to continue without paging--bt
+0x0805a803 in _lv_obj_get_ext_draw_size (obj=0x0)
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/core/lv_obj_draw.c:385
+385	    if(obj->spec_attr) return obj->spec_attr->ext_draw_size;
+(gdb) bt
+#0  0x0805a803 in _lv_obj_get_ext_draw_size (obj=0x0)
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/core/lv_obj_draw.c:385
+#1  0x0805b723 in lv_obj_invalidate (obj=0x0)
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/core/lv_obj_pos.c:854
+#2  0x08087710 in lv_label_set_text (obj=0x0, 
+    text=0xe9abc200 "4320\252\377\252\252\252\252\252\252")
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/widgets/lv_label.c:90
+#3  0x0804b231 in set_segmented_display (input=<optimized out>, 
+    dpPosition=<optimized out>)
+    at /home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/lvgl_ui.c:41
+#4  0x0804b0a5 in sevenSegmentSet (
+    input=0xe9abc200 "4320\252\377\252\252\252\252\252\252", 
+    dpPosition=0 '\000')
+    at /home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/hardware.c:263
+#5  0x0804bb4e in main ()
+    at /home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:78
+#6  0x0808d5fc in bg_thread_main (unused1=0x0, unused2=0x0, unused3=0x0)
+    at /home/npc/zephyrproject/zephyr/kernel/init.c:564
+#7  0x0804c8a1 in z_thread_entry (entry=0x808d535 <bg_thread_main>, p1=0x0, 
+    p2=0x0, p3=0x0) at /home/npc/zephyrproject/zephyr/lib/os/thread_entry.c:48
+--Type <RET> for more, q to quit, c to continue without paging--
+```
+Fixed by creating the label properly.
+
+## Missing semicolon
+```
+/home/npc/zephyrproject/zephyr/include/zephyr/sys/cbprintf.h:78:1: warning: empty declaration
+   78 | union cbprintf_package_hdr {
+      | ^~~~~
+/home/npc/zephyrproject/zephyr/include/zephyr/sys/cbprintf.h:96:1: warning: empty declaration
+   96 | struct cbprintf_package_hdr_ext {
+      | ^~~~~~
+In file included from /home/npc/zephyrproject/zephyr/include/zephyr/sys/cbprintf.h:124,
+                 from /home/npc/zephyrproject/zephyr/include/zephyr/logging/log_msg.h:11,
+                 from /home/npc/zephyrproject/zephyr/include/zephyr/logging/log_core.h:9,
+                 from /home/npc/zephyrproject/zephyr/include/zephyr/logging/log.h:11,
+                 from /home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:18:
+/home/npc/zephyrproject/zephyr/include/zephyr/sys/cbprintf_internal.h:56:1: error: expected â=â, â,â, â;â, âasmâ or â__attribute__â before â{â token
+   56 | {
+      | ^
+/home/npc/zephyrproject/zephyr/include/zephyr/sys/cbprintf_enums.h:15:1: warning: empty declaration
+   15 | enum cbprintf_package_arg_type {
+      | ^~~~
+/home/npc/zephyrproject/zephyr/include/zephyr/logging/log.h:443:24: error: storage class specified for parameter â__log_levelâ
+  443 |  static const uint32_t __log_level __unused =         \
+      |                        ^~~~~~~~~~~
+/home/npc/zephyrproject/zephyr/include/zephyr/logging/log.h:396:2: note: in expansion of macro âLOG_MODULE_DECLAREâ
+  396 |  LOG_MODULE_DECLARE(__VA_ARGS__)
+      |  ^~~~~~~~~~~~~~~~~~
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:19:1: note: in expansion of macro âLOG_MODULE_REGISTERâ
+   19 | LOG_MODULE_REGISTER(app);
+      | ^~~~~~~~~~~~~~~~~~~
+/home/npc/zephyrproject/zephyr/include/zephyr/logging/log.h:436:16: error: parameter â__log_levelâ is initialized
+  436 |  static struct log_source_dynamic_data *          \
+      |                ^~~~~~~~~~~~~~~~~~~~~~~
+/home/npc/zephyrproject/zephyr/include/zephyr/logging/log.h:396:2: note: in expansion of macro âLOG_MODULE_DECLAREâ
+  396 |  LOG_MODULE_DECLARE(__VA_ARGS__)
+      |  ^~~~~~~~~~~~~~~~~~
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:19:1: note: in expansion of macro âLOG_MODULE_REGISTERâ
+   19 | LOG_MODULE_REGISTER(app);
+      | ^~~~~~~~~~~~~~~~~~~
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:22:1: error: expected â=â, â,â, â;â, âasmâ or â__attribute__â before â{â token
+   22 | {
+      | ^
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:29:1: error: expected â=â, â,â, â;â, âasmâ or â__attribute__â before â{â token
+   29 | {
+      | ^
+In file included from /home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:14:
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/../inc/lvgl_ui.h:12:6: error: old-style parameter declarations in prototyped function definition
+   12 | void set_lcd_display(char *msg)
+      |      ^~~~~~~~~~~~~~~
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:104: error: expected â{â at end of input
+  104 | }
+      | 
+ninja: build stopped: subcommand failed.
+FATAL ERROR: command exited with status 1: /usr/bin/cmake --build /home/npc/zephyrproject/build --target run
+
+```` 
+Semicolon was missing in lvgl_ui.h
 
 # LVGL
 

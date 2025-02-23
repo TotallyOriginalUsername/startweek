@@ -29,6 +29,11 @@ int main(void)
 {
 	const struct device *display_dev;
 	lv_obj_t *hello_world_label;
+	char abcButton = 'a';
+	char char_input[4] = {'4', '3', '2', '0'};
+	char char_input2[4] = {'5', '6', '7', '8'};
+	char msg[6] = "yellow";
+	uint8_t dpPosition = 0;
 
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 	if (!device_is_ready(display_dev)) {
@@ -55,12 +60,15 @@ int main(void)
         0b0000111101111100
     };
 
-	int8_t led_circle_data[8] = 	{0b10101010, 0b10101010, 0b10101010, 0b10101010, 
+	int8_t led_circle_data[8] = 	{0b10101010, 0b11111111, 0b10101010, 0b10101010, 
 						0b10101010, 0b10101010, 0b10101010, 0b10101010,
 						};
 
+	//might not be needed, abc buttons worked without
+	abcbuttonsInit();
 	buttons4x4Config();
 	buttons4x4Init();
+	switchesInit();
 
 	lv_task_handler();
 	display_blanking_off(display_dev);
@@ -69,6 +77,10 @@ int main(void)
 
 	circleMatrixSet(led_circle_data);
 	ledMatrixSet(bad_apple_frame);
+	sevenSegmentSet(char_input, dpPosition);
+
+	lcdStringWrite(msg);
+	sevenSegmentSet(char_input2, dpPosition);
 
 	while (1) {
 		lv_task_handler();
@@ -83,6 +95,20 @@ int main(void)
 		}
 		printk("\n ----------- \n");
 		*/
+		for(uint8_t j = 0; j < 5; j++)
+		{
+			uint8_t switchState = switchesGet(j);
+			printk("Switch state: %d\n", switchState);
+		}
+		
+	for(int i = 0; i < 10; i++){
+		sprintf(msg, "%d", i);
+		sprintf(char_input2, "%d", i);
+		lcdStringWrite(msg);
+		sevenSegmentSet(char_input2, dpPosition);
+		printf("msg: %s\n", msg);
+		printf("%d\n", i);
+	}
 
 		k_sleep(K_MSEC(10));
 	}
