@@ -32,6 +32,7 @@
 		sw26 = &key27;
 		sw27 = &key28;
 		sw28 = &key29;
+		sw29 = &key30;
 	};
 
 	//emulated gpio description
@@ -43,7 +44,7 @@
 		high-level;
 		low-level;
 		gpio-controller;
-		ngpios = <29>; // Number of GPIO pins
+		ngpios = <30>; // Number of GPIO pins
 		#gpio-cells = <2>;
 	
 	};
@@ -169,6 +170,10 @@
 			gpios = <&gpio_emul0 28 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_L>;
 		};
+		key30: key30 {
+			gpios = <&gpio_emul0 29 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
 	};
 
 	lvgl_button_input {
@@ -180,7 +185,7 @@
 };
 
 &gpio_emul0 {
-	ngpios = <29>;
+	ngpios = <30>;
 
 	sdl_gpio {
 		status = "okay";
@@ -191,7 +196,8 @@
 					29 27 6 25
 					34 35 36 
 					23 28 24 12 18
-					10 11 13 14 15>;
+					10 11 13 14 15
+					39>;
 	};
 };
 

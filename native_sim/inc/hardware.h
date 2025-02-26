@@ -6,6 +6,8 @@
 #define LEDMATRIXROWS 			16
 #define CIRCLEMATRIXLEDSINROW		8
 #define CIRCLEMATRIXROWS 			8
+#define BUTTONMATRIXLEDSINROW		4
+#define BUTTONMATRIXROWS 			4
 
 #ifndef HIGH
 #define HIGH 1
@@ -56,6 +58,8 @@ static const struct gpio_dt_spec switchoff[5] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(sw28), gpios),
 };
 
+static const struct gpio_dt_spec startbutton	= GPIO_DT_SPEC_GET(DT_ALIAS(sw29), gpios);
+
 uint8_t abcbuttonsInit();
 bool buttons4x4Config();
 uint8_t buttons4x4Init();
@@ -67,7 +71,11 @@ uint8_t buttonsAbcGetLVGL(char selectedbtn);
 uint8_t buttons4x4Get(uint8_t selectedbtn);
 uint8_t buttons4x4GetLVGL(uint8_t selectedbtn);
 uint8_t switchesGet(uint8_t selectedswitch);
+uint8_t startbuttonGet();
 
+uint8_t abcledsSet(char selectedled,bool value);
+uint8_t buttonMatrixSet(uint8_t data[BUTTONMATRIXROWS]);
 uint8_t circleMatrixSet(uint8_t data[8]);
 int8_t ledMatrixSet(int16_t data[16]);
 uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition);
+uint8_t startledSet(bool value);

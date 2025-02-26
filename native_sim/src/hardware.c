@@ -195,9 +195,15 @@ uint8_t buttons4x4GetLVGL(uint8_t selectedbtn)
  */ 
 uint8_t switchesGet(uint8_t selectedswitch)
 {
+	uint8_t lvgl_state = 2;
 	bool switchonState = false,switchoffState = false;
 	switchonState = gpio_pin_get(switchon[selectedswitch].port, switchon[selectedswitch].pin);
 	switchoffState = gpio_pin_get(switchoff[selectedswitch].port, switchoff[selectedswitch].pin);
+
+	lvgl_state = get_switch(selectedswitch);
+    if(lvgl_state == 1){
+        return 1;
+    }
 
 	if(!switchonState)
 	{
@@ -213,7 +219,60 @@ uint8_t switchesGet(uint8_t selectedswitch)
 	}
 }
 
+uint8_t startbuttonGet()
+{	
+	uint8_t lvgl_state = 2;
+	lvgl_state = get_button_start();
+    if(lvgl_state == 1){
+        return 1;
+    }
+	return gpio_pin_get(startbutton.port, startbutton.pin);
+}
+
 // Set functions
+uint8_t abcledsSet(char selectedled,bool value)
+{
+	switch (selectedled)
+	{
+	case 'a':
+		set_abc_button(0,value);
+		return 0;
+		break;
+	case 'b':
+		set_abc_button(1,value);
+		return 0;
+		break;
+	case 'c':
+		set_abc_button(2,value);
+		return 0;
+		break;
+	default:
+		return 1;
+		break;
+	}
+}
+
+uint8_t buttonMatrixSet(uint8_t data[BUTTONMATRIXROWS])
+{
+	for (size_t row = 0; row < BUTTONMATRIXROWS; row++)
+	{
+		for (size_t led = 0; led < BUTTONMATRIXLEDSINROW; led++)
+		{
+			int index = row * BUTTONMATRIXLEDSINROW + led;
+			if(data[row] & 0x1<<led)
+			{
+				set_button((index), 1);
+			}
+			else
+			{
+				set_button((index), 0);
+			}
+		}
+		//TODO: determine this k_sleep delay
+		k_sleep(K_USEC(4000));
+	}
+	return 0;
+}
 
 uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
 {
@@ -264,6 +323,12 @@ uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 	//needs to be determined
 	k_msleep(4);
 
+	return 0;
+}
+
+uint8_t startledSet(bool value)
+{
+	set_start_button(value);
 	return 0;
 }
 

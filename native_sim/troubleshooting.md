@@ -183,6 +183,35 @@ Thread 12 "main" received signal SIGSEGV, Segmentation fault.
 ```
 Fixed by creating the label properly.
 
+```
+*** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
+[New Thread 0xe74e4b40 (LWP 3075)]
+[New Thread 0xe6ce3b40 (LWP 3076)]
+
+Thread 12 "main" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0xe98bbb40 (LWP 3071)]
+--Type <RET> for more, q to quit, c to continue without paging--bt
+0x0805e942 in get_local_style (obj=0x0, selector=0)
+    at /home/npc/zephyrproject/modules/lib/gui/lvgl/src/core/lv_obj_style.c:543
+543	    for(i = 0; i < obj->style_cnt; i++) {
+(gdb) 
+```
+set_button(1,1); works.
+Fixed by not allowing an usecase where a pointer points to null.
+
+## Start button
+Key 8:
+```
+[00:00:06.720,000] <err> gpio_emul: Pin not supported port_pin_mask=1fffffff mask=20000000
+[00:00:06.720,000] <wrn> gpio_emul_sdl: Failed to emulate input (-22)
+```
+Key B:
+```
+[00:00:39.860,000] <err> gpio_emul: Pin not supported port_pin_mask=1fffffff mask=20000000
+[00:00:39.860,000] <wrn> gpio_emul_sdl: Failed to emulate input (-22)
+```
+Fix: Make ngpio number match the used gpio pin amount.
+
 ## Missing semicolon
 ```
 /home/npc/zephyrproject/zephyr/include/zephyr/sys/cbprintf.h:78:1: warning: empty declaration
@@ -236,7 +265,7 @@ In file included from /home/npc/zephyrproject/applications/StartWeekAvans25/nati
 ninja: build stopped: subcommand failed.
 FATAL ERROR: command exited with status 1: /usr/bin/cmake --build /home/npc/zephyrproject/build --target run
 
-```` 
+```
 Semicolon was missing in lvgl_ui.h
 
 # LVGL
@@ -272,6 +301,22 @@ gives:
 ```
 *** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
 [00:00:00.000,000] <err> lvgl: (0.000, +0)	 _lv_obj_style_create_transition: Asserted at expression: tr != NULL (Out of memory) 	(in lv_obj_style.c line #355)
+```
+
+## lv_obj_set_style_pad_all
+lv_obj_set_style_pad_all isnt mentioned in the style part of html doc. It also isnt in the 937 page pdf, but lv_obj_set_style_pad_top etc is.
+
+And dereferencing the style, which works for bg_colour, it causes this error when used for pad:
+```
+*** Booting Zephyr OS build v4.0.0-45-g7d2ac022543d ***
+[00:00:00.000,000] <wrn> lvgl: (0.000, +0)	 lv_obj_get_disp: No screen found 	(in lv_obj_tree.c line #281)
+
+[00:00:00.000,000] <wrn> lvgl: (0.000, +0)	 lv_obj_get_disp: No screen found 	(in lv_obj_tree.c line #281)
+
+[00:00:00.000,000] <wrn> lvgl: (0.000, +0)	 lv_obj_get_disp: No screen found 	(in lv_obj_tree.c line #281)
+
+Segmentation fault (core dumped)
+FAILED: zephyr/CMakeFiles/run_native /home/npc/zephyrproject/build/zephyr/CMakeFiles/run_native 
 ```
 
 # Add to research later

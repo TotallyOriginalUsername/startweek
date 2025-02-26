@@ -41,6 +41,8 @@ int main(void)
 		return 0;
 	}
 
+	int8_t data_button_matrix[4] = {0b10101010, 0b01010101, 0b11111111, 0b11111111};
+
 	int16_t bad_apple_frame[16] = {
         0b0000000001000000,
         0b0000000001110000,
@@ -60,7 +62,7 @@ int main(void)
         0b0000111101111100
     };
 
-	int8_t led_circle_data[8] = 	{0b10101010, 0b11111111, 0b10101010, 0b10101010, 
+	int8_t led_circle_data[8] = 	{0b11111111, 0b10101010, 0b10101010, 0b10101010, 
 						0b10101010, 0b10101010, 0b10101010, 0b10101010,
 						};
 
@@ -74,6 +76,13 @@ int main(void)
 	display_blanking_off(display_dev);
 
 	setup_ui(lv_scr_act());
+
+	//set_button(1,1);
+	//set_button(1,0);
+	//set_button(1,1);
+	abcledsSet('a', true);
+	startledSet(true);
+	buttonMatrixSet(data_button_matrix);
 
 	circleMatrixSet(led_circle_data);
 	ledMatrixSet(bad_apple_frame);
@@ -95,20 +104,12 @@ int main(void)
 		}
 		printk("\n ----------- \n");
 		*/
+		
 		for(uint8_t j = 0; j < 5; j++)
 		{
 			uint8_t switchState = switchesGet(j);
 			printk("Switch state: %d\n", switchState);
 		}
-		
-	for(int i = 0; i < 10; i++){
-		sprintf(msg, "%d", i);
-		sprintf(char_input2, "%d", i);
-		lcdStringWrite(msg);
-		sevenSegmentSet(char_input2, dpPosition);
-		printf("msg: %s\n", msg);
-		printf("%d\n", i);
-	}
 
 		k_sleep(K_MSEC(10));
 	}

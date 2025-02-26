@@ -47,12 +47,20 @@ Also troubleshooting.md
 
 Progress
 ************
-ButtonMatrix: Set missing
+ButtonMatrix: Done, compare with hardware
+
 Buzzers: Check possibilities for emulation
+
 CircleMatrix: Done, compare with hardware
-GenericGPIO: Switches and abc buttons get done. Set and start button missing
+
+GenericGPIO: Done, compare with hardware
+
 GyroCompass: Not done, workaround should be possible with sensor_emul or manual function rewriting
-LCD: Done
+
+LCD: Done, compare with hardware
+
 LedMatrix: Done, compare with hardware
+
 Potmeter: Not done
+
 SevenSegment: Done - Need to fix bug of LCD data appearing in this
