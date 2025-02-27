@@ -268,6 +268,19 @@ FATAL ERROR: command exited with status 1: /usr/bin/cmake --build /home/npc/zeph
 ```
 Semicolon was missing in lvgl_ui.h
 
+## Include nested too deeply
+```
+                 from /home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/src/main.c:14:
+/home/npc/zephyrproject/applications/StartWeekAvans25/native_sim/inc/threads.h:4:27: error: #include nested too deeply
+    4 | #include <zephyr/kernel.h>
+      |                           ^
+```
+
+## lv_tick_inc() is not called
+```
+lv_timer_handler: It seems lv_tick_inc() is not called. 	(in lv_timer.c line #94)
+```
+
 # LVGL
 
 ## Getting parent width/height

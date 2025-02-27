@@ -11,106 +11,54 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 #include <lvgl_input_device.h>
-#include "../inc/lvgl_ui.h"
-#include "../inc/hardware.h"
+#include "statemachine.h"
+#include "threads.h"
+#include "lvgl_ui.h"
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(app);
 
-static void lv_btn_click_callback(lv_event_t *e)
-{
-	//touch input
-	ARG_UNUSED(e);
-	printk("Button pressed\n");
+// The stack size of all threads
+#define STACKSIZE 1024
+
+//LVGL stack
+#define STACKSIZE2 16000
+
+// Thread priority values (lower value is higher priority)
+#define TMAIN_PRIORITY 9
+#define TLVGL_PRIORITY 3
+
+void lvgl_task_handler_loop() {
+    while (1) {
+		//k_cpu_idle();
+        lv_task_handler();
+		//for native_sim
+        k_sleep(K_MSEC(1));
+    }
 }
 
-int main(void)
+int tmain() // Core thread
 {
 	const struct device *display_dev;
-	lv_obj_t *hello_world_label;
-	char abcButton = 'a';
-	char char_input[4] = {'4', '3', '2', '0'};
-	char char_input2[4] = {'5', '6', '7', '8'};
-	char msg[6] = "yellow";
-	uint8_t dpPosition = 0;
-
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 	if (!device_is_ready(display_dev)) {
 		LOG_ERR("Device not ready, aborting test");
 		return 0;
 	}
 
-	int8_t data_button_matrix[4] = {0b10101010, 0b01010101, 0b11111111, 0b11111111};
-
-	int16_t bad_apple_frame[16] = {
-        0b0000000001000000,
-        0b0000000001110000,
-        0b0000000011111000,
-        0b0000000111111100,
-        0b0000000111111100,
-        0b0000000111111100,
-        0b0000000111111100,
-        0b0000000011111110,
-        0b0000000001111110,
-        0b0000100001111110,
-        0b0001100001111000,
-        0b0001110001111000,
-        0b0000111011111000,
-        0b0000111111111000,
-        0b0000111111111110,
-        0b0000111101111100
-    };
-
-	int8_t led_circle_data[8] = 	{0b11111111, 0b10101010, 0b10101010, 0b10101010, 
-						0b10101010, 0b10101010, 0b10101010, 0b10101010,
-						};
-
-	//might not be needed, abc buttons worked without
-	abcbuttonsInit();
-	buttons4x4Config();
-	buttons4x4Init();
-	switchesInit();
-
-	lv_task_handler();
+	//lv_task_handler();
 	display_blanking_off(display_dev);
 
 	setup_ui(lv_scr_act());
 
-	//set_button(1,1);
-	//set_button(1,0);
-	//set_button(1,1);
-	abcledsSet('a', true);
-	startledSet(true);
-	buttonMatrixSet(data_button_matrix);
+	printf("Main\n");
+	startStatemachine();
 
-	circleMatrixSet(led_circle_data);
-	ledMatrixSet(bad_apple_frame);
-	sevenSegmentSet(char_input, dpPosition);
-
-	lcdStringWrite(msg);
-	sevenSegmentSet(char_input2, dpPosition);
-
-	while (1) {
-		lv_task_handler();
-		/*
-		for(int i = 0; i < 16; i++){
-			uint8_t button_state = buttons4x4GetLVGL(i);
-			if (button_state < 0) {
-				printk("Failed to read button state: %d", button_state);
-			} else {
-				printk("Button %d state: %s\n", i, button_state ? "Pressed" : "Released");
-			}
-		}
-		printk("\n ----------- \n");
-		*/
-		
-		for(uint8_t j = 0; j < 5; j++)
-		{
-			uint8_t switchState = switchesGet(j);
-			printk("Switch state: %d\n", switchState);
-		}
-
-		k_sleep(K_MSEC(10));
-	}
+	return 0;
 }
+
+// Define the threads
+K_THREAD_DEFINE(tmain_id, STACKSIZE, tmain, NULL, NULL, NULL, TMAIN_PRIORITY, 0, 0);
+
+K_THREAD_DEFINE(tlvgl_id, STACKSIZE2, lvgl_task_handler_loop, NULL, NULL, NULL, TLVGL_PRIORITY, 0, 0);

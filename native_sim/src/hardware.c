@@ -103,7 +103,7 @@ uint8_t switchesInit(){
 }
 // Get functions
 
-uint8_t buttonsAbcGetLVGL(char selectedbtn)
+uint8_t abcbuttonsGet(char selectedbtn)
 {	
     uint8_t lvgl_state = 2;
 

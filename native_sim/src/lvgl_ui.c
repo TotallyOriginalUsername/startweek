@@ -108,9 +108,6 @@ static void button_cb(lv_event_t * e)
 
 // Get functions
 uint8_t get_button_state(uint8_t selectedbtn){
-
-    int button_state;
-    
     if(lv_obj_get_state(buttons[selectedbtn]) & LV_STATE_USER_1){
         return 1;
     }
@@ -121,8 +118,6 @@ uint8_t get_button_state(uint8_t selectedbtn){
 
 uint8_t get_button_abc_state(char selectedbtn)
 {
-    int button_state;
-
     switch (selectedbtn)
     {
     case 'a':
@@ -171,8 +166,6 @@ uint8_t get_button_start(){
 }
 
 uint8_t get_switch(uint8_t selectedswitch){
-    int button_state;
-    
     if(lv_obj_get_state(switches[selectedswitch]) & LV_STATE_USER_1){
         return 1;
     }

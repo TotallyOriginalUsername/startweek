@@ -1,3 +1,6 @@
+#ifndef HARDWARE_H
+#define HARDWARE_H
+
 #include <zephyr/drivers/gpio.h>
 #include <stdio.h>
 #include <zephyr/kernel.h>
@@ -67,7 +70,7 @@ uint8_t switchesInit();
 
 uint8_t lcdStringWrite(char *msg);
 
-uint8_t buttonsAbcGetLVGL(char selectedbtn);
+uint8_t abcbuttonsGet(char selectedbtn);
 uint8_t buttons4x4Get(uint8_t selectedbtn);
 uint8_t buttons4x4GetLVGL(uint8_t selectedbtn);
 uint8_t switchesGet(uint8_t selectedswitch);
@@ -79,3 +82,5 @@ uint8_t circleMatrixSet(uint8_t data[8]);
 int8_t ledMatrixSet(int16_t data[16]);
 uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition);
 uint8_t startledSet(bool value);
+
+#endif // HARDWARE_H
