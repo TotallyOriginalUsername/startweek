@@ -19,7 +19,6 @@ char oneLinersMG2[MG2_ONELINERS][32] = {
 
 
 void generateSequence(uint8_t *sequence,uint8_t size,uint8_t bits) {
-	printk("Entered generateSequence\n");
 	for (uint8_t i = 0; i < size; i++)	{
 			uint8_t randomValue = 0;
 			sys_rand_get(&randomValue, sizeof(randomValue));
@@ -27,12 +26,10 @@ void generateSequence(uint8_t *sequence,uint8_t size,uint8_t bits) {
 			sequence[i] = randomValue;
 			printk("random = sequence[%d]: %d\n",i,sequence[i]);
 		}
-	printk("Left generateSequence\n");
 }
 
 void showButton(uint8_t btn)
 {
-	printk("Entered showButton\n");
 	uint8_t data[4] = {0b00000000,0b00000000,0b00000000,0b00000000};
 	switch (btn)
 	{
@@ -57,29 +54,26 @@ void showButton(uint8_t btn)
 		break;
 	}	
 	btnmatrix_outSetMutexValue(data);
-	printk("Left showButton\n");
 }
 
 void showLevel(uint8_t level,uint8_t sequence[8]){
-	printk("Entered showLevel\n");
 	for (uint8_t i = 0; i < level+1; i++)
 	{
 		
 		showButton(sequence[i]);
 		printk("sequence[%d]: %d\n",i,sequence[i]);
 		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_cpu_idle();}	
+		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
 		showButton(5);
 		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_cpu_idle();}	
+		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
 		
 	}
 	
 	showButton(6);
 	k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-	while (!(k_timer_status_get(&secTimerMg2) > 0)){k_cpu_idle();}	
+	while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
 	showButton(5);
-	printk("Left showLevel\n");
 }
 
 uint8_t checkinput(bool* genValue,uint32_t* score, uint8_t level,uint8_t sequence[8])
@@ -87,7 +81,7 @@ uint8_t checkinput(bool* genValue,uint32_t* score, uint8_t level,uint8_t sequenc
 	uint8_t *btnValues;
 	uint8_t btnLevel = 0;
 	bool buttonDetected = false;
-	printk("Entered checkinput\n");
+
 	while(*genValue == true)
 	{
 		k_cpu_idle();
@@ -184,7 +178,6 @@ uint8_t checkinput(bool* genValue,uint32_t* score, uint8_t level,uint8_t sequenc
 			}	
 		}
 	}
-	printk("Left checkinput\n");
 	return 0;
 }
 
@@ -192,7 +185,6 @@ void showOnelinersMG2()
 {
 	bool done = false;
 	//lcdEnable();
-	printk("Entered showOnelinersMG2\n");
 	lcdStringWrite("Druk op start");
 	while (!done)
 	{
@@ -209,7 +201,7 @@ void showOnelinersMG2()
 			{
 			lcdStringWrite(oneLinersMG2[i]);
 			k_timer_start(&secTimerMg2, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg2) > 0)){k_cpu_idle();}	
+			while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
 			}
 			startledSet(1);
 			while (true)
@@ -226,7 +218,6 @@ void showOnelinersMG2()
 		}
 	}
 	startledSet(0);
-	printk("Left showOnelinersMG2\n");
 	//lcdClear();
 	//lcdDisable();
 }
@@ -236,7 +227,6 @@ int playMg2() {
 	uint8_t sequence[8] = {0,0,0,0,0,0,0,0};
 	uint8_t level = 0;
 	bool genValue = false;
-	printk("Entered playMg2\n");
 	
 	showOnelinersMG2();
 	while (true)
@@ -250,7 +240,7 @@ int playMg2() {
 		}
 		
 		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_cpu_idle();}
+		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}
 		
 		showLevel(level,sequence);
 		level += checkinput(&genValue, &score, level, sequence);
@@ -259,7 +249,6 @@ int playMg2() {
 			break;
 		}
 	}
-	printk("Left playMg2\n");
 	
 	return (int)score;
 }

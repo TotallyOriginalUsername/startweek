@@ -103,6 +103,8 @@ void tstartbutton(void) {
 
 uint8_t* btnmatrix_inGetMutexValue()
 {
+	uint8_t values_in[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 	if (k_mutex_lock(&btnmatrix_inMutex, K_MSEC(100)) == 0) //Check if mutex is not locked by another thread
 	{
 		for (uint8_t i = 0; i < 16; i++)
@@ -121,6 +123,7 @@ uint8_t* btnmatrix_inGetMutexValue()
 void tbtnmatrix_in(void) { 
 	k_msleep(Startupdelay); //startup sleep for main thread
 	uint8_t values[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};// Value to decrease locking amount
+
 	while (1) 
 	{
 		for (uint8_t i = 0; i < 16; i++)

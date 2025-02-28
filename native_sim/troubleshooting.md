@@ -19,6 +19,10 @@ Above commands can be added as tasks to vs code for one-step building and runnin
 gdb ./build/zephyr/zephyr.exe
 https://ftp.gnu.org/old-gnu/Manuals/gdb/html_node/gdb_42.html#SEC43
 
+# Important
+There are some limitations on what can and cannot be done. Those can be found [here](https://docs.zephyrproject.org/latest/boards/native/doc/arch_soc.html#important-limitations).
+It's very likely that a busy wait loop exists in the code if the simulator hangs. This can be prevented by a adding a 'k_sleep(K_MSEC(1));' or 'k_cpu_idle();' in the loop.
+
 # Troubleshooting
 ## Black display
 - Clear build folder and build again

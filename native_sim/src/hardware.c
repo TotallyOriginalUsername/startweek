@@ -149,8 +149,13 @@ uint8_t abcbuttonsGet(char selectedbtn)
  */ 
 uint8_t buttons4x4Get(uint8_t selectedbtn)
 {	
+    uint8_t lvgl_state = 2;
 	if(selectedbtn < 16 && selectedbtn >= 0)
 	{
+        lvgl_state = get_button_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
 		return gpio_pin_get(buttonsButtonMatrix[selectedbtn].port, buttonsButtonMatrix[selectedbtn].pin);
 	}
 	else
@@ -177,6 +182,7 @@ uint8_t buttons4x4GetLVGL(uint8_t selectedbtn)
 	if(selectedbtn < 16 && selectedbtn >= 0)
 	{
         lvgl_state = get_button_state(selectedbtn);
+		printk("Button %d state: %d", selectedbtn, lvgl_state);
         if(lvgl_state == 1){
             return 1;
         }
