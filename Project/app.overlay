@@ -482,7 +482,7 @@
 
 
 &adc1{
-		status = "okay";
+		status = "disabled";
 		pinctrl-0 = < &adc1_inp2_pf11 >;
 };
 
