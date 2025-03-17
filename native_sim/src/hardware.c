@@ -319,6 +319,9 @@ int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
 				set_led((index), 0);
 			}
 		}
+		//TODO: determine this k_sleep delay
+		//removed from native_sim untill its determined
+		//k_sleep(K_USEC(1000));
 	}
 	return 0;
 }
