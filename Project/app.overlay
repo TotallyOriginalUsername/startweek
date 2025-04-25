@@ -482,7 +482,7 @@
 
 
 &adc1{
-		status = "disabled";
+		status = "okay";
 		pinctrl-0 = < &adc1_inp2_pf11 >;
 };
 
@@ -537,7 +537,7 @@
 &usart2 {
 		pinctrl-0 = < &usart2_tx_pa2 &usart2_rx_pa3 >;
 		pinctrl-names = "default";
-        current-speed = <115200>;
+        current-speed = <9600>;
         status = "okay";
 };
 

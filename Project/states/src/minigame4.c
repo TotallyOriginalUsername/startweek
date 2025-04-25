@@ -11,8 +11,8 @@ void getMg4Threads(char ***names, unsigned *amount) {
 
 #define MG4_ONELINERS 2
 char oneLinersMG4[MG4_ONELINERS][32] = {
-	"Quiz: beantwoordde vragen",
-	"Druk op de startknop"
+	"Zephyr 4.1",
+	"Z4.1 SDK 0.16.9"
 };
 
 char questions[AMOUNT_QUESTIONS][MAX_SIZE] = {

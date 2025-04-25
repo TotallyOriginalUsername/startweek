@@ -10,7 +10,7 @@
 
 #define REQUIRED_DIST_METERS 20
 #define ANGLE_BUFFER_SIZE 10
-#define GAMES_AMOUNT 3
+#define GAMES_AMOUNT 10
 #define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
 #define DIST_MIN_WIDTH 100 // Was 1000	//Distance at which the circle has maximum width
 #define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
@@ -20,6 +20,7 @@
 
 unsigned idleThreadCount = 1;
 char *idleThreads[1] = {"ledcircle"};
+
 double angleSinBuffer[ANGLE_BUFFER_SIZE];
 double angleCosBuffer[ANGLE_BUFFER_SIZE];
 
@@ -61,36 +62,35 @@ void getIdleThreads(char ***names, unsigned *amount) {
 }
 
 int playIdle() {
-	/******/
 	// Create and randomize array of coordinates
-	int64_t lats[NR_OF_LOCS] = {LAT_LOC_A, LAT_LOC_B, LAT_LOC_C};
-	int64_t lons[NR_OF_LOCS] = {LON_LOC_A, LON_LOC_B, LON_LOC_C};
+	int64_t lats[NR_OF_LOCS] = {LAT_LOC_A, LAT_LOC_B, LAT_LOC_C, LAT_LOC_D, LAT_LOC_E, LAT_LOC_F, LAT_LOC_G, LAT_LOC_H, LAT_LOC_I, LAT_LOC_J};
+	int64_t lons[NR_OF_LOCS] = {LON_LOC_A, LON_LOC_B, LON_LOC_C, LON_LOC_D, LON_LOC_E, LON_LOC_F, LON_LOC_G, LON_LOC_H, LON_LOC_I, LON_LOC_J};
 	static int locIndex = 0;
-	//locIndex = rand() % GAMES_AMOUNT;
-	static bool completedGames[GAMES_AMOUNT] = {false, false, false};
-	while (completedGames[locIndex] == true) {
-		locIndex++;
+	static bool completedGames[GAMES_AMOUNT] = {false, false, false, false, false, false, false, false, false, false};
+
+	// Check if all games have been completed
+	bool allGamesFinished = true;
+	for (int i = 0; i < GAMES_AMOUNT; i++) {
+		if (completedGames[i] == false) {
+			allGamesFinished = false;
+			break;
+		}
 	}
-	if (locIndex > 2) { return -1; }
+	if (allGamesFinished) {
+		printf("All games completed\n");
+		return -1;
+	}
 
-	// // Check if all games have been completed
-	// for (int i = 0; i < GAMES_AMOUNT; i++) {
-	// 	if (completedGames[GAMES_AMOUNT] == false) {
-	// 		break;
-	// 	}
-	// 	printf("All games completed\n");
-	// 	return -1;
-	// }
-
-	// while (completedGames[locIndex] == true) {
-	// 	locIndex = rand() % 10;	// Keep getting random index until a game which has not been done yet is found
-	// }
+	while (completedGames[locIndex] == true) {
+		locIndex = rand() % 10;	// Keep getting random index until a game which has not been done yet is found
+	}
 
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
+		break;
 		int64_t currLat = getLatitude();		// Get the current latitude
 		int64_t currLon = getLongitude();		// Get the current longitude
 		if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
@@ -106,19 +106,9 @@ int playIdle() {
 		}
 		distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(lons[locIndex]), nanoDegToLdDeg(lats[locIndex])); // Distance from current position to next location (meters)
 		dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(lats[locIndex]), nanoDegToLdDeg(lons[locIndex]));					// Angle between current location and next location
-		//printf("dir: %d\n", dir);
+		
 		int compassDir;
 		gyroCompass_get_heading(&compassDir);	// Angle of device
-		
-		//char banana[25];
-		//char distValue[3];
-		//strcpy(banana, "Distance: ");
-		//sprintf(distValue, "%d", distMeters);
-		//strcat(banana,distValue);
-		//strcat(banana, " angle: ");
-		//char rotationValue[3];
-		//sprintf(rotationValue, "%d", compassDir);
-		//strcat(banana, rotationValue);
 
 		compassDir = circleMovingAvg(compassDir);
 		
@@ -132,16 +122,11 @@ int playIdle() {
 		int ledWidth = getLedWidth(distMeters);
 
 		setLedCircleDirWidth(dir, ledWidth);			// Point the user in the correct direction
-		if (distMeters < 20) {
-			break;
-		}
-		k_msleep(1);
 	}
 	lcdStringWrite("Gearriveerd!!");
 	k_msleep(4000);
 	completedGames[locIndex] = true;
-	return ((locIndex+1)*2)-1;
-	//}
+	return locIndex;
 }
 
 void setLedCircleDirWidth(unsigned dir, unsigned width) {

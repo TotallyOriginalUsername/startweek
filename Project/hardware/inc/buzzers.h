@@ -1,6 +1,6 @@
 #ifndef BUZZERS_h
 #define BUZZERS_h
-#include <stdio.h>
+#include <stdint.h>
 
 uint8_t buzzersInit();
 uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq);
