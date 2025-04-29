@@ -1,18 +1,6 @@
 #include "threads.h"
 
-#include "buttonMatrix.h"
-#include "buzzers.h"
-#include "circleMatrix.h"
-#include "genericGpio.h"
-#include "gps.h"
-#include "gyroCompass.h"
-#include "lcd.h"
-#include "ledMatrix.h"
-#include "potmeter.h"
-#include "sevenSegment.h"
-
-#include <zephyr/kernel.h>
-#include <zephyr/sys/util.h>
+//#include <zephyr/kernel.h>
 
 // Thread startupdelay
 uint32_t Startupdelay = 120000;

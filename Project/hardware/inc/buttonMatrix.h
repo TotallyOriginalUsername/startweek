@@ -4,13 +4,15 @@
 #include <zephyr/drivers/gpio.h>
 #include <stdio.h>
 #include <zephyr/kernel.h>
-
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 // GPIO definitions 
+
 static const struct gpio_dt_spec buttonMatrixShiftDataIn 			= GPIO_DT_SPEC_GET(DT_ALIAS(shiftdatain4x4), gpios);
 static const struct gpio_dt_spec buttonMatrixShiftOutputEnable 		= GPIO_DT_SPEC_GET(DT_ALIAS(shiftoutputenable4x4), gpios);
 static const struct gpio_dt_spec buttonMatrixShiftClock 				= GPIO_DT_SPEC_GET(DT_ALIAS(shiftclock4x4 ), gpios);
 static const struct gpio_dt_spec buttonMatrixMuxA 					= GPIO_DT_SPEC_GET(DT_ALIAS(muxa4x4), gpios);
 static const struct gpio_dt_spec buttonMatrixMuxB 					= GPIO_DT_SPEC_GET(DT_ALIAS(muxb4x4), gpios);
+#endif 
 
 static const struct gpio_dt_spec buttonsButtonMatrix[16] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(button14x4), gpios),

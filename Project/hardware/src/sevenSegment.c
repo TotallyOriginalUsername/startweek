@@ -1,6 +1,6 @@
 #include "sevenSegment.h"
 
-
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 /** 
  * @brief sets one segment.
  * 
@@ -155,7 +155,7 @@ uint8_t sevenSegmentInit()
 
 	return 0;
 }
-
+#endif
 
 
 /** 
@@ -170,6 +170,7 @@ uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 	for (size_t i = 0; i < 4; i++)
 	{
 		bool dp = false;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 		switch (i)
 		{
 		case 0:
@@ -202,6 +203,7 @@ uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 			dp = true;
 		}
 		sevenSegmentOneSegment(input[i],dp);
+#endif
 		//needs to be determined
 		k_msleep(4);
 	}

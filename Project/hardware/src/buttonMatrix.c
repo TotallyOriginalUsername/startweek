@@ -12,9 +12,12 @@
  */ 
 void buttonMatrixSendOneBitData(bool ShiftDataValue)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&buttonMatrixShiftDataIn,ShiftDataValue);
 	gpio_pin_set_dt(&buttonMatrixShiftClock,HIGH);
 	gpio_pin_set_dt(&buttonMatrixShiftClock,LOW);
+#endif
+printk("a");
 }
 
 /** 
@@ -26,6 +29,7 @@ void buttonMatrixSendOneBitData(bool ShiftDataValue)
  */ 
 bool buttonMatrixConfig()
 {
+	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&buttonMatrixShiftDataIn) && !gpio_is_ready_dt(&buttonMatrixShiftOutputEnable) &&
 		!gpio_is_ready_dt(&buttonMatrixShiftClock) && !gpio_is_ready_dt(&buttonMatrixMuxA) &&
@@ -45,6 +49,7 @@ bool buttonMatrixConfig()
 	{
 		return 1;
 	}
+	#endif
 	return 0;
 }
 
@@ -58,6 +63,7 @@ bool buttonMatrixConfig()
  */ 
 uint8_t buttonMatrixInit ()
 {
+	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
 	ret += gpio_pin_set_dt(&buttonMatrixShiftDataIn,LOW);
 	ret += gpio_pin_set_dt(&buttonMatrixShiftOutputEnable,LOW);
@@ -81,7 +87,7 @@ uint8_t buttonMatrixInit ()
 		gpio_pin_set_dt(&buttonMatrixMuxA,(row & 0x1));
 		gpio_pin_set_dt(&buttonMatrixMuxB,(row & 0x2));
 	}
-
+#endif
 	return 0;
 }
 
@@ -113,19 +119,18 @@ uint8_t buttonMatrixSet(uint8_t data[BUTTONMATRIXROWS])
 				buttonMatrixSendOneBitData(LOW);
 			}
 		}
-
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 		gpio_pin_set_dt(&buttonMatrixShiftOutputEnable,HIGH);
 		gpio_pin_set_dt(&buttonMatrixShiftOutputEnable,LOW);
 
 		gpio_pin_set_dt(&buttonMatrixMuxA,(row & 0x1));
 		gpio_pin_set_dt(&buttonMatrixMuxB,(row & 0x2));
-
+#endif
 		//TODO: determine this k_sleep delay
 		k_sleep(K_USEC(4000));
 	}
 	return 0;
 }
-
 
 /** 
  * @brief Configures the buttonsinsmallmatrix.
@@ -136,6 +141,7 @@ uint8_t buttonMatrixSet(uint8_t data[BUTTONMATRIXROWS])
  */ 
 bool buttons4x4Config()
 {
+	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//check if gpio is available
 	uint8_t ret = 0;
 	uint8_t amount = 16;
@@ -147,6 +153,7 @@ bool buttons4x4Config()
 	{
 		return 1;
 	}
+	#endif
 	return 0;
 }
 
@@ -159,6 +166,7 @@ bool buttons4x4Config()
  */ 
 uint8_t buttons4x4Init()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
 	uint8_t amount = 16;
 	for (uint8_t i = 0; i < amount; i++)
@@ -168,9 +176,9 @@ uint8_t buttons4x4Init()
 	if (ret != 0) {
 		return 1;
 	}
+#endif
 	return 0;
 }
-
 
 /** 
  * @brief reads value from buttons in small matrix
@@ -193,5 +201,5 @@ uint8_t buttons4x4Get(uint8_t selectedbtn)
 	{
 		return 2;
 	}
-	
+	return 2;
 }

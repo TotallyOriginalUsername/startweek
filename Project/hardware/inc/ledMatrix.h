@@ -5,7 +5,10 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 
-// GPIO definitions 
+// GPIO definitions
+#if defined(CONFIG_ARCH_POSIX)
+// implemented with LVGL
+#else
 static const struct gpio_dt_spec ledMatrixShiftDataIn 			= GPIO_DT_SPEC_GET(DT_ALIAS(shiftdatain16x16), gpios);
 static const struct gpio_dt_spec ledMatrixShiftOutputEnable 	= GPIO_DT_SPEC_GET(DT_ALIAS(shiftenable16x16), gpios);
 static const struct gpio_dt_spec ledMatrixShiftClock 			= GPIO_DT_SPEC_GET(DT_ALIAS(shiftclock16x16 ), gpios);
@@ -13,6 +16,7 @@ static const struct gpio_dt_spec ledMatrixMuxA 					= GPIO_DT_SPEC_GET(DT_ALIAS(
 static const struct gpio_dt_spec ledMatrixMuxB 					= GPIO_DT_SPEC_GET(DT_ALIAS(muxb16x16), gpios);
 static const struct gpio_dt_spec ledMatrixMuxC 					= GPIO_DT_SPEC_GET(DT_ALIAS(muxc16x16), gpios);
 static const struct gpio_dt_spec ledMatrixMuxD 					= GPIO_DT_SPEC_GET(DT_ALIAS(muxd16x16), gpios);
+#endif
 
 #define LEDMATRIXLEDSINROW		16
 #define LEDMATRIXROWS 			16

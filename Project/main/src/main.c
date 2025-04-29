@@ -1,5 +1,7 @@
+
 #include "statemachine.h"
 #include "threads.h"
+
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
@@ -16,7 +18,11 @@
 void tmain(void) // Core thread
 {
 	printf("Main\n");
+	#if defined(CONFIG_ARCH_POSIX)
+	//do nothing yet
+	#else
 	startStatemachine();
+	#endif
 }
 
 // Define the threads

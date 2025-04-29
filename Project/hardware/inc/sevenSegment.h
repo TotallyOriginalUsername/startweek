@@ -6,7 +6,10 @@
 #include <zephyr/drivers/gpio.h>
 #include <string.h>
 
-// GPIO definitions 
+// GPIO definitions
+#if defined(CONFIG_ARCH_POSIX)
+// implemented with LVGL
+#else
 static const struct gpio_dt_spec sevenSegmentBcdA 		= GPIO_DT_SPEC_GET(DT_ALIAS(bcda7segment), gpios);
 static const struct gpio_dt_spec sevenSegmentBcdB 		= GPIO_DT_SPEC_GET(DT_ALIAS(bcdb7segment), gpios);
 static const struct gpio_dt_spec sevenSegmentBcdC 		= GPIO_DT_SPEC_GET(DT_ALIAS(bcdc7segment), gpios);
@@ -16,6 +19,7 @@ static const struct gpio_dt_spec sevenSegmentMuxDig1 	= GPIO_DT_SPEC_GET(DT_ALIA
 static const struct gpio_dt_spec sevenSegmentMuxDig2 	= GPIO_DT_SPEC_GET(DT_ALIAS(muxdig27segment), gpios);
 static const struct gpio_dt_spec sevenSegmentMuxDig3 	= GPIO_DT_SPEC_GET(DT_ALIAS(muxdig37segment), gpios);
 static const struct gpio_dt_spec sevenSegmentMuxDig4 	= GPIO_DT_SPEC_GET(DT_ALIAS(muxdig47segment), gpios);
+#endif
 
 #ifndef HIGH
 #define HIGH 1

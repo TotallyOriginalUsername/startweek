@@ -1,4 +1,5 @@
 #include "gyroCompass.h"
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -938,3 +939,4 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 
 	return 0;
 }
+#endif

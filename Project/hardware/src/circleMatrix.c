@@ -13,9 +13,11 @@
  */ 
 void circleMatrixSendOneBitData(bool ShiftDataValue)
 {
+	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&circleMatrixShiftDataIn,ShiftDataValue);
 	gpio_pin_set_dt(&circleMatrixShiftClock,HIGH);
 	gpio_pin_set_dt(&circleMatrixShiftClock,LOW);
+	#endif
 }
 
 /** 
@@ -27,6 +29,8 @@ void circleMatrixSendOneBitData(bool ShiftDataValue)
  */ 
 bool circleMatrixConfig()
 {
+	uint8_t ret = 0;
+	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&circleMatrixShiftDataIn) && !gpio_is_ready_dt(&circleMatrixShiftOutputEnable) &&
 		!gpio_is_ready_dt(&circleMatrixShiftClock) && !gpio_is_ready_dt(&circleMatrixMuxA) &&
@@ -35,13 +39,13 @@ bool circleMatrixConfig()
 		return 1;
 	}
 	//configures the gpio
-	uint8_t ret = 0;
 	ret += gpio_pin_configure_dt(&circleMatrixShiftDataIn, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixShiftOutputEnable, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixShiftClock, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixMuxA, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixMuxB, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixMuxC, GPIO_OUTPUT_ACTIVE);
+	#endif
 	//return when gpio is configured incorrectly
 	if (ret != 0) 
 	{
@@ -61,6 +65,7 @@ bool circleMatrixConfig()
 uint8_t circleMatrixInit ()
 {
 	uint8_t ret = 0;
+	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	ret += gpio_pin_set_dt(&circleMatrixShiftDataIn,LOW);
 	ret += gpio_pin_set_dt(&circleMatrixShiftOutputEnable,LOW);
 	ret += gpio_pin_set_dt(&circleMatrixShiftClock,LOW);
@@ -85,7 +90,7 @@ uint8_t circleMatrixInit ()
 		gpio_pin_set_dt(&circleMatrixMuxB,(row & 0x2));
 		gpio_pin_set_dt(&circleMatrixMuxC,(row & 0x4));
 	}
-
+	#endif
 	return 0;
 }
 
@@ -104,6 +109,7 @@ uint8_t circleMatrixInit ()
  */ 
 uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	for (size_t row = 0; row < CIRCLEMATRIXROWS; row++)
 	{
 		for (size_t led = 0; led < CIRCLEMATRIXLEDSINROW; led++)
@@ -117,16 +123,15 @@ uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
 				circleMatrixSendOneBitData(LOW);
 			}
 		}
-
 		gpio_pin_set_dt(&circleMatrixShiftOutputEnable,HIGH);
 		gpio_pin_set_dt(&circleMatrixShiftOutputEnable,LOW);
 
 		gpio_pin_set_dt(&circleMatrixMuxA,(row & 0x1));
 		gpio_pin_set_dt(&circleMatrixMuxB,(row & 0x2));
 		gpio_pin_set_dt(&circleMatrixMuxC,(row & 0x4));
-
 		//TODO: determine this k_sleep delay
 		k_sleep(K_USEC(2000));
 	}
+	#endif
 	return 0;
 }

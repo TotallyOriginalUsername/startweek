@@ -1,5 +1,6 @@
 #include "genericGpio.h"
 
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 /** 
  * @brief Configures the switches.
  * 
@@ -109,8 +110,6 @@ bool startbuttonledConfig()
 	return 0;
 }
 
-
-
 /** 
  * @brief Initializes the switches
  * 
@@ -200,6 +199,7 @@ uint8_t startbuttonledInit()
 	}
 	return 0;
 }
+#endif
 
 /** 
  * @brief reads value from switches
@@ -275,6 +275,7 @@ uint8_t abcbuttonsGet(char selectedbtn)
  */ 
 uint8_t abcledsSet(char selectedled,bool value)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	switch (selectedled)
 	{
 	case 'a':
@@ -293,6 +294,8 @@ uint8_t abcledsSet(char selectedled,bool value)
 		return 1;
 		break;
 	}
+#endif
+	return 1;
 }
 
 /** 
@@ -320,6 +323,8 @@ uint8_t startbuttonGet()
  */ 
 uint8_t startledSet(bool value)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&startled,value);
+#endif
 	return 0;
 }

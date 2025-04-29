@@ -27,14 +27,19 @@ static const struct gpio_dt_spec abcbutton[3] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(abcbuttonc), gpios),
 };
 
+#if defined(CONFIG_ARCH_POSIX)
+// implemented with LVGL
+#else
 static const struct gpio_dt_spec abcleds[3] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(abcleda), gpios),
 	GPIO_DT_SPEC_GET(DT_ALIAS(abcledb), gpios),
 	GPIO_DT_SPEC_GET(DT_ALIAS(abcledc), gpios),
 };
 
-static const struct gpio_dt_spec startbutton	= GPIO_DT_SPEC_GET(DT_ALIAS(startbutton), gpios);
 static const struct gpio_dt_spec startled		= GPIO_DT_SPEC_GET(DT_ALIAS(startled), gpios);
+#endif
+
+static const struct gpio_dt_spec startbutton	= GPIO_DT_SPEC_GET(DT_ALIAS(startbutton), gpios);
 
 #ifndef HIGH
 #define HIGH 1

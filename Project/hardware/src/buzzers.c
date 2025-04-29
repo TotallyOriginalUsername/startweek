@@ -1,3 +1,4 @@
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #include "buzzers.h"
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
@@ -153,3 +154,4 @@ uint8_t buzzersExit()
 
 	return 0;
 }
+#endif

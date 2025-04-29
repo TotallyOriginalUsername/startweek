@@ -7,6 +7,9 @@
 #include <string.h>
 
 // GPIO definitions 
+#if defined(CONFIG_ARCH_POSIX)
+// implemented with LVGL
+#else
 static const struct gpio_dt_spec lcdRS 					= GPIO_DT_SPEC_GET(DT_ALIAS(lcddisplayrs), gpios);
 static const struct gpio_dt_spec lcdE 					= GPIO_DT_SPEC_GET(DT_ALIAS(lcddisplaye), gpios);
 static const struct gpio_dt_spec lcdData0 				= GPIO_DT_SPEC_GET(DT_ALIAS(lcddisplayd0), gpios);
@@ -18,6 +21,7 @@ static const struct gpio_dt_spec lcdData5 				= GPIO_DT_SPEC_GET(DT_ALIAS(lcddis
 static const struct gpio_dt_spec lcdData6 				= GPIO_DT_SPEC_GET(DT_ALIAS(lcddisplayd6), gpios);
 static const struct gpio_dt_spec lcdData7 				= GPIO_DT_SPEC_GET(DT_ALIAS(lcddisplayd7), gpios);
 static const struct gpio_dt_spec lcdBacklightEnable		= GPIO_DT_SPEC_GET(DT_ALIAS(lcddisplaybacklightenable), gpios);
+#endif
 
 // LCD instructions
 #define Clear           0b00000001          // replace all characters with ASCII 'space'

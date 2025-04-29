@@ -3,7 +3,7 @@
 //is located in c file as private variable so that it is included ones and only used by lcd.c
 bool lastaction;
 
-
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 /** 
  * @brief Writes 8 bit value to lcd.
  * 
@@ -278,3 +278,4 @@ uint8_t lcdClear()
 	lcdWriteInstruction(Home);
 	return 0;
 }
+#endif
