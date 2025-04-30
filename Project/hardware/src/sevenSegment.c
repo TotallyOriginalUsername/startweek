@@ -1,6 +1,5 @@
 #include "sevenSegment.h"
 
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 /** 
  * @brief sets one segment.
  * 
@@ -10,6 +9,7 @@
  */ 
 void sevenSegmentOneSegment(char value,bool dp)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	switch (value)
 	{
 	case '0':
@@ -85,6 +85,7 @@ void sevenSegmentOneSegment(char value,bool dp)
 	default:
 		break;
 	}
+#endif
 }
 
 
@@ -97,6 +98,8 @@ void sevenSegmentOneSegment(char value,bool dp)
  */ 
 bool sevenSegmentConfig()
 {
+	int ret = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gpio_is_ready_dt(&sevenSegmentBcdA) 	&& !gpio_is_ready_dt(&sevenSegmentBcdB) 	&&
 		!gpio_is_ready_dt(&sevenSegmentBcdC) 	&& !gpio_is_ready_dt(&sevenSegmentBcdD) 	&&
 		!gpio_is_ready_dt(&sevenSegmentDP) 		&& !gpio_is_ready_dt(&sevenSegmentMuxDig1) 	&&
@@ -106,7 +109,6 @@ bool sevenSegmentConfig()
 		return 1;
 	}
 	//configures the gpio
-	int ret = 0;
 	ret += gpio_pin_configure_dt(&sevenSegmentBcdA, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&sevenSegmentBcdB, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&sevenSegmentBcdC, GPIO_OUTPUT_ACTIVE);
@@ -116,6 +118,7 @@ bool sevenSegmentConfig()
 	ret += gpio_pin_configure_dt(&sevenSegmentMuxDig2, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&sevenSegmentMuxDig3, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&sevenSegmentMuxDig4, GPIO_OUTPUT_ACTIVE);
+#endif
 	//return when gpio is configured incorrectly
 	if (ret != 0) 
 	{
@@ -136,8 +139,8 @@ bool sevenSegmentConfig()
 uint8_t sevenSegmentInit()
 {
 	//Checks if gpio is available
-	
 	uint8_t ret = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	ret += gpio_pin_set_dt(&sevenSegmentBcdA,LOW);
 	ret += gpio_pin_set_dt(&sevenSegmentBcdB,LOW);
 	ret += gpio_pin_set_dt(&sevenSegmentBcdC,LOW);
@@ -147,6 +150,7 @@ uint8_t sevenSegmentInit()
 	ret += gpio_pin_set_dt(&sevenSegmentMuxDig2,LOW);
 	ret += gpio_pin_set_dt(&sevenSegmentMuxDig3,LOW);
 	ret += gpio_pin_set_dt(&sevenSegmentMuxDig4,LOW);
+#endif
 	k_sleep(K_MSEC(5));
 	if(ret != 0)
 	{
@@ -155,8 +159,6 @@ uint8_t sevenSegmentInit()
 
 	return 0;
 }
-#endif
-
 
 /** 
  * @brief write a value with one decimalpoint to the sevenSegment
@@ -167,10 +169,13 @@ uint8_t sevenSegmentInit()
  */ 
 uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 {
+#if defined(CONFIG_ARCH_POSIX)
+	set_segmented_display(input, dpPosition);
+	k_msleep(4);
+#else
 	for (size_t i = 0; i < 4; i++)
 	{
 		bool dp = false;
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 		switch (i)
 		{
 		case 0:
@@ -203,9 +208,9 @@ uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 			dp = true;
 		}
 		sevenSegmentOneSegment(input[i],dp);
-#endif
 		//needs to be determined
 		k_msleep(4);
 	}
+#endif
 	return 0;
 }

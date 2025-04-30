@@ -17,7 +17,6 @@ void buttonMatrixSendOneBitData(bool ShiftDataValue)
 	gpio_pin_set_dt(&buttonMatrixShiftClock,HIGH);
 	gpio_pin_set_dt(&buttonMatrixShiftClock,LOW);
 #endif
-printk("a");
 }
 
 /** 
@@ -110,6 +109,17 @@ uint8_t buttonMatrixSet(uint8_t data[BUTTONMATRIXROWS])
 	{
 		for (size_t led = 0; led < BUTTONMATRIXLEDSINROW; led++)
 		{
+#if defined(CONFIG_ARCH_POSIX)
+			int index = row * BUTTONMATRIXLEDSINROW + led;
+			if(data[row] & 0x1<<led)
+			{
+				set_button((index), 1);
+			}
+			else
+			{
+				set_button((index), 0);
+			}
+#else
 			if(data[row] & 0x1<<led)
 			{
 				buttonMatrixSendOneBitData(HIGH);
@@ -118,6 +128,7 @@ uint8_t buttonMatrixSet(uint8_t data[BUTTONMATRIXROWS])
 			{
 				buttonMatrixSendOneBitData(LOW);
 			}
+#endif
 		}
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 		gpio_pin_set_dt(&buttonMatrixShiftOutputEnable,HIGH);
@@ -193,6 +204,21 @@ uint8_t buttons4x4Init()
  */ 
 uint8_t buttons4x4Get(uint8_t selectedbtn)
 {	
+#if defined(CONFIG_ARCH_POSIX)
+	uint8_t lvgl_state = 2;
+	if(selectedbtn < 16 && selectedbtn >= 0)
+	{
+        lvgl_state = get_button_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(buttonsButtonMatrix[selectedbtn].port, buttonsButtonMatrix[selectedbtn].pin);
+	}
+	else
+	{
+		return 2;
+	}
+#else
 	if(selectedbtn < 16 && selectedbtn >= 0)
 	{
 		return gpio_pin_get(buttonsButtonMatrix[selectedbtn].port, buttonsButtonMatrix[selectedbtn].pin);
@@ -201,5 +227,5 @@ uint8_t buttons4x4Get(uint8_t selectedbtn)
 	{
 		return 2;
 	}
-	return 2;
+#endif
 }

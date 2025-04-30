@@ -1,5 +1,10 @@
 #include "minigame4.h"
 
+#ifdef CONFIG_ARCH_POSIX
+#define native_loop() k_sleep(K_MSEC(1))
+#else
+#define native_loop()
+#endif
 K_TIMER_DEFINE(secTimerMg4, NULL, NULL);
 
 char *mg4Threads[mg4ThreadCount] = {"startbtn", "buzzers", "abcbtn"};
@@ -43,6 +48,7 @@ void showOnelinersMG4()
 	lcdStringWrite("Druk op start");
 	while (!done)
 	{
+		native_loop();
 		if(startbuttonGet())
 		{	
 			startledSet(1);
@@ -54,11 +60,12 @@ void showOnelinersMG4()
 			{
 			lcdStringWrite(oneLinersMG4[i]);
 			k_timer_start(&secTimerMg4, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg4) > 0)){}	
+			while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}	
 			}
 			startledSet(1);
 			while (true)
 			{
+				native_loop();
 				if(!startbuttonGet())
 				{	
 				done = true;
@@ -85,12 +92,13 @@ int playMg4() {
 	abcledsSet('a',true);
 	abcledsSet('b',true);
 	abcledsSet('c',true);
-	while (!(k_timer_status_get(&secTimerMg4) > 0)){}	
+	while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}	
 	for (uint8_t questionIndex = 0; questionIndex < AMOUNT_QUESTIONS; questionIndex++)
 	{
 		correct = false;
 		while (!correct)
 		{
+			native_loop();
 			//check if score is 0
 			if(score == 0)
 			{
@@ -103,13 +111,13 @@ int playMg4() {
 				showQuestion = false;
 				lcdStringWrite(questions[questionIndex]);
 				k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
-				while (!(k_timer_status_get(&secTimerMg4) > 0)){}
+				while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}
 
 				for (uint8_t answersIndex = 0; answersIndex < AMOUNT_ANSWERS; answersIndex++)
 				{
 					lcdStringWrite(answers[questionIndex][answersIndex]);
 					k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
-					while (!(k_timer_status_get(&secTimerMg4) > 0)){}
+					while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}
 				}
 				
 				lcdStringWrite("    Antwoord      A, B of C    ");
@@ -167,7 +175,7 @@ int playMg4() {
 					break;
 				}
 				k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
-				while (!(k_timer_status_get(&secTimerMg4) > 0)){}	
+				while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}	
 				showQuestion = true;
 			}
 		}

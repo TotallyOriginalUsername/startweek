@@ -1,5 +1,10 @@
 #include "minigame2.h"
 
+#ifdef CONFIG_ARCH_POSIX
+#define native_loop() k_sleep(K_MSEC(1))
+#else
+#define native_loop()
+#endif
 K_TIMER_DEFINE(secTimerMg2, NULL, NULL);
 
 char *mg2Threads[mg2ThreadCount] = {"startbtn", "btnmatrix_in", "btnmatrix_out", "buzzers"};
@@ -62,14 +67,14 @@ void showLevel(uint8_t level,uint8_t sequence[8]){
 		showButton(sequence[i]);
 		printf_minigame2("sequence[%d]: %d\n",i,sequence[i]);
 		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){}	
+		while (!(k_timer_status_get(&secTimerMg2) > 0)){native_loop();}	
 		showButton(5);
 		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){}	
+		while (!(k_timer_status_get(&secTimerMg2) > 0)){native_loop();}	
 	}
 	showButton(6);
 	k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-	while (!(k_timer_status_get(&secTimerMg2) > 0)){}	
+	while (!(k_timer_status_get(&secTimerMg2) > 0)){native_loop();}	
 	showButton(5);
 }
 
@@ -182,6 +187,7 @@ void showOnelinersMG2()
 	lcdStringWrite("Druk op start");
 	while (!done)
 	{
+		native_loop();
 		if(startbuttonGet())
 		{	
 			startledSet(1);
@@ -193,11 +199,12 @@ void showOnelinersMG2()
 			{
 			lcdStringWrite(oneLinersMG2[i]);
 			k_timer_start(&secTimerMg2, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg2) > 0)){}	
+			while (!(k_timer_status_get(&secTimerMg2) > 0)){native_loop();}	
 			}
 			startledSet(1);
 			while (true)
 			{
+				native_loop();
 				if(!startbuttonGet())
 				{	
 				done = true;
@@ -220,6 +227,7 @@ int playMg2() {
 	showOnelinersMG2();
 	while (true)
 	{
+		native_loop();
 		if(genValue == false)
 		{
 			level = 0;
@@ -227,7 +235,7 @@ int playMg2() {
 			genValue = true;
 		}
 		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){}	
+		while (!(k_timer_status_get(&secTimerMg2) > 0)){native_loop();}	
 		showLevel(level,sequence);
 		level += checkinput(&genValue, &score, level, sequence);
 		if(level == 8 || score == 0)

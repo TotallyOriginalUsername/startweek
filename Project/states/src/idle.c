@@ -84,7 +84,7 @@ int playIdle() {
 	while (completedGames[locIndex] == true) {
 		locIndex = rand() % 10;	// Keep getting random index until a game which has not been done yet is found
 	}
-
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
 	lcdEnable();
@@ -123,6 +123,7 @@ int playIdle() {
 
 		setLedCircleDirWidth(dir, ledWidth);			// Point the user in the correct direction
 	}
+#endif
 	lcdStringWrite("Gearriveerd!!");
 	k_msleep(4000);
 	completedGames[locIndex] = true;

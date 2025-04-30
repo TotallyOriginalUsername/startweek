@@ -1,6 +1,5 @@
 #include "genericGpio.h"
 
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 /** 
  * @brief Configures the switches.
  * 
@@ -10,6 +9,7 @@
  */ 
 bool switchesConfig()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//check if gpio is available
 	uint8_t ret = 0;
 	uint8_t amount = 5;
@@ -25,6 +25,7 @@ bool switchesConfig()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -37,6 +38,7 @@ bool switchesConfig()
  */ 
 bool abcbuttonsConfig()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//check if gpio is available
 	uint8_t ret = 0;
 	uint8_t amount = 3;
@@ -48,6 +50,7 @@ bool abcbuttonsConfig()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -60,6 +63,7 @@ bool abcbuttonsConfig()
  */ 
 bool abcledsConfig()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//check if gpio is available
 	uint8_t ret = 0;
 	uint8_t amount = 3;
@@ -82,6 +86,7 @@ bool abcledsConfig()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -94,6 +99,7 @@ bool abcledsConfig()
  */ 
 bool startbuttonledConfig()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&startbutton) && !gpio_is_ready_dt(&startled)) 
 	{
@@ -107,6 +113,7 @@ bool startbuttonledConfig()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -119,6 +126,7 @@ bool startbuttonledConfig()
  */ 
 uint8_t switchesInit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
 	uint8_t amount = 5;
 	for (uint8_t i = 0; i < amount; i++)
@@ -132,6 +140,7 @@ uint8_t switchesInit()
 	if (ret != 0) {
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -144,6 +153,7 @@ uint8_t switchesInit()
  */ 
 uint8_t abcbuttonsInit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
 	uint8_t amount = 3;
 	for (uint8_t i = 0; i < amount; i++)
@@ -154,6 +164,7 @@ uint8_t abcbuttonsInit()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -166,6 +177,7 @@ uint8_t abcbuttonsInit()
  */ 
 uint8_t abcledsInit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
 	uint8_t amount = 3;
 	for (uint8_t i = 0; i < amount; i++)
@@ -176,6 +188,7 @@ uint8_t abcledsInit()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -190,6 +203,7 @@ uint8_t abcledsInit()
  */ 
 uint8_t startbuttonledInit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
 	ret += gpio_pin_configure_dt(&startbutton, GPIO_INPUT);
 	ret += gpio_pin_set_dt(&startled,LOW);
@@ -197,9 +211,9 @@ uint8_t startbuttonledInit()
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
-#endif
 
 /** 
  * @brief reads value from switches
@@ -217,7 +231,13 @@ uint8_t switchesGet(uint8_t selectedswitch)
 	bool switchonState = false,switchoffState = false;
 	switchonState = gpio_pin_get(switchon[selectedswitch].port, switchon[selectedswitch].pin);
 	switchoffState = gpio_pin_get(switchoff[selectedswitch].port, switchoff[selectedswitch].pin);
-
+#if defined(CONFIG_ARCH_POSIX)
+	uint8_t lvgl_state = 2;
+	lvgl_state = get_switch(selectedswitch);
+    if(lvgl_state == 1){
+        return 1;
+    }
+#endif
 	if(!switchonState)
 	{
 		return 0;		
@@ -245,6 +265,37 @@ uint8_t switchesGet(uint8_t selectedswitch)
  */ 
 uint8_t abcbuttonsGet(char selectedbtn)
 {
+#if defined(CONFIG_ARCH_POSIX)
+	uint8_t lvgl_state = 2;
+
+	switch (selectedbtn)
+	{
+	case 'a':
+		lvgl_state = get_button_abc_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(abcbutton[0].port, abcbutton[0].pin);
+		break;
+	case 'b':
+		lvgl_state = get_button_abc_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(abcbutton[1].port, abcbutton[1].pin);
+		break;
+	case 'c':
+		lvgl_state = get_button_abc_state(selectedbtn);
+        if(lvgl_state == 1){
+            return 1;
+        }
+		return gpio_pin_get(abcbutton[2].port, abcbutton[2].pin);
+		break;
+	default:
+		return 2;
+		break;
+	}
+#else
 	switch (selectedbtn)
 	{
 	case 'a':
@@ -260,6 +311,7 @@ uint8_t abcbuttonsGet(char selectedbtn)
 		return 2;
 		break;
 	}
+#endif
 }
 
 /** 
@@ -275,7 +327,26 @@ uint8_t abcbuttonsGet(char selectedbtn)
  */ 
 uint8_t abcledsSet(char selectedled,bool value)
 {
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+#if defined(CONFIG_ARCH_POSIX)
+	switch (selectedled)
+	{
+	case 'a':
+		set_abc_button(0,value);
+		return 0;
+		break;
+	case 'b':
+		set_abc_button(1,value);
+		return 0;
+		break;
+	case 'c':
+		set_abc_button(2,value);
+		return 0;
+		break;
+	default:
+		return 1;
+		break;
+	}
+#else
 	switch (selectedled)
 	{
 	case 'a':
@@ -309,6 +380,13 @@ uint8_t abcledsSet(char selectedled,bool value)
  */ 
 uint8_t startbuttonGet()
 {
+	#if defined(CONFIG_ARCH_POSIX)
+	uint8_t lvgl_state = 2;
+	lvgl_state = get_button_start();
+    if(lvgl_state == 1){
+        return 1;
+    }
+	#endif
 	return gpio_pin_get(startbutton.port, startbutton.pin);
 }
 
@@ -323,7 +401,9 @@ uint8_t startbuttonGet()
  */ 
 uint8_t startledSet(bool value)
 {
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+#if defined(CONFIG_ARCH_POSIX)
+	set_start_button(value);
+#else
 	gpio_pin_set_dt(&startled,value);
 #endif
 	return 0;

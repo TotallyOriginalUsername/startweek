@@ -109,11 +109,22 @@ uint8_t circleMatrixInit ()
  */ 
 uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
 {
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+
 	for (size_t row = 0; row < CIRCLEMATRIXROWS; row++)
 	{
 		for (size_t led = 0; led < CIRCLEMATRIXLEDSINROW; led++)
 		{
+#if defined(CONFIG_ARCH_POSIX)
+			int index = row * CIRCLEMATRIXLEDSINROW + led;
+			if(data[row] & 0x1<<led)
+			{
+				set_led_circle((index), 1);
+			}
+			else
+			{
+				set_led_circle((index), 0);
+			}
+#else
 			if(data[row] & 0x1<<led)
 			{
 				circleMatrixSendOneBitData(HIGH);
@@ -122,16 +133,18 @@ uint8_t circleMatrixSet(uint8_t data[CIRCLEMATRIXROWS])
 			{
 				circleMatrixSendOneBitData(LOW);
 			}
+#endif			
 		}
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 		gpio_pin_set_dt(&circleMatrixShiftOutputEnable,HIGH);
 		gpio_pin_set_dt(&circleMatrixShiftOutputEnable,LOW);
 
 		gpio_pin_set_dt(&circleMatrixMuxA,(row & 0x1));
 		gpio_pin_set_dt(&circleMatrixMuxB,(row & 0x2));
 		gpio_pin_set_dt(&circleMatrixMuxC,(row & 0x4));
+#endif
 		//TODO: determine this k_sleep delay
 		k_sleep(K_USEC(2000));
 	}
-	#endif
 	return 0;
 }

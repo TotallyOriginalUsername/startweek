@@ -5,6 +5,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <string.h>
+#if defined(CONFIG_ARCH_POSIX)
+#include "lvgl_ui.h"
+#endif
 
 // GPIO definitions 
 #if defined(CONFIG_ARCH_POSIX)

@@ -12,11 +12,11 @@
  */ 
 void ledMatrixSendOneBitData(bool ShiftDataValue)
 {
-	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&ledMatrixShiftDataIn,ShiftDataValue);
 	gpio_pin_set_dt(&ledMatrixShiftClock,HIGH);
 	gpio_pin_set_dt(&ledMatrixShiftClock,LOW);
-	#endif
+#endif
 }
 
 /** 
@@ -29,7 +29,7 @@ void ledMatrixSendOneBitData(bool ShiftDataValue)
 bool ledMatrixConfig()
 {
 	uint8_t ret = 0;
-	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&ledMatrixShiftDataIn) && !gpio_is_ready_dt(&ledMatrixShiftOutputEnable) &&
 		!gpio_is_ready_dt(&ledMatrixShiftClock) && !gpio_is_ready_dt(&ledMatrixMuxA) &&
@@ -46,7 +46,7 @@ bool ledMatrixConfig()
 	ret += gpio_pin_configure_dt(&ledMatrixMuxC, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&ledMatrixMuxD, GPIO_OUTPUT_ACTIVE);
 	//return when gpio is configured incorrectly
-	#endif
+#endif
 	if (ret != 0) 
 	{
 		return 1;
@@ -65,7 +65,7 @@ bool ledMatrixConfig()
 int8_t ledMatrixInit ()
 {
 	uint8_t ret = 0;
-	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	ret += gpio_pin_set_dt(&ledMatrixShiftDataIn,LOW);
 	ret += gpio_pin_set_dt(&ledMatrixShiftOutputEnable,LOW);
 	ret += gpio_pin_set_dt(&ledMatrixShiftClock,LOW);
@@ -111,11 +111,21 @@ int8_t ledMatrixInit ()
  */ 
 int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
 {
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	for (size_t row = 0; row < LEDMATRIXROWS; row++)
 	{
 		for (size_t led = 0; led < LEDMATRIXLEDSINROW; led++)
 		{
+#if defined(CONFIG_ARCH_POSIX)
+			int index = row * LEDMATRIXLEDSINROW + led;
+			if(data[row] & 0x1<<led)
+			{
+				set_led((index), 1);
+			}
+			else
+			{
+				set_led((index), 0);
+			}
+#else
 			if(data[row] & 0x1<<led)
 			{
 				ledMatrixSendOneBitData(HIGH);
@@ -124,7 +134,9 @@ int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
 			{
 				ledMatrixSendOneBitData(LOW);
 			}
+#endif
 		}
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 		gpio_pin_set_dt(&ledMatrixShiftOutputEnable,HIGH);
 		gpio_pin_set_dt(&ledMatrixShiftOutputEnable,LOW);
 
@@ -132,9 +144,10 @@ int8_t ledMatrixSet(int16_t data[LEDMATRIXROWS])
 		gpio_pin_set_dt(&ledMatrixMuxB,(row & 0x2));
 		gpio_pin_set_dt(&ledMatrixMuxC,(row & 0x4));
 		gpio_pin_set_dt(&ledMatrixMuxD,(row & 0x8));
+#endif
 		//TODO: determine this k_sleep delay
 		k_sleep(K_USEC(1000));
 	}
-#endif
+
 	return 0;
 }

@@ -1,5 +1,4 @@
 #include "gyroCompass.h"
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -516,6 +515,7 @@ uint8_t magnetometer_set_sampling_freq(int aFreq)
  */
 uint8_t magnetometer_init(void)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (magnetometer_is_init)
 	{
 		printf("Magnetometer already initialized\n");
@@ -534,6 +534,7 @@ uint8_t magnetometer_init(void)
 	// {
 	//  return error;
 	// }
+#endif
 
 	magnetometer_is_init = true;
 	return 0;
@@ -551,6 +552,7 @@ uint8_t magnetometer_init(void)
  */
 uint8_t magnetometer_exit(void)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!magnetometer_is_init)
 	{
 		return 1;
@@ -561,6 +563,7 @@ uint8_t magnetometer_exit(void)
 	// {
 	//  return error;
 	// }
+#endif
 
 	magnetometer_is_init = false;
 	return 0;
@@ -660,6 +663,7 @@ uint8_t gyroscope_set_sampling_freq(int aFreq)
  */
 uint8_t gyroscope_init(void)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (gyroscope_is_init)
 	{
 		printf("Magnetometer already initialized\n");
@@ -680,6 +684,7 @@ uint8_t gyroscope_init(void)
 	{
 		return error;
 	}
+#endif
 
 	gyroscope_is_init = true;
 	return 0;
@@ -696,6 +701,7 @@ uint8_t gyroscope_init(void)
  */
 uint8_t gyroscope_exit(void)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gyroscope_is_init)
 	{
 		printf("Gyroscope not initialized\n");
@@ -707,7 +713,7 @@ uint8_t gyroscope_exit(void)
 	{
 		return error;
 	}
-
+#endif
 	gyroscope_is_init = false;
 
 	return 0;
@@ -939,4 +945,3 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 
 	return 0;
 }
-#endif

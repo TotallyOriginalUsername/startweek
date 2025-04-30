@@ -3,7 +3,6 @@
 //is located in c file as private variable so that it is included ones and only used by lcd.c
 bool lastaction;
 
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 /** 
  * @brief Writes 8 bit value to lcd.
  * 
@@ -13,6 +12,7 @@ bool lastaction;
  */ 
 void lcdWrite8bits(uint8_t bits)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&lcdE,LOW);
 	k_sleep(K_USEC(1));
 
@@ -54,7 +54,7 @@ void lcdWrite8bits(uint8_t bits)
 	k_sleep(K_USEC(1));
 	gpio_pin_set_dt(&lcdE,LOW);
 	k_sleep(K_USEC(1));
-
+#endif
 }
 
 
@@ -67,6 +67,7 @@ void lcdWrite8bits(uint8_t bits)
  */ 
 void lcdWriteInstruction(uint8_t bits)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if(lastaction == actiondata)
 	{
 		gpio_pin_set_dt(&lcdRS,LOW);
@@ -74,6 +75,7 @@ void lcdWriteInstruction(uint8_t bits)
 	}
 	lastaction = actioninstruction;
 	lcdWrite8bits(bits);
+#endif
 }
 
 /** 
@@ -85,6 +87,7 @@ void lcdWriteInstruction(uint8_t bits)
  */ 
 void lcdWriteData(uint8_t bits)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if(lastaction == actioninstruction)
 	{
 		gpio_pin_set_dt(&lcdRS,HIGH);
@@ -92,6 +95,7 @@ void lcdWriteData(uint8_t bits)
 	}
 	lastaction = actiondata;
 	lcdWrite8bits(bits);
+#endif
 }
 
 
@@ -104,6 +108,7 @@ void lcdWriteData(uint8_t bits)
  */ 
 bool lcdConfig()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&lcdData1) && !gpio_is_ready_dt(&lcdData2) &&
 		!gpio_is_ready_dt(&lcdData3) && !gpio_is_ready_dt(&lcdData4) &&
@@ -131,7 +136,7 @@ bool lcdConfig()
 	{
 		return 1;
 	}
-
+#endif
 	return 0;
 }
 
@@ -145,6 +150,7 @@ bool lcdConfig()
  */ 
 int8_t lcdInit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int ret = 0;
 	ret += gpio_pin_set_dt(&lcdData0,LOW);
 	ret += gpio_pin_set_dt(&lcdData1,LOW);
@@ -190,7 +196,7 @@ int8_t lcdInit()
 
 	lcdWriteInstruction(DisplayOn);
 	k_sleep(K_USEC(80));			/* wait for 80us */
-
+#endif
 	return 0;
 }
 /** 
@@ -204,6 +210,9 @@ int8_t lcdInit()
  */ 
 uint8_t lcdStringWrite(char *msg)
 {
+#if defined(CONFIG_ARCH_POSIX)
+	set_lcd_display(msg);
+#else
 	int i;
 	int len = 0;
 	uint8_t data;
@@ -236,6 +245,7 @@ uint8_t lcdStringWrite(char *msg)
 	else {
 		return 1;
 	}
+	#endif
 	return 0;	
 }
 
@@ -248,7 +258,10 @@ uint8_t lcdStringWrite(char *msg)
  */ 
 uint8_t lcdEnable()
 {
+// TODO: Can be implemented with LVGL
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&lcdBacklightEnable,HIGH);
+#endif
 	return 0;
 }
 
@@ -261,7 +274,9 @@ uint8_t lcdEnable()
  */ 
 uint8_t lcdDisable()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	gpio_pin_set_dt(&lcdBacklightEnable,LOW);
+#endif
 	return 0;
 }
 
@@ -274,8 +289,9 @@ uint8_t lcdDisable()
  */ 
 uint8_t lcdClear()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	lcdWriteInstruction(Clear);
 	lcdWriteInstruction(Home);
+#endif
 	return 0;
 }
-#endif

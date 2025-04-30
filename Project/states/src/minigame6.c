@@ -1,5 +1,9 @@
 #include "minigame6.h"
-
+#ifdef CONFIG_ARCH_POSIX
+#define native_loop() k_sleep(K_MSEC(1))
+#else
+#define native_loop()
+#endif
 K_TIMER_DEFINE(secTimerMg6, NULL, NULL);
 
 
@@ -24,6 +28,7 @@ void showOnelinersMG6()
 	lcdStringWrite("Druk op start");
 	while (!done)
 	{
+		native_loop();
 		if(startbuttonGet())
 		{	
 			startledSet(1);
@@ -35,11 +40,12 @@ void showOnelinersMG6()
 			{
 			lcdStringWrite(oneLinersMG6[i]);
 			k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg6) > 0)){}	
+			while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}	
 			}
 			startledSet(1);
 			while (true)
 			{
+				native_loop();
 				if(!startbuttonGet())
 				{	
 				done = true;
@@ -70,6 +76,7 @@ int playMg6() {
 	abcledsSet('a', true);
 	while(true)
 	{
+		native_loop();
 		abcBtn = abcbtnGetMutexValue();
 		if (!abcBtn[0])
 		{
@@ -81,7 +88,7 @@ int playMg6() {
 		input[3] = value001 + 48;
 		sevensegSetMutexValue(input,1);
 		k_timer_start(&secTimerMg6, K_MSEC(10), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg6) > 0)){}
+		while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
 		if(value001 == 0 && value01 == 0 && value1 == 0 && value10 == 0)
 		{
 			break;
@@ -111,7 +118,7 @@ int playMg6() {
 	abcledsSet('a', false);
 	score = 1000 - ((value10 * 1000)+(value1 * 100)+(value01 * 10)+(value001 * 1));
 	k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
-	while (!(k_timer_status_get(&secTimerMg6) > 0)){}
+	while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
 	sevensegSetMutexValue(clear,0);
 	return score;
 }

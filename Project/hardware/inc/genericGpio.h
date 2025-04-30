@@ -4,6 +4,9 @@
 #include <zephyr/kernel.h>
 #include <stdio.h>
 #include <zephyr/drivers/gpio.h>
+#if defined(CONFIG_ARCH_POSIX)
+#include "lvgl_ui.h"
+#endif
 
 static const struct gpio_dt_spec switchon[5] = {
 	GPIO_DT_SPEC_GET(DT_ALIAS(switches1on), gpios),
