@@ -84,7 +84,7 @@ void mg1_state(struct state *state) { // Makes use of button and led
 	getMg1Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg1();
+	playMg1();
 
 	disableThreads(names, amount);
 
@@ -99,7 +99,7 @@ void mg2_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg2Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg2();
+	playMg2();
 
 	disableThreads(names, amount);
 
@@ -114,7 +114,7 @@ void mg3_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg3Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg3();
+	playMg3();
 
 	disableThreads(names, amount);
 
@@ -129,7 +129,7 @@ void mg4_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg4Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg4();
+	playMg4();
 
 	disableThreads(names, amount);
 
@@ -144,7 +144,7 @@ void mg5_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg5Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg5();
+	playMg5();
 
 	disableThreads(names, amount);
 
@@ -159,7 +159,7 @@ void mg6_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg6Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg6();
+	playMg6();
 
 	disableThreads(names, amount);
 	state->next = idle_state;
@@ -173,7 +173,7 @@ void mg7_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg7Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg7();
+	playMg7();
 
 	disableThreads(names, amount);
 
@@ -188,7 +188,7 @@ void mg8_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg8Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg8();
+	playMg8();
 
 	disableThreads(names, amount);
 
@@ -203,7 +203,7 @@ void mg9_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg9Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg9();
+	playMg9();
 
 	disableThreads(names, amount);
 
@@ -218,7 +218,7 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg10Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	int ret = playMg10();
+	playMg10();
 
 	disableThreads(names, amount);
 

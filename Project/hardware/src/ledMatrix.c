@@ -28,8 +28,8 @@ void ledMatrixSendOneBitData(bool ShiftDataValue)
  */ 
 bool ledMatrixConfig()
 {
-	uint8_t ret = 0;
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	uint8_t ret = 0;
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&ledMatrixShiftDataIn) && !gpio_is_ready_dt(&ledMatrixShiftOutputEnable) &&
 		!gpio_is_ready_dt(&ledMatrixShiftClock) && !gpio_is_ready_dt(&ledMatrixMuxA) &&
@@ -46,11 +46,11 @@ bool ledMatrixConfig()
 	ret += gpio_pin_configure_dt(&ledMatrixMuxC, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&ledMatrixMuxD, GPIO_OUTPUT_ACTIVE);
 	//return when gpio is configured incorrectly
-#endif
 	if (ret != 0) 
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -64,8 +64,8 @@ bool ledMatrixConfig()
  */ 
 int8_t ledMatrixInit ()
 {
-	uint8_t ret = 0;
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	uint8_t ret = 0;
 	ret += gpio_pin_set_dt(&ledMatrixShiftDataIn,LOW);
 	ret += gpio_pin_set_dt(&ledMatrixShiftOutputEnable,LOW);
 	ret += gpio_pin_set_dt(&ledMatrixShiftClock,LOW);

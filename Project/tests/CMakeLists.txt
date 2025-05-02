@@ -2,8 +2,7 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(blinky)
-
+project(startweek)
 
 # Gather source files using wildcards for src directory
 file(GLOB SRC_HARDWARE_SOURCES 			"../hardware/src/*.c")
@@ -31,3 +30,5 @@ target_include_directories(app PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../states/inc
 	${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
+
+set_property(TARGET app PROPERTY COMPILE_WARNING_AS_ERROR OFF)

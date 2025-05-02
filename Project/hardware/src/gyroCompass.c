@@ -46,6 +46,7 @@ const uint16_t MINDELTADIV = 1;
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_i_divide(int16_t iy, int16_t ix, int16_t *result)
 {
 	int16_t itmp;	/* Scratch */
@@ -76,6 +77,7 @@ static uint8_t gyroCompass_i_divide(int16_t iy, int16_t ix, int16_t *result)
 	*result = ir;
 	return 0;
 }
+#endif
 
 /**
  * @brief Calculates 100 * atan(iy / ix) in degrees.
@@ -89,6 +91,7 @@ static uint8_t gyroCompass_i_divide(int16_t iy, int16_t ix, int16_t *result)
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_i_hundred_atan_deg(int16_t iy, int16_t ix, int16_t *result)
 {
 	int32_t iAngle; /* Angle in degrees times 100 */
@@ -147,6 +150,7 @@ static uint8_t gyroCompass_i_hundred_atan_deg(int16_t iy, int16_t ix, int16_t *r
 	*result = (int16_t)iAngle;
 	return 0;
 }
+#endif
 
 /**
  * @brief Calculates 100 * atan2(iy, ix) in degrees.
@@ -160,6 +164,7 @@ static uint8_t gyroCompass_i_hundred_atan_deg(int16_t iy, int16_t ix, int16_t *r
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_i_hundred_atan2_deg(int16_t iy, int16_t ix, int16_t *result)
 {
 	int16_t iAngle; /* angle in degrees times 100 */
@@ -215,6 +220,7 @@ static uint8_t gyroCompass_i_hundred_atan2_deg(int16_t iy, int16_t ix, int16_t *
 	*result = iAngle;
 	return 0;
 }
+#endif
 
 /**
  * @brief Calculates ix / sqrt(ix*ix + iy*iy) using binary division.
@@ -228,6 +234,7 @@ static uint8_t gyroCompass_i_hundred_atan2_deg(int16_t iy, int16_t ix, int16_t *
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_i_trig(int16_t ix, int16_t iy, int16_t *result)
 {
 	uint32_t itmp;	 /* Scratch */
@@ -297,6 +304,7 @@ static uint8_t gyroCompass_i_trig(int16_t ix, int16_t iy, int16_t *result)
 	*result = (int16_t)(ir * isignx);
 	return 0;
 }
+#endif
 
 /**
  * @brief Computes the yaw angle.
@@ -314,6 +322,7 @@ static uint8_t gyroCompass_i_trig(int16_t ix, int16_t iy, int16_t *result)
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
 									  int16_t iGpx, int16_t iGpy, int16_t iGpz, double *angle)
 {
@@ -410,6 +419,7 @@ static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
 
 	return 0;
 }
+#endif
 
 /**
  * @brief Multiplies two matrices.
@@ -423,6 +433,7 @@ static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_multiply_matrices(int16_t result[3], const int16_t matrix1[3][3], const int16_t matrix2[3])
 {
 	int i, j;
@@ -436,6 +447,7 @@ static uint8_t gyroCompass_multiply_matrices(int16_t result[3], const int16_t ma
 	}
 	return 0;
 }
+#endif
 
 /**
  * @brief Rotates the x, y, and z axis data.
@@ -447,6 +459,7 @@ static uint8_t gyroCompass_multiply_matrices(int16_t result[3], const int16_t ma
  *
  * @return Error code (0 for success)
  */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static uint8_t gyroCompass_rotate_data(int16_t aMagnoData[3], int16_t aAccelData[3])
 {
 	uint16_t tempResult[3];
@@ -474,6 +487,7 @@ static uint8_t gyroCompass_rotate_data(int16_t aMagnoData[3], int16_t aAccelData
 
 	return 0;
 }
+#endif
 
 /**
  * @brief Sets the sampling frequency for the gyroscope.
@@ -583,6 +597,7 @@ uint8_t magnetometer_exit(void)
  */
 uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	struct sensor_value magn_xyz[3];
 	double magn_xyz_double[3];
 
@@ -611,6 +626,7 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 	{
 		aMagneto[i] = (int16_t)(magn_xyz_double[i] * 32767);
 	}
+#endif
 	return 0;
 }
 
@@ -730,6 +746,7 @@ uint8_t gyroscope_exit(void)
  */
 uint8_t gyroscope_get_acceleration(int16_t aAcceleration[3])
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gyroscope_is_init)
 	{
 		printf("Gyroscope not initialized\n");
@@ -746,6 +763,7 @@ uint8_t gyroscope_get_acceleration(int16_t aAcceleration[3])
 		float floatValue = sensor_value_to_float(&gyro_xyz[i]);
 		aAcceleration[i] = (double)floatValue / 19.6 * 32767;
 	}
+#endif
 
 	return 0;
 }
@@ -761,6 +779,7 @@ uint8_t gyroscope_get_acceleration(int16_t aAcceleration[3])
  */
 uint8_t gyroscope_get_gyro(float aGyro[3])
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gyroscope_is_init)
 	{
 		printf("Gyroscope not initialized\n");
@@ -775,7 +794,7 @@ uint8_t gyroscope_get_gyro(float aGyro[3])
 	{
 		aGyro[i] = sensor_value_to_float(&gyro_xyz[i]);
 	}
-
+#endif
 	return 0;
 }
 
@@ -790,6 +809,7 @@ uint8_t gyroscope_get_gyro(float aGyro[3])
  */
 uint8_t gyroscope_get_roll(int *aRoll)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t acceleration[3];
 	int errorCode = 0;
 	int16_t roll;
@@ -832,7 +852,7 @@ uint8_t gyroscope_get_roll(int *aRoll)
 	}
 
 	*aRoll = *aRoll / 100;
-
+#endif
 	return 0;
 }
 
@@ -847,6 +867,7 @@ uint8_t gyroscope_get_roll(int *aRoll)
  */
 uint8_t gyroscope_get_pitch(int *aPitch)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t acceleration[3];
 	int errorCode = 0;
 	int16_t pitch;
@@ -887,7 +908,7 @@ uint8_t gyroscope_get_pitch(int *aPitch)
 	}
 
 	*aPitch = pitch / 100;
-
+#endif
 	return 0;
 }
 
@@ -905,6 +926,7 @@ uint8_t gyroscope_get_pitch(int *aPitch)
  */
 uint8_t gyroCompass_get_heading(int *aHeading)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t MagnetoValue[3], AccelValue[3];
 	double angle;
 	int errorCode = 0;
@@ -942,6 +964,6 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	}
 
 	*aHeading = angle;
-
+#endif
 	return 0;
 }

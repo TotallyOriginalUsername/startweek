@@ -10,12 +10,12 @@
 
 struct gnss_data gpsData;
 
-static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
-{
-	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
-		gpsData = *data;
-	}
-}
+// static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
+// {
+// 	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
+// 		gpsData = *data;
+// 	}
+// }
 
 struct gnss_data getGnssData() {
 	return gpsData;
@@ -29,7 +29,7 @@ int64_t getLongitude() {
 	return gpsData.nav_data.longitude;
 }
 
-GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+// GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
 
 #if CONFIG_GNSS_SATELLITES
 static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites,

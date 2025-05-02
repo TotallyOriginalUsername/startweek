@@ -29,8 +29,8 @@ void circleMatrixSendOneBitData(bool ShiftDataValue)
  */ 
 bool circleMatrixConfig()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
-	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	//Checks if gpio is available
 	if (!gpio_is_ready_dt(&circleMatrixShiftDataIn) && !gpio_is_ready_dt(&circleMatrixShiftOutputEnable) &&
 		!gpio_is_ready_dt(&circleMatrixShiftClock) && !gpio_is_ready_dt(&circleMatrixMuxA) &&
@@ -45,12 +45,13 @@ bool circleMatrixConfig()
 	ret += gpio_pin_configure_dt(&circleMatrixMuxA, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixMuxB, GPIO_OUTPUT_ACTIVE);
 	ret += gpio_pin_configure_dt(&circleMatrixMuxC, GPIO_OUTPUT_ACTIVE);
-	#endif
+
 	//return when gpio is configured incorrectly
 	if (ret != 0) 
 	{
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -64,8 +65,8 @@ bool circleMatrixConfig()
  */ 
 uint8_t circleMatrixInit ()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	uint8_t ret = 0;
-	#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	ret += gpio_pin_set_dt(&circleMatrixShiftDataIn,LOW);
 	ret += gpio_pin_set_dt(&circleMatrixShiftOutputEnable,LOW);
 	ret += gpio_pin_set_dt(&circleMatrixShiftClock,LOW);
@@ -90,7 +91,7 @@ uint8_t circleMatrixInit ()
 		gpio_pin_set_dt(&circleMatrixMuxB,(row & 0x2));
 		gpio_pin_set_dt(&circleMatrixMuxC,(row & 0x4));
 	}
-	#endif
+#endif
 	return 0;
 }
 

@@ -1,7 +1,13 @@
-#include "testIntegration.h"
-#define INTEGRATION
+//#define INTEGRATION
+
 #ifdef INTEGRATION
 
+#include <zephyr/ztest.h>
+#include "threads.h"
+#include "lcd.h"
+#include "genericGpio.h"
+#include "initialize.h"
+#include "configure.h"
 
 // The stack size of all threads
 #define STACKSIZE 1024

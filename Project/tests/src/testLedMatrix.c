@@ -1,7 +1,6 @@
-#include "testLedMatrix.h"
+#include <zephyr/ztest.h>
+#include "ledMatrix.h"
 
-
-#ifdef LED_MATRIX
 ZTEST_SUITE(testLedMatrix, NULL, NULL, NULL, NULL, NULL);
 
 ZTEST(testLedMatrix, test_Config_one)
@@ -25,5 +24,3 @@ ZTEST(testLedMatrix, test_Set_one)
 	int8_t a = ledMatrixSet(data);
 	zassert_equal(a,0);
 }
-
-#endif //LED_MATRIX

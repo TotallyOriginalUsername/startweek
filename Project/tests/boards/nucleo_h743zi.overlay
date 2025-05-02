@@ -1,6 +1,3 @@
-
-
-
 / {
 	soc {
 		pinctrl: pin-controller@58020000 {
@@ -48,10 +45,10 @@
 				status = "disabled";
 			};
 			i2c1_scl_pb8: i2c1_scl_pb8 {
-				status = "disabled";
+				status = "okay";
 			};
 			i2c1_sda_pb9: i2c1_sda_pb9 {
-				status = "disabled";
+				status = "okay";
 			};
 			spi1_miso_pa6: spi1_miso_pa6 {
 				status = "disabled";
@@ -63,7 +60,7 @@
 				status = "disabled";
 			};
 			tim12_ch1_pb14: tim12_ch1_pb14 {
-				status = "okay";
+				status = "disabled";
 			};
 			usart3_rx_pd9: usart3_rx_pd9 {
 				status = "disabled";
@@ -102,14 +99,14 @@
 				status = "okay";
 			};
 			i2c1_scl_pb8: i2c1_scl_pb8 {
-				pinmux = < 0x304 >;
+				pinmux = <STM32_PINMUX('b', 8, AF4)>;
 				bias-pull-up;
 				drive-open-drain;
 				status = "okay";
 				phandle = < 0xb >;
 			};
 			i2c1_sda_pb9: i2c1_sda_pb9 {
-				pinmux = < 0x324 >;
+				pinmux = <STM32_PINMUX('b', 9, AF4)>;
 				bias-pull-up;
 				drive-open-drain;
 				status = "okay";
@@ -117,6 +114,18 @@
 			};
 			adc1_inp2_pf11: adc1_inp2_pf11 {
 				pinmux = <STM32_PINMUX('f', 11, AF10)>;
+				status = "okay";
+			};
+			tim2_ch3_pb10: tim2_ch3_pb10{
+				pinmux = <STM32_PINMUX('b', 10, AF1)>;
+				status = "okay";
+			};
+			tim4_ch1_pd12: tim4_ch1_pd12{
+				pinmux = <STM32_PINMUX('d', 12, AF2)>;
+				status = "okay";
+			};
+			tim5_ch2_pa1: tim5_ch2_pa1{
+				pinmux = <STM32_PINMUX('a', 1, AF2)>;
 				status = "okay";
 			};
 		};
@@ -169,15 +178,6 @@
 		};
 		MUX_A_Circle: gpiob_12 {
 			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
-		};
-		buzzer3: gpioe_14 {
-			gpios = <&gpioe 14 GPIO_ACTIVE_HIGH>;
-		};
-		buzzer2: gpioe_13 {
-			gpios = <&gpioe 13 GPIO_ACTIVE_HIGH>;
-		};
-		buzzer1: gpioe_12 {
-			gpios = <&gpioe 12 GPIO_ACTIVE_HIGH>;
 		};
 		decimal_Point_7_Segment: gpioe_10 {
 			gpios = <&gpioe 10 GPIO_ACTIVE_HIGH>;
@@ -385,9 +385,6 @@
 		muxacircle = &MUX_A_Circle;
 		muxbcircle = &MUX_B_Circle;
 		muxccircle = &MUX_C_Circle;
-		buzzer1 = &buzzer1;
-		buzzer2 = &buzzer2;
-		buzzer3 = &buzzer3;
 		decimalpoint7segment = &decimal_Point_7_Segment;
 		muxdig17segment = &MUX_DIG1_7_Segment;
 		muxdig27segment = &MUX_DIG2_7_Segment;
@@ -448,13 +445,35 @@
 		lcddisplayd2 = &LCD_Display_D2;
 		lcddisplayd1 = &LCD_Display_D1;
 		lcddisplayd0 = &LCD_Display_D0;
+		buzzer1=&buzzer1;
+		buzzer2=&buzzer2;
+		buzzer3=&buzzer3;
 		3dcompassdataready = &data_ready_3d_compass;
 		3dcompassintterupt = &interupt_3d_compass;
+		magnetometer=&magnetometer;
+		gyroscope=&gyroscope;
 	};
 
 	 chosen {
 		zephyr,console = &usart2;
 		zephyr,shell-uart = &usart2;
+	};
+
+	pwmdevs {
+		compatible = "pwm-leds";
+		status = "okay";
+		buzzer1: buzzer_pwm1 {
+			pwms = 	<&pwm1 2 0 PWM_POLARITY_NORMAL>;
+			status = "okay";
+		};
+		buzzer2: buzzer_pwm2 {
+			pwms = 	<&pwm2 3 0 PWM_POLARITY_NORMAL>;
+			status = "okay";
+		};
+		buzzer3: buzzer_pwm3 {
+			pwms = 	<&pwm3 1 0 PWM_POLARITY_NORMAL>;
+			status = "okay";
+		};
 	};
 };
 
@@ -487,14 +506,12 @@
 		status = "disabled";
 };
 
-
-
 &leds{
 		status = "disabled";
 };
 
 &red_pwm_led {
-		status = "disabled";
+		status = "okay";
 };
 
 &user_button {
@@ -520,7 +537,7 @@
 &usart2 {
 		pinctrl-0 = < &usart2_tx_pa2 &usart2_rx_pa3 >;
 		pinctrl-names = "default";
-        current-speed = <115200>;
+        current-speed = <9600>;
         status = "okay";
 };
 
@@ -528,11 +545,73 @@
 &i2c1{
 		status = "okay";
 		pinctrl-0 = < &i2c1_scl_pb8 &i2c1_sda_pb9 >;
-		gyro: lis3mdl-magn@1e {
+
+		magnetometer: lis3mdl-magn@1e {
 			compatible = "st,lis3mdl-magn";
-			reg = <0x1E>;
-			irq-gpios = <&gpiob 8 GPIO_ACTIVE_HIGH>;
+			reg = <0x1C>;
+			irq-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
 		};
+
+		gyroscope: lsm6dso@6a {
+			compatible = "st,lsm6dso";
+			reg = <0x6a>;
+			irq-gpios = <&gpiog 3 GPIO_ACTIVE_HIGH>; //the selected pin is wrong. check schematic
+		};
+};
+
+// &timers1{
+// 	status = "okay";
+// 	st,prescaler = < 0x140 >; 
+// 	pwm1: pwm{
+// 		compatible = "st,stm32-pwm";
+// 		status = "okay";
+// 		#pwm-cells = < 0x3 >;
+// 		pinctrl-0 = < &tim1_ch1_pe9>;
+// 		pinctrl-names = "default";
+// 	};
+// };
+
+&timers2{
+	status = "okay";
+	st,prescaler = < 0x140 >; 
+	pwm2: pwm{
+		compatible = "st,stm32-pwm";
+		status = "okay";
+		#pwm-cells = < 0x3 >;
+		pinctrl-0 = < &tim2_ch3_pb10>;
+		pinctrl-names = "default";
+	};
+};
+
+&timers4{
+	status = "okay";
+	st,prescaler = < 0x140 >; 
+	pwm3: pwm{
+		compatible = "st,stm32-pwm";
+		status = "okay";
+		#pwm-cells = < 0x3 >;
+		pinctrl-0 = < &tim4_ch1_pd12>;
+		pinctrl-names = "default";
+	};
+};
+
+&timers5{
+	status = "okay";
+	st,prescaler = < 0x140 >; 
+	pwm1: pwm{
+		compatible = "st,stm32-pwm";
+		status = "okay";
+		#pwm-cells = < 0x3 >;
+		pinctrl-0 = < &tim5_ch2_pa1>;
+		pinctrl-names = "default";
+	};
+};
+
+&timers12{
+	status = "disabled";
+	pwm{
+		status = "disabled";
+	};
 };
 
 &clk_hsi{
@@ -567,4 +646,8 @@
 	d2ppre1 = < 0x2 >;
 	d2ppre2 = < 0x2 >;
 	d3ppre = < 0x2 >;
+};
+
+&red_pwm_led{
+	status = "disabled";
 };
