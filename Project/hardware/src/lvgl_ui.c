@@ -110,10 +110,10 @@ static void button_cb(lv_event_t * e)
 // Get functions
 uint8_t get_button_state(uint8_t selectedbtn){
     if(lv_obj_get_state(buttons[selectedbtn]) & LV_STATE_USER_1){
-        return 1;
+        return 0;
     }
     else{
-        return 0;
+        return 1;
     }
 }
 
@@ -124,31 +124,31 @@ uint8_t get_button_abc_state(char selectedbtn)
     case 'a':
         if (lv_obj_get_state(buttons_abc[0]) & LV_STATE_USER_1)
         {
-            return 1;
+            return 0;
         }
         else
         {
-            return 0;
+            return 1;
         }
         break;
     case 'b':
         if (lv_obj_get_state(buttons_abc[1]) & LV_STATE_USER_1)
         {
-            return 1;
+            return 0;
         }
         else
         {
-            return 0;
+            return 1;
         }
         break;
     case 'c':
         if (lv_obj_get_state(buttons_abc[2]) & LV_STATE_USER_1)
         {
-            return 1;
+            return 0;
         }
         else
         {
-            return 0;
+            return 1;
         }
         break;
     default:
@@ -159,10 +159,10 @@ uint8_t get_button_abc_state(char selectedbtn)
 
 uint8_t get_button_start(){
     if(lv_obj_get_state(button_start) & LV_STATE_USER_1){
-        return 1;
+        return 0;
     }
     else{
-        return 0;
+        return 1;
     }
 }
 
@@ -269,7 +269,7 @@ void setup_led_array(lv_obj_t *parent){
     lv_obj_center(cont);
 
     for (int row = 0; row < 16; row++) {
-        for (int col = 0; col < 16; col++) {
+        for (int col = 15; col >= 0; col--) {
             leds[index] = lv_obj_create(cont);
             lv_obj_set_size(leds[index], led_size, led_size);
             lv_obj_set_pos(leds[index], col * led_size, row * led_size);
