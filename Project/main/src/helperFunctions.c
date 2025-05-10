@@ -109,7 +109,7 @@ void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size){
 	printk("5 sec wait\n");
 	while ((!(k_timer_status_get(&timer) > 0)) && (input_count == 0)){
 		memcpy(input_array, abcbtnGetMutexValue(), size);
-		for (int i = 0; i < 16; i++){
+		for (int i = 0; i < 3; i++){
 			if (input_array[i] == 0){
 				input_count++;
 			}

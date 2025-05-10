@@ -1,7 +1,13 @@
 #ifndef MINIGAME9_H
 #define MINIGAME9_H
 
-#define mg9ThreadCount 2
+#include <zephyr/kernel.h>
+#include <zephyr/random/random.h>
+#include "genericGpio.h"
+#include "helperFunctions.h"
+#include "lcd.h"
+
+#define mg9ThreadCount 1
 
 void getMg9Threads(char ***, unsigned *);
 
