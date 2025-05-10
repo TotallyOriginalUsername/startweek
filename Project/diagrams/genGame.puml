@@ -1,0 +1,12 @@
+@startuml
+start
+    while (game_ongoing?) is (yes)
+        :draw_game;
+        :get_input;
+        :handleGameLogic;
+
+    endwhile(no)
+    :draw_gameover;
+stop
+
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+
+   start
+       if(pokemon_caught >= total_pokemon) then (TRUE)
+           stop
+       endif
+       if(pokeballs_left <= 0) then (TRUE)
+       else (FALSE)
+           if(pokemon_nearby) then (yes)
+               :play_sound;
+               'The catch pokemon event is triggered if the player is close enough to the location of a pokemon. This event triggers a random mini-game where the player has to catch the pokemon.
+               :catchPokemonEvent;
+           else (no)
+               'A hint event is triggered if the player is not at a pokemon "spawn" location. The hint event should give a different hint in regular intervals so that multiple players can look for pokemon. Possibly even without the gamebox.
+               :check_uncaught_pokemon;
+               :triggerHintEvent;
+           endif
+
+       endif
+   stop
+
+   @enduml

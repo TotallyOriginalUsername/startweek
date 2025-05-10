@@ -1,0 +1,36 @@
+@startuml
+            'The pokemon is caught if the player either presses the button at the right time or is lucky enough to catch the pokemon while the circle isn't completely filled. This gives an RNG multiplier based on how far the circle is filled.
+
+start
+    while(miniGame_ongoing?) is (yes)
+        :draw_miniGame;
+        :play_miniGame_sound;
+        :get_input;
+        if(input) then (TRUE)
+            :increase_attempt_counter;
+            if(pokemon_caught) then (TRUE)
+                :stop_miniGame;
+            else (FALSE)
+                :decrease_pokeballs;
+                if(pokeballs_left <= 0) then (TRUE)
+                    :stop_miniGame;
+                    stop
+                else (FALSE)
+                    :continue_miniGame;
+                endif
+                if(attempt_counter >= max_attempts) then (TRUE)
+                    :draw_Pokemon_Flee;
+                    :stop_miniGame;
+                    stop
+                else (FALSE)
+                    :continue_miniGame;
+                endif
+
+            endif
+        else (FALSE)
+            :continue_miniGame;
+        endif
+    endwhile(no)
+stop
+
+@enduml
