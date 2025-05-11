@@ -5,6 +5,11 @@ char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "abcbtn"
 bool gameOngoing, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
 
+/**
+ * @brief returns the threads used in the catch the pokemon minigame
+ * @param names pointer to a char array to store the thread names
+ * @param amount pointer to an unsigned int to store the amount of threads
+ */
 void getCatchThePokemonThreads(char ***names, unsigned *amount)
 {
     *names = catchThePokemonThreads;
@@ -48,7 +53,7 @@ bool checkBallsLeft()
         gameOngoing = false;
         return false;
     }
-    
+
     return true;
 }
 
@@ -58,6 +63,10 @@ bool checkBallsLeft()
  */
 int selectLocations()
 {
+    for (int i = 0; i < POKEMONLOCATIONS; i++)
+    {
+        // fill location array with random available locations
+    }
     return true;
 }
 
@@ -142,8 +151,13 @@ int catchingMg()
  * @brief checks if a pokemon is nearby
  * @returns true if there a pokemon close enough to trigger catchPokemonEvent false if there are no pokemon nearby
  */
-bool pokemonNearby()
-{
+bool pokemonNearby() {
+    for (int i = 0; i < POKEMONLOCATIONS; i++)
+    {
+        // check if the pokemon is within the distance
+        // if (getDistanceMeters(getLatitude(), getLongitude(), pokemonLocation[i].lat, pokemonLocation[i].long) < POKEMON_DISTANCE)
+        // return true;
+    }
     return false;
 }
 

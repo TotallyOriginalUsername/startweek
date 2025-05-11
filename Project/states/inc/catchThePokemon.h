@@ -23,6 +23,7 @@
 #define POKEMON 4
 #define POKEMONLOCATIONS 4
 #define MAX_ATTEMPTS 8
+#define POKEMON_DISTANCE 10 // meter
 
 void getCatchThePokemonThreads(char ***, unsigned *);
 
