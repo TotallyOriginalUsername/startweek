@@ -1,9 +1,28 @@
 #include "catchThePokemon.h"
 #include <stdlib.h>
 
-char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "abcbtn", "ledcircle", "buzzers"}; // missing gps and lcd threads
+char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "abcbtn", "ledcircle", "buzzers", "ledmatrix"}; // missing lcd threads
 bool gameOngoing, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
+uint16_t displayMatrix[16] = {0};
+int pokemonToCatch = -1;
+
+struct pokemonLocation
+{
+    int id;
+    int64_t lat;
+    int64_t longi;
+    bool caught;
+    bool fled;
+} pokemonLocation[POKEMONLOCATIONS] = {0};
+
+uint8_t pokemonMatrixLocation[] = {
+    0b00001110,
+    0b00010001,
+    0b00010101,
+    0b00010001,
+    0b00001110
+};
 
 /**
  * @brief returns the threads used in the catch the pokemon minigame
@@ -91,6 +110,58 @@ int initMg()
 }
 
 /**
+ * @brief pushes matrix to ledmatrix and sets the displayMatrix to 0
+ * @returns 0 if everything went as expected
+ */
+int setMatrix()
+{
+    ledmatrixSetMutexValue(displayMatrix);
+
+    // clear displayMatrix
+    memset(displayMatrix, 0, sizeof(displayMatrix));
+    return 0;
+}
+
+/**
+ * @brief displays the pokemon location on the 16x16 LED
+ * @param x center x coordinate of the pokemon on the 16x16 LED
+ * @param y center y coordinate of the pokemon on the 16x16 LED
+ * @returns 0 if everything went as expected
+ * @note Advisory position is to not go below Y 8
+ */
+int displayPokemon(char x, char y)
+{
+    int8_t offsetX = -3;
+    int8_t offsetY = -3;
+    for (int i = 0; i < 5; i++)
+    {
+        displayMatrix[(y+offsetY+i)] += pokemonMatrixLocation[i] << (16-x+offsetX);
+    }
+    return 0;
+}
+
+/**
+ * @brief displays the direction aimed on the 16x16 LED
+ * @param angle angle in 15 degree increments 0 is 45 degrees to the left and 15 is 45 degrees to the right
+ * @returns 0 if everything went as expected
+ */
+int displayAimDirection(char angle)
+{
+
+    return 0;
+}
+
+int displayTiming(char time)
+{
+    return 0;
+}
+
+int displayBallThrow(char x, char y, char angle)
+{
+    return 0;
+}
+
+/**
  * @brief checks if the catching minigame is ongoing
  * @returns 0 if everything went as expected
  */
@@ -113,13 +184,32 @@ int catchingMg()
             return 0;
         }
 
+        // display 'pokemon' location 16x16 LED
+        // display direction aimed 16x16 LED
+        // display timing to throw ball (LED Circle)
+
+        setMatrix();
+        k_msleep(10000);
+
         // if (input)
         // {
 
-        // handle input etc
-
         balls--;
         attemptCounter++;
+
+        // }
+
+        if (missedPokemon == false) {
+            // play sound
+            lcdStringWrite("You caught a pokemon!");
+            pokemonCaught++;
+            catchingMgOngoing = false;
+        }
+        else
+        {
+            lcdStringWrite("You missed the pokemon!");
+            // play sound
+        }
 
         if (attemptCounter > attemptsPermitted)
         {
@@ -127,21 +217,6 @@ int catchingMg()
             pokemonFled++;
             catchingMgOngoing = false;
         }
-        else
-        {
-            if (missedPokemon == false) {
-                // play sound
-                lcdStringWrite("You caught a pokemon!");
-                pokemonCaught++;
-                catchingMgOngoing = false;
-            }
-            else
-            {
-                lcdStringWrite("You missed the pokemon!");
-                // play sound
-            }
-        }
-        // }
     }
 
     return 0;
@@ -152,11 +227,14 @@ int catchingMg()
  * @returns true if there a pokemon close enough to trigger catchPokemonEvent false if there are no pokemon nearby
  */
 bool pokemonNearby() {
-    for (int i = 0; i < POKEMONLOCATIONS; i++)
+    for (int i = 0; i < (POKEMONLOCATIONS); i++)
     {
         // check if the pokemon is within the distance
-        // if (getDistanceMeters(getLatitude(), getLongitude(), pokemonLocation[i].lat, pokemonLocation[i].long) < POKEMON_DISTANCE)
-        // return true;
+        if (getDistanceMeters(getLatitude(), getLongitude(), pokemonLocation[i].lat, pokemonLocation[i].longi) < POKEMON_DISTANCE)
+        {
+            pokemonToCatch = i;
+            return true;
+        }
     }
     return false;
 }
@@ -180,6 +258,7 @@ int pokemonGame()
     else
     {
         // hint event
+        // display general direction of the pokemon
     }
 
     return 0;
@@ -194,6 +273,10 @@ int playCatchThePokemon()
         printf_catchThePokemon("Init error %d", err);
         // return err code if severe enough?
     }
+
+    displayPokemon(5, 3);
+    setMatrix();
+    k_msleep(10000);
 
     while (gameOngoing)
     {

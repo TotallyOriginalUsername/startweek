@@ -10,6 +10,7 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
 #include "threads.h"
 #include "lcd.h"
@@ -17,13 +18,13 @@
 #include "gps.h"
 #include "buzzers.h"
 
-#define catchThePokemonThreadCount 4
+#define catchThePokemonThreadCount 5
 
 #define BALLS 16
 #define POKEMON 4
 #define POKEMONLOCATIONS 4
 #define MAX_ATTEMPTS 8
-#define POKEMON_DISTANCE 10 // meter
+#define POKEMON_DISTANCE 10 // meters
 
 void getCatchThePokemonThreads(char ***, unsigned *);
 
