@@ -10,6 +10,7 @@
 uint8_t initialize()
 {
 	uint8_t ret = 0;
+	ret += buzzersInit();
 	ret += buttonMatrixInit();
 	ret += circleMatrixInit();
 	ret += buttons4x4Init();
