@@ -1,13 +1,14 @@
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #include "buzzers.h"
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
 
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static struct pwm_dt_spec buzzer1 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer1));
 static struct pwm_dt_spec buzzer2 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer2));
 static struct pwm_dt_spec buzzer3 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer3));
+#endif
 
 static bool isInit = false;
 
@@ -25,6 +26,7 @@ static bool isInit = false;
  */
 uint8_t buzzersInit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     if (!pwm_is_ready_dt(&buzzer1))
     {
         printk("Error: PWM device %s is not ready\n", buzzer1.dev->name);
@@ -40,7 +42,7 @@ uint8_t buzzersInit()
         printk("Error: PWM device %s is not ready\n", buzzer3.dev->name);
         return 1;
     }
-
+#endif
     isInit = true;
 
     return 0;
@@ -59,6 +61,7 @@ uint8_t buzzersInit()
  */
 uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     uint32_t period = 0;
 
     if (!isInit)
@@ -93,7 +96,7 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
         pwm_set_dt(&buzzer3, period, period * 0.5);
         break;
     }
-
+#endif
     return 0;
 }
 
@@ -108,6 +111,7 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
  */
 uint8_t buzzerTurnOff(int aBuzzerNum)
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     uint32_t period = 0;
 
     if (!isInit)
@@ -136,6 +140,7 @@ uint8_t buzzerTurnOff(int aBuzzerNum)
         pwm_set_dt(&buzzer3, period, period * 0.5);
         break;
     }
+#endif
     return 0;
 }
 
@@ -148,10 +153,10 @@ uint8_t buzzerTurnOff(int aBuzzerNum)
  */
 uint8_t buzzersExit()
 {
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     buzzerTurnOff(1);
     buzzerTurnOff(2);
     buzzerTurnOff(3);
-
+#endif
 	return 0;
 }
-#endif
