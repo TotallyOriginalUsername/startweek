@@ -5,15 +5,12 @@ K_TIMER_DEFINE(plateTimer, plate_timer_handler, NULL);
 K_TIMER_DEFINE(fruitTimer, NULL, NULL);
 K_TIMER_DEFINE(mg7Timer, NULL, NULL);
 #define fruit_timer_duration 150
-#define plate_timer_duration 30
+#define plate_timer_duration 45
 #define mg7_duration 15000
-#define mg7_press_count 255
 
 uint16_t fruit_masks[16] = {0};
 uint8_t plate_position = 8;
 bool first_fruit = 1;
-uint8_t left_count = 0;
-uint8_t right_count = 0;
 
 char *mg7Threads[mg7ThreadCount] = {"startbtn", "ledmatrix", "abcbtn"};
 
@@ -21,6 +18,13 @@ void getMg7Threads(char ***names, unsigned *amount) {
 	*names = mg7Threads;
 	*amount = mg7ThreadCount;
 }
+
+#define MG7_ONELINERS 3
+char oneLinersMG7[MG7_ONELINERS][32] = {
+	"Volg de rode lijn met de plaat!",
+	"Gebruik de A en C knoppen om",
+	"de plaat te bewegen"
+};
 
 // Generates a new fruit and prevents the generated fruit from going outside bounds.
 void generate_fruit(){
@@ -151,14 +155,19 @@ int playMg7() {
 	uint16_t empty_frame[16] = {0};
 	uint16_t plate_mask = {0};
 	uint8_t fruit_delay = 0;
+	char lcd_msg[32];
 
 	memset(fruit_masks, 0, sizeof(fruit_masks));
 	plate_position = 8;
 	first_fruit = 1;
 
+	show_oneliners(oneLinersMG7, MG7_ONELINERS);
+	lcdEnable();
 	wait_till_game_start();
+
 	abcledsSet('a', 1);
 	abcledsSet('c', 1);
+	lcdStringWrite("Score: 1000");
 	k_timer_start(&mg7Timer, K_MSEC(mg7_duration), K_NO_WAIT);
 	k_timer_start(&fruitTimer, K_MSEC(fruit_timer_duration), K_NO_WAIT);
 	
@@ -168,7 +177,9 @@ int playMg7() {
 		// Handle fruit related logic at a slower speed then the microcontroller
 		if(k_timer_remaining_get(&fruitTimer) == 0){
 			if(hit_detection(plate_mask)){
-				score = score - 10;
+				score = score - 20;
+				sprintf(lcd_msg, "Score: %d", score);
+				lcdStringWrite(lcd_msg);
 			}
 			fruit_delay++;
 			if(fruit_delay >= 2){
@@ -191,6 +202,8 @@ int playMg7() {
 	printk("Score: %d\n", score);
 	abcledsSet('a', 0);
 	abcledsSet('c', 0);
+	lcdClear();
+	lcdDisable();
 	ledmatrixSetMutexValue(empty_frame);
 	k_msleep(100);
 	
