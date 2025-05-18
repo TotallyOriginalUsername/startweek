@@ -11,6 +11,8 @@
 #define native_loop()
 #endif
 
+void btnmatrix_in_to_out(uint8_t* btnmatrix_input, uint8_t* btnmatrix_output);
+void btnmatrix_to_ledmatrix(uint8_t* btnmatrix_shape, uint16_t* ledmatrix_shape);
 void clear_btnmatrix_leds();
 void show_correct();
 void show_incorrect();
