@@ -1,0 +1,209 @@
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/lvgl/lvgl.h>
+
+/ {
+	aliases {
+		button14x4 = &key1;
+		button24x4  = &key2;
+		button34x4  = &key3;
+		button44x4  = &key4;
+		button54x4  = &key5;
+		button64x4  = &key6;
+		button74x4  = &key7;
+		button84x4  = &key8;
+		button94x4  = &key9;
+		button104x4  = &key10;
+		button114x4 = &key11;
+		button124x4 = &key12;
+		button134x4 = &key13;
+		button144x4 = &key14;
+		button154x4 = &key15;
+		button164x4 = &key16;
+		abcbuttona = &key17;
+		abcbuttonb = &key18;
+		abcbuttonc = &key19;
+		switches1on = &key20;
+		switches2on = &key21;
+		switches3on = &key22;
+		switches4on = &key23;
+		switches5on = &key24;
+		switches1off = &key25;
+		switches2off = &key26;
+		switches3off = &key27;
+		switches4off = &key28;
+		switches5off = &key29;
+		startbutton = &key30;
+	};
+
+	//emulated gpio description
+    gpio_emul0: gpio_emul_0@0 {
+		reg = <0 1>;
+		status = "okay";
+		compatible = "zephyr,gpio-emul";
+		rising-edge;
+		falling-edge;
+		high-level;
+		low-level;
+		gpio-controller;
+		ngpios = <30>; // Number of GPIO pins
+		#gpio-cells = <2>;
+	
+	};
+	
+	keys: keys {
+		compatible = "gpio-keys";
+		//16 keys 4x4 matrix
+		key1: key1 {
+			gpios = <&gpio_emul0 0 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_1>;
+		};
+		key2: key2 {
+			gpios = <&gpio_emul0 1 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_2>;
+		};
+		key3: key3 {
+			gpios = <&gpio_emul0 2 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_3>;
+		};
+		key4: key4 {
+			gpios = <&gpio_emul0 3 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_4>;
+		};
+		key5: key5 {
+			gpios = <&gpio_emul0 4 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_Q>;
+		};
+		key6: key6 {
+			gpios = <&gpio_emul0 5 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_W>;
+		};
+		key7: key7 {
+			gpios = <&gpio_emul0 6 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_E>;
+		};
+		key8: key8 {
+			gpios = <&gpio_emul0 7 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_R>;
+		};
+		key9: key9 {
+			gpios = <&gpio_emul0 8 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_A>;
+		};
+		key10: key10 {
+			gpios = <&gpio_emul0 9 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_S>;
+		};
+		key11: key11 {
+			gpios = <&gpio_emul0 10 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_D>;
+		};
+		key12: key12 {
+			gpios = <&gpio_emul0 11 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_F>;
+		};
+		key13: key13 {
+			gpios = <&gpio_emul0 12 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_Z>;
+		};
+		key14: key14 {
+			gpios = <&gpio_emul0 13 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_X>;
+		};
+		key15: key15 {
+			gpios = <&gpio_emul0 14 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_C>;
+		};
+		key16: key16 {
+			gpios = <&gpio_emul0 15 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_V>;
+		};
+		//3 ABC buttons
+		key17: key17 {
+			gpios = <&gpio_emul0 16 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_5>;
+		};
+		key18: key18 {
+			gpios = <&gpio_emul0 17 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_6>;
+		};
+		key19: key19 {
+			gpios = <&gpio_emul0 18 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_7>;
+		};
+		// 10 for switches
+		key20: key20 {
+			gpios = <&gpio_emul0 19 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_T>;
+		};
+		key21: key21 {
+			gpios = <&gpio_emul0 20 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_Y>;
+		};
+		key22: key22 {
+			gpios = <&gpio_emul0 21 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_U>;
+		};
+		key23: key23 {
+			gpios = <&gpio_emul0 22 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_I>;
+		};
+		key24: key24 {
+			gpios = <&gpio_emul0 23 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_O>;
+		};
+		key25: key25 {
+        	gpios = <&gpio_emul0 24 GPIO_ACTIVE_HIGH>;
+        	zephyr,code = <INPUT_KEY_G>;
+		};
+		key26: key26 {
+			gpios = <&gpio_emul0 25 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_H>;
+		};
+		key27: key27 {
+			gpios = <&gpio_emul0 26 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_J>;
+		};
+		key28: key28 {
+			gpios = <&gpio_emul0 27 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_K>;
+		};
+		key29: key29 {
+			gpios = <&gpio_emul0 28 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_L>;
+		};
+		key30: key30 {
+			gpios = <&gpio_emul0 29 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+
+	lvgl_button_input {
+		compatible = "zephyr,lvgl-button-input";
+		input = <&keys>;
+		input-codes = <INPUT_KEY_1>;
+		coordinates = <221 69>;
+	};
+};
+
+&gpio_emul0 {
+	ngpios = <30>;
+
+	sdl_gpio {
+		status = "okay";
+		compatible = "zephyr,gpio-emul-sdl";
+		scancodes = <30 31 32 33
+					20 26 8 21
+					4 22 7 9
+					29 27 6 25
+					34 35 36 
+					23 28 24 12 18
+					10 11 13 14 15
+					39>;
+	};
+};
+
+// Display
+&sdl_dc {
+    width = <520>;
+    height = <520>;
+};

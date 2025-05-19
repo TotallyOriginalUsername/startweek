@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "*.embeddedhtml": "html",
-        "stdio.h": "c",
-        "lvgl_ui.h": "c",
-        "string.h": "c",
-        "threads.h": "c"
-    }
-}
