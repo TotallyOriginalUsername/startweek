@@ -147,12 +147,44 @@ int displayPokemon(char x, char y)
  */
 int displayAimDirection(char angle)
 {
+#define CURVE_DAMPEN 0.5 // affects how quickly the curve increases
+#define AIM_DIRECTION_OFFSET 8
+    // Map the angle to a direction (-7 to +7)
+    int direction = (angle * 14) / 15 - 7; // Map angle (0-15) to range (-7 to +7)
+
+    // Draw the line on the bottom 8 rows
+    for (int y = 15; y >= AIM_DIRECTION_OFFSET; y--) {
+        int curveFactor = (15 - y) * (15 - y) / 16; // Add a curve factor
+        if (angle > 7) {
+            curveFactor *= -1;
+        }
+        int x = AIM_DIRECTION_OFFSET + direction * (15 - y) / 7 + CURVE_DAMPEN * curveFactor; // Adjust x with curve
+        if (x >= 0 && x < 16) {
+            displayMatrix[y] |= 1 << (15 - x); // Set the bit at position x
+        }
+    }
+
+    // cleanup curve
+    for (int y = AIM_DIRECTION_OFFSET + 1; y < 2*AIM_DIRECTION_OFFSET-1; y++)
+    {
+        if (( (angle <= 7) && (displayMatrix[y] < displayMatrix[y+1])) || ((angle > 7) && (displayMatrix[y] > displayMatrix[y+1])))
+            displayMatrix[y] = displayMatrix[y+1];
+    }
 
     return 0;
 }
 
+/*
+ * @brief displays the timing to throw the ball on the 16x16 LED
+ * @param[in] time time to display on a scale of 0-10
+ * @returns 0 if everything went as expected
+ */
 int displayTiming(char time)
 {
+    uint8_t ledCircle[8];
+    ledCircle[0] = 0b11111111;
+    ledCircle[7] = 0b11111111;
+    ledcircleSetMutexValue(ledCircle);
     return 0;
 }
 
@@ -275,6 +307,8 @@ int playCatchThePokemon()
     }
 
     displayPokemon(5, 3);
+    displayAimDirection(0);
+    displayTiming(0);
     setMatrix();
     k_msleep(10000);
 
