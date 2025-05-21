@@ -174,6 +174,7 @@ int displayAimDirection(char angle)
     return 0;
 }
 
+// TODO: Fix this to work with the hardware.
 /*
  * @brief displays the timing to throw the ball on the 16x16 LED
  * @param[in] time time to display on a scale of 0-10
@@ -181,15 +182,104 @@ int displayAimDirection(char angle)
  */
 int displayTiming(char time)
 {
-    uint8_t ledCircle[8];
-    ledCircle[0] = 0b11111111;
-    ledCircle[7] = 0b11111111;
+    // Initialize the LED circle array and temporary variable
+    uint8_t ledCircle[8] = {0};
+    uint32_t temp = 0;
+
+    // Generate the bit pattern based on the input time
+    for (int i = 0; i <= time; i++)
+    {
+        temp = (temp << 3) | 0b111; // Append 3 bits of 1 for each step
+    }
+
+    // Process the first 4 bytes of the temp variable
+    for (int i = 0; i < 4; i++) {
+        // Extract and reverse the bits of the current byte
+        uint8_t currentByte = (temp >> (i * 8)) & 0xFF; // Extract the current byte
+        uint8_t reversedByte = ((currentByte & 0xF0) >> 4) | ((currentByte & 0x0F) << 4);
+        reversedByte = ((reversedByte & 0xCC) >> 2) | ((reversedByte & 0x33) << 2);
+        reversedByte = ((reversedByte & 0xAA) >> 1) | ((reversedByte & 0x55) << 1);
+
+        // Assign the reversed byte to the second half of the LED circle
+        ledCircle[i + 4] = reversedByte;
+
+        // Assign the original byte to the first half of the LED circle
+        ledCircle[i] = (temp >> (24 - (i * 8))) & 0xFF;
+    }
+
+    // Update the LED circle with the generated values
     ledcircleSetMutexValue(ledCircle);
+
     return 0;
 }
 
-int displayBallThrow(char x, char y, char angle)
+/**
+ * @brief displays the ball throw animation on the 16x16 LED
+ * @returns 0 if everything went as expected
+ * @note overrided previous display on the ledmatrix
+ */
+int displayBallThrow(void)
 {
+#define BALLTHROWNARRAYSIZE 4
+    // technically could've only defined 1/4th of the array and mirrored it(twice)
+    uint16_t ballThrown[BALLTHROWNARRAYSIZE][16] =  {
+        {
+            0, 0, 0, 0, 0, 0,
+            0b0000000110000000,
+            0b0000001111000000,
+            0b0000001111000000,
+            0b0000000110000000,
+            0, 0, 0, 0, 0, 0
+        },
+        {
+            0, 0, 0, 0, 0,
+            0b0000000110000000,
+            0b0000001001000000,
+            0b0000010110100000,
+            0b0000010110100000,
+            0b0000001001000000,
+            0b0000000110000000,
+            0, 0, 0, 0, 0
+        },
+        {
+            0, 0, 0,
+            0b0000001111000000,
+            0b0000010000100000,
+            0b0000100000010000,
+            0b0001000110001000,
+            0b0001001111001000,
+            0b0001001111001000,
+            0b0001000110001000,
+            0b0000100000010000,
+            0b0000010000100000,
+            0b0000001111000000,
+            0, 0, 0
+        },
+        {
+            0b0000000000000000,
+            0b0000001111000000,
+            0b0000110000110000,
+            0b0001000000001000,
+            0b0010001111000100,
+            0b0010010000100100,
+            0b0100100110010010,
+            0b0100101111010010,
+            0b0100101111010010,
+            0b0100100110010010,
+            0b0010010000100100,
+            0b0010001111000100,
+            0b0001000000001000,
+            0b0000110000110000,
+            0b0000001111000000,
+            0b00000000000000000
+        },
+    };
+    // TODO: Make non-blocking
+    for ( int i = 0; i < 4; i++)
+    {
+        ledmatrixSetMutexValue(ballThrown[i]);
+        k_msleep(250);
+    }
     return 0;
 }
 
@@ -208,6 +298,9 @@ int catchingMg()
 
     uint8_t attemptsPermitted = 1 + (rand() % MAX_ATTEMPTS); // random number between .. and ..
     bool missedPokemon = false;
+    // generate pokemon locations
+    // uint8_t pokemonLocationX = 3 + rand()%11;
+    // uint8_t pokemonLocationY = 3 + rand()%3;
 
     // init catchingMg
     while (catchingMgOngoing)
@@ -308,8 +401,13 @@ int playCatchThePokemon()
 
     displayPokemon(5, 3);
     displayAimDirection(0);
-    displayTiming(0);
     setMatrix();
+    for (int i = 0; i <= 20; i++)
+    {
+        displayTiming(abs(i-10));
+        displayBallThrow();
+        k_msleep(1000);
+    }
     k_msleep(10000);
 
     while (gameOngoing)
