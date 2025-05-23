@@ -18,7 +18,7 @@
 #include "gps.h"
 #include "buzzers.h"
 
-#define catchThePokemonThreadCount 5
+#define catchThePokemonThreadCount 6
 
 #define BALLS 16
 #define POKEMON 4

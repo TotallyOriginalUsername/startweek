@@ -1,7 +1,12 @@
 #include "catchThePokemon.h"
 #include <stdlib.h>
 
-char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "abcbtn", "ledcircle", "buzzers", "ledmatrix"}; // missing lcd threads
+#define TIME_MAX 10
+#define TIME_MIN 0
+#define TIME_STEP 1
+#define TIME_INTERVAL_MS 100 // Adjust for smoother or faster changes
+
+char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "btnmatrix_in", "ledcircle", "buzzers", "ledmatrix", "btnmatrix_out"}; // missing lcd threads
 bool gameOngoing, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
 uint16_t displayMatrix[16] = {0};
@@ -33,6 +38,57 @@ void getCatchThePokemonThreads(char ***names, unsigned *amount)
 {
     *names = catchThePokemonThreads;
     *amount = catchThePokemonThreadCount;
+}
+
+// TODO: This should be done inside the button matrix not in the game
+/**
+ * @brief checks if any button is pressed
+ * @param buttonsInput pointer to an array of button states
+ * @param size size of the buttonsInput array
+ * @returns true if any button is pressed, false otherwise
+ * @note handles the inversion of the button states too
+ */
+bool isAnyButtonPressed(const uint8_t *buttonsInput, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        if (!buttonsInput[i]) {
+            return true; // Return immediately if a button is pressed
+        }
+    }
+    return false; // No button is pressed
+}
+
+static bool increasing = true;
+
+/**
+ * @brief updates the time value based on the increasing or decreasing state
+ * @param time pointer to the time value to be updated
+ */
+void updateTime(char *time)
+{
+    // Update the time value based on the increasing or decreasing state
+    if (increasing) {
+        *time += TIME_STEP;
+        if (*time >= TIME_MAX) {
+            increasing = false; // Switch to decreasing when max is reached
+        }
+    } else {
+        *time -= TIME_STEP;
+        if (*time <= TIME_MIN) {
+            increasing = true; // Switch to increasing when min is reached
+        }
+    }
+}
+
+void nonBlockingTimeHandler(char *time)
+{
+    static int64_t lastUpdate = 0;
+    int64_t currentTime = k_uptime_get(); // Get the current time in milliseconds
+
+    if (currentTime - lastUpdate > TIME_INTERVAL_MS)
+    {
+        updateTime(time);
+        lastUpdate = currentTime; // Update the last update time
+    }
 }
 
 /**
@@ -104,6 +160,10 @@ int initMg()
     gameOngoing = true;
     catchEvent = false;
 
+    lcdEnable();
+    lcdStringWrite("Find and catch the Pokemon!");
+    k_msleep(3000);
+
     err = selectLocations();
     // init hints
     return 0;
@@ -128,6 +188,7 @@ int setMatrix()
  * @param y center y coordinate of the pokemon on the 16x16 LED
  * @returns 0 if everything went as expected
  * @note Advisory position is to not go below Y 8
+ * @note X position should be between 3 and 12
  */
 int displayPokemon(char x, char y)
 {
@@ -284,56 +345,140 @@ int displayBallThrow(void)
 }
 
 /**
+ * @brief Calculates the score based on how well the angle aims at the target x.
+ * @param x The target x-coordinate.
+ * @param angle The angle in 15-degree increments (0-15).
+ * @return A score where lower values are better
+ * @note if the score is -1, the ball missed the pokemon
+ */
+int calculateAimScore(int x, int angle)
+{
+    // Map the angle to a direction (-7 to +7)
+    int direction = (angle * 14) / 15 - 7; // Map angle (0-15) to range (-7 to +7)
+    int projectedX = 8 + direction; // Centered around 8 (middle of 16x16 matrix)
+
+    // Calculate the distance from the target x
+    int distance = abs(projectedX - x);
+
+    return distance < 5 ? distance : -1; // Return a score
+}
+
+/**
+ * @brief checks if the ball hit the pokemon based of the aim and timing
+ * @param x horizontal position of the pokemon
+ * @param time the time at which the ball was thrown 10 is the best time 0 is the worst
+ * @param angle angle of the ball throw
+ * @return true if the ball hit the pokemon, false if it missed
+ */
+bool checkHit(char x, char time, char angle)
+{
+    int aimScore = calculateAimScore(x, angle);
+    if (aimScore == -1) // check if the ball missed the pokemon
+        return false;
+
+    displayBallThrow(); // display the ball throw animation
+    memset(displayMatrix, 0, sizeof(displayMatrix)); // clear the display matrix
+    setMatrix();
+
+    int catchChance = aimScore + time; // calculate the catch chance max 15
+    if (catchChance >= 15) // check if the catch chance is greater or equal to 15 then the pokemon is caught
+        return true;
+
+    float randomValue = (float)rand() / 1; // convert to float
+    float probability = 1.0 - exp(-0.5 * catchChance); // calculate the probability of catching the pokemon
+    return randomValue < probability; // if the random value is less than the probability then the pokemon is caught
+}
+
+/**
+ * @brief converts the roll value to an angle between 0 and 15
+ * @param roll the roll value from the gyroscope
+ * @return the angle between 0 and 15
+ */
+char rollToAngle(int roll)
+{
+    // Map the roll value to an angle between 0 and 15
+    if (roll < -45)
+        return 0;
+    else if (roll > 45)
+        return 15;
+    else
+        return (roll + 45) / 6; // Map to range 0-15
+}
+
+/**
  * @brief checks if the catching minigame is ongoing
  * @returns 0 if everything went as expected
  */
 int catchingMg()
 {
+    uint8_t matrixLedsOn[] = {0xFF, 0xFF, 0xFF, 0xFF};
+    uint8_t matrixLedsOff[] = {0x00, 0x00, 0x00, 0x00};
     bool catchingMgOngoing = true;
     // int err;
     uint8_t attemptCounter = 0;
+    int roll = 0;
+    char angle = 0; // angle in which the box is tilted (0 to 15)
+    char time = 0; // timing to throw the ball (0 to 10)
 
     // TODO: Make the seed less predictable
     srand(0); // seed random number generator
 
     uint8_t attemptsPermitted = 1 + (rand() % MAX_ATTEMPTS); // random number between .. and ..
-    bool missedPokemon = false;
+    bool caughtPokemon = false;
     // generate pokemon locations
-    // uint8_t pokemonLocationX = 3 + rand()%11;
-    // uint8_t pokemonLocationY = 3 + rand()%3;
+    uint8_t pokemonLocationX = 3 + rand()%11;
+    uint8_t pokemonLocationY = 3 + rand()%3;
 
     // init catchingMg
     while (catchingMgOngoing)
     {
+        // update time
+        nonBlockingTimeHandler(&time);
+
         if (checkBallsLeft() == false) {
             return 0;
         }
 
-        // display 'pokemon' location 16x16 LED
-        // display direction aimed 16x16 LED
-        // display timing to throw ball (LED Circle)
+        // get the angle of the box
+        gyroscope_get_roll(&roll);
+        angle = rollToAngle(roll); // convert roll to angle
+
+        displayPokemon(pokemonLocationX, pokemonLocationY);
+        displayAimDirection(angle);
+        displayTiming(time);
 
         setMatrix();
-        k_msleep(10000);
 
-        // if (input)
-        // {
+        uint8_t *buttonsInput = btnmatrix_inGetMutexValue();
 
-        balls--;
-        attemptCounter++;
+        if (isAnyButtonPressed(buttonsInput, sizeof(buttonsInput)))
+        {
+            balls--;
+            attemptCounter++;
+            btnmatrix_outSetMutexValue(matrixLedsOff); // set all LEDs to 0
 
-        // }
+            caughtPokemon = checkHit(pokemonLocationX, time, angle);
 
-        if (missedPokemon == false) {
-            // play sound
-            lcdStringWrite("You caught a pokemon!");
-            pokemonCaught++;
-            catchingMgOngoing = false;
+            if (caughtPokemon == true)
+            {
+                // play sound
+                lcdStringWrite("You caught a pokemon!");
+                pokemonCaught++;
+                k_msleep(1000);
+                catchingMgOngoing = false;
+            }
+            else
+            {
+                lcdStringWrite("You missed the pokemon!");
+                k_msleep(1000);
+                // play sound
+            }
         }
         else
         {
-            lcdStringWrite("You missed the pokemon!");
-            // play sound
+            lcdStringWrite("Tilt to aim and throw the ball with the lid up buttons!");
+            btnmatrix_outSetMutexValue(matrixLedsOn); // set all LEDs to 1
+            k_msleep(10);
         }
 
         if (attemptCounter > attemptsPermitted)
@@ -396,32 +541,24 @@ int playCatchThePokemon()
     if (err)
     {
         printf_catchThePokemon("Init error %d", err);
+        lcdStringWrite("Init error");
+        k_msleep(1000);
         // return err code if severe enough?
     }
-
-    displayPokemon(5, 3);
-    displayAimDirection(0);
-    setMatrix();
-    for (int i = 0; i <= 20; i++)
-    {
-        displayTiming(abs(i-10));
-        displayBallThrow();
-        k_msleep(1000);
-    }
-    k_msleep(10000);
 
     while (gameOngoing)
     {
         // draw game
         // play sounds
-        // check input
-        // handle input
+
         if(!catchEvent)
         {
             err = pokemonGame();
             if (err)
             {
                 printf_catchThePokemon("Pokemon Error %d", err);
+                lcdStringWrite("Pokemon Error");
+                k_msleep(1000);
             }
         }
         else
@@ -432,6 +569,8 @@ int playCatchThePokemon()
             if (err)
             {
                 printf_catchThePokemon("Pokemon Catching Minigame Error %d", err);
+                lcdStringWrite("Pokemon Catching Minigame Error");
+                k_msleep(1000);
             }
         }
 
