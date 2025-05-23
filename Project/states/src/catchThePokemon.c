@@ -7,7 +7,7 @@
 #define TIME_INTERVAL_MS 100 // Adjust for smoother or faster changes
 
 char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "btnmatrix_in", "ledcircle", "buzzers", "ledmatrix", "btnmatrix_out"}; // missing lcd threads
-bool gameOngoing, catchEvent;
+bool game_ongoing_pokemon, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
 uint16_t displayMatrix[16] = {0};
 int pokemonToCatch = -1;
@@ -28,6 +28,34 @@ uint8_t pokemonMatrixLocation[] = {
     0b00010001,
     0b00001110
 };
+
+/////////////
+/// sounds:
+int soundCatch[2][3] = {
+    {587, 740, 880}, // D chord
+    {784, 988, 1175} // G chord
+};
+
+int soundFlee[2][3] = {
+    {587, 740, 880}, // D chord
+    {554, 698, 830}  // C# chord
+};
+
+int soundCatchFail[2][3] = {
+    {880, 523, 660}, // Cm chord
+    {415, 262, 349}  // Fm chord
+};
+
+int soundAppear[2][3] = {
+    {262, 330, 302},  // C chord
+    {784, 1175, 1568} // G D G
+};
+
+int soundNoBalls[2][3] = {
+    {554, 698, 830},
+    {523, 659, 784} // C chord  // C# chord
+};
+/////////////
 
 /**
  * @brief returns the threads used in the catch the pokemon minigame
@@ -58,7 +86,6 @@ bool isAnyButtonPressed(const uint8_t *buttonsInput, size_t size) {
 }
 
 static bool increasing = true;
-
 /**
  * @brief updates the time value based on the increasing or decreasing state
  * @param time pointer to the time value to be updated
@@ -83,6 +110,10 @@ void updateTime(char *time)
     }
 }
 
+/**
+ * @brief handles the non-blocking time update
+ * @param time pointer to the time value to be updated
+ */
 void nonBlockingTimeHandler(char *time)
 {
     static int64_t lastUpdate = 0;
@@ -96,6 +127,60 @@ void nonBlockingTimeHandler(char *time)
 }
 
 /**
+ * @brief plays a sound based on the sound number
+ * @param soundNr the number of the sound to play
+ */
+int playSound(int soundNr)
+{
+    int (*soundArray)[3];
+    int soundLength;
+
+    // Select the appropriate sound array based on soundNr
+    switch (soundNr)
+    {
+        case 0:
+            soundArray = soundCatch;
+            soundLength = sizeof(soundCatch) / sizeof(soundCatch[0]);
+            break;
+        case 1:
+            soundArray = soundFlee;
+            soundLength = sizeof(soundFlee) / sizeof(soundFlee[0]);
+            break;
+        case 2:
+            soundArray = soundCatchFail;
+            soundLength = sizeof(soundCatchFail) / sizeof(soundCatchFail[0]);
+            break;
+        case 3:
+            soundArray = soundAppear;
+            soundLength = sizeof(soundAppear) / sizeof(soundAppear[0]);
+            break;
+        case 4:
+            soundArray = soundNoBalls;
+            soundLength = sizeof(soundNoBalls) / sizeof(soundNoBalls[0]);
+            break;
+        default:
+            return -1; // Invalid sound number
+    }
+
+    // Play each chord in the sound array
+    for (int i = 0; i < soundLength; i++)
+    {
+        for (int j = 0; j < 3; j++) // Play all 3 frequencies in the chord
+        {
+            buzzerSetPwm(j, soundArray[i][j]); // Set PWM for each buzzer
+        }
+        k_msleep(200); // Delay between chords
+    }
+
+    // Turn off all buzzers after playing the sound
+    for (int j = 0; j < 3; j++)
+    {
+        buzzerTurnOff(j);
+    }
+    return 0;
+}
+
+/**
  * @brief checks if you have caught all pokemon and triggers the end game if not.
  * @returns false if you have caught all pokemon or they have fleed
  */
@@ -105,17 +190,17 @@ bool checkPokemonLeft()
     {
         lcdStringWrite("You have caught all pokemon!");
 
-        gameOngoing = false;
+        game_ongoing_pokemon = false;
     }
 
     else if ((pokemonCaught  + pokemonFled) >= POKEMONLOCATIONS)
     {
         lcdStringWrite("No pokemon left!");
 
-        gameOngoing = false;
+        game_ongoing_pokemon = false;
     }
 
-    return gameOngoing;
+    return game_ongoing_pokemon;
 }
 
 /**
@@ -128,8 +213,8 @@ bool checkBallsLeft()
     if (balls <= 0)
     {
         lcdStringWrite("Out of pokeballs");
-
-        gameOngoing = false;
+        playSound(4); // Play out of balls sound
+        game_ongoing_pokemon = false;
         return false;
     }
 
@@ -161,11 +246,11 @@ int initMg()
     balls = BALLS;
     pokemonCaught = 0;
     pokemonFled = 0;
-    gameOngoing = true;
+    game_ongoing_pokemon = true;
     catchEvent = false;
 
     lcdEnable();
-    lcdStringWrite("Find and catch the Pokemon!");
+    lcdStringWrite("Vind en vang de pokemon!");
     k_msleep(3000);
 
     err = selectLocations();
@@ -239,7 +324,6 @@ int displayAimDirection(char angle)
     return 0;
 }
 
-// TODO: Fix this to work with the hardware.
 /*
  * @brief displays the timing to throw the ball on the 16x16 LED
  * @param[in] time time to display on a scale of 0-10
@@ -388,8 +472,8 @@ bool checkHit(char x, char time, char angle)
     if (catchChance >= 15) // check if the catch chance is greater or equal to 15 then the pokemon is caught
         return true;
 
-    float randomValue = (float)rand() / 1; // convert to float
-    float probability = 1.0 - exp(-0.5 * catchChance + 3); // calculate the probability of catching the pokemon
+    float randomValue = (float)rand() / RAND_MAX; // convert to float
+    float probability = 1.0 - exp(-0.25 * catchChance + 1); // calculate the probability of catching the pokemon
     return randomValue < probability; // if the random value is less than the probability then the pokemon is caught
 }
 
@@ -424,34 +508,39 @@ int catchingMg()
     char angle = 0; // angle in which the box is tilted (0 to 15)
     char time = 0; // timing to throw the ball (0 to 10)
 
-    // TODO: Make the seed less predictable
-    srand(0); // seed random number generator
+    srand(k_uptime_get()); // seed random number generator
 
-    uint8_t attemptsPermitted = 1 + (rand() % MAX_ATTEMPTS); // random number between .. and ..
+    uint8_t attemptsPermitted = 1 + (rand() / MAX_ATTEMPTS); // random number
     bool caughtPokemon = false;
     // generate pokemon locations
     uint8_t pokemonLocationX = 3 + rand()%11;
     uint8_t pokemonLocationY = 3 + rand()%3;
 
     // init catchingMg
-    while (catchingMgOngoing)
+    while (catchingMgOngoing == true)
     {
         // update time
         nonBlockingTimeHandler(&time);
 
-        // debug
-        char digits[4] = {0};
+        if (time == TIME_MAX)
+            lcdStringWrite("Kantel om te richten");
+        if (time == TIME_MIN)
+            lcdStringWrite("Gooi met de knoppen");
 
-        // Convert the time to individual digits
-        digits[0] = (time / 1000) % 10 + 48; // Thousands place
-        digits[1] = (time / 100) % 10 + 48;  // Hundreds place
-        digits[2] = (time / 10) % 10 + 48;   // Tens place
-        digits[3] = time % 10 + 48;          // Units place
-        sevenSegmentSet(digits, 2);
-        //
+        btnmatrix_outSetMutexValue(matrixLedsOn); // set all LEDs to 1
+
+        // check if the pokemon fled
+        if (attemptCounter > attemptsPermitted)
+        {
+            lcdStringWrite("Pokemon is weg gerend!");
+            playSound(1); // play sound flee
+            pokemonFled++;
+            k_msleep(1000);
+            catchingMgOngoing = false;
+        }
 
         if (checkBallsLeft() == false) {
-            return 0;
+            catchingMgOngoing = false;
         }
 
         // get the angle of the box
@@ -476,33 +565,27 @@ int catchingMg()
 
             if (caughtPokemon == true)
             {
-                // play sound
-                lcdStringWrite("You caught a pokemon!");
+                lcdStringWrite("Je hebt een pokemon gevangen!");
+                playSound(0); // play sound catch
                 pokemonCaught++;
                 k_msleep(1000);
                 catchingMgOngoing = false;
             }
             else
             {
-                lcdStringWrite("You missed the pokemon!");
+                lcdStringWrite("Mis! Probeer opnieuw!");
+                playSound(2); // catch fail sound
                 k_msleep(1000);
-                // play sound
             }
         }
-        else
-        {
-            lcdStringWrite("Tilt to aim and throw the ball with the lid up buttons!");
-            btnmatrix_outSetMutexValue(matrixLedsOn); // set all LEDs to 1
-            k_msleep(10);
-        }
-
-        if (attemptCounter > attemptsPermitted)
-        {
-            lcdStringWrite("Pokemon fled!");
-            pokemonFled++;
-            catchingMgOngoing = false;
-        }
     }
+
+    // reset the display
+    memset(displayMatrix, 0, sizeof(displayMatrix));
+    setMatrix();
+    // reset the ledcircle
+    uint8_t ledCircle[8] = {0};
+    ledcircleSetMutexValue(ledCircle); // set all LEDs to 0
 
     return 0;
 }
@@ -537,7 +620,7 @@ int pokemonGame()
     // check if there is a pokemon nearby
     if (pokemonNearby())
     {
-        // play pokemon appeared sound
+        playSound(3); // play pokemon appeared sound
         catchEvent = true;
     }
     else
@@ -561,7 +644,15 @@ int playCatchThePokemon()
         // return err code if severe enough?
     }
 
-    while (gameOngoing)
+    for (int i = 0; i < 5; i++)
+    {
+        // play sound
+        playSound(i);
+        lcdStringWrite("Pokemon is in de buurt!");
+        k_msleep(1000);
+    }
+
+    while (game_ongoing_pokemon)
     {
         // draw game
         // play sounds
@@ -571,7 +662,6 @@ int playCatchThePokemon()
             err = pokemonGame();
             if (err)
             {
-                printf_catchThePokemon("Pokemon Error %d", err);
                 lcdStringWrite("Pokemon Error");
                 k_msleep(1000);
             }
@@ -583,7 +673,6 @@ int playCatchThePokemon()
             err = catchingMg();
             if (err)
             {
-                printf_catchThePokemon("Pokemon Catching Minigame Error %d", err);
                 lcdStringWrite("Pokemon Catching Minigame Error");
                 k_msleep(1000);
             }
