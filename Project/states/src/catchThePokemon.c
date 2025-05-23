@@ -68,14 +68,18 @@ void updateTime(char *time)
     // Update the time value based on the increasing or decreasing state
     if (increasing) {
         *time += TIME_STEP;
-        if (*time >= TIME_MAX) {
-            increasing = false; // Switch to decreasing when max is reached
-        }
     } else {
         *time -= TIME_STEP;
-        if (*time <= TIME_MIN) {
-            increasing = true; // Switch to increasing when min is reached
-        }
+    }
+
+    // Cap the time value at the defined limits
+    if (*time >= TIME_MAX) {
+        *time = TIME_MAX; // Cap the time at max
+        increasing = false; // Switch to decreasing when max is reached
+    }
+    else if (*time <= TIME_MIN) {
+        *time = TIME_MIN; // Cap the time at min
+        increasing = true; // Switch to increasing when min is reached
     }
 }
 
@@ -385,7 +389,7 @@ bool checkHit(char x, char time, char angle)
         return true;
 
     float randomValue = (float)rand() / 1; // convert to float
-    float probability = 1.0 - exp(-0.5 * catchChance); // calculate the probability of catching the pokemon
+    float probability = 1.0 - exp(-0.5 * catchChance + 3); // calculate the probability of catching the pokemon
     return randomValue < probability; // if the random value is less than the probability then the pokemon is caught
 }
 
@@ -434,6 +438,17 @@ int catchingMg()
     {
         // update time
         nonBlockingTimeHandler(&time);
+
+        // debug
+        char digits[4] = {0};
+
+        // Convert the time to individual digits
+        digits[0] = (time / 1000) % 10 + 48; // Thousands place
+        digits[1] = (time / 100) % 10 + 48;  // Hundreds place
+        digits[2] = (time / 10) % 10 + 48;   // Tens place
+        digits[3] = time % 10 + 48;          // Units place
+        sevenSegmentSet(digits, 2);
+        //
 
         if (checkBallsLeft() == false) {
             return 0;
