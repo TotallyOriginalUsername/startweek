@@ -1,6 +1,6 @@
 #include "minigame2.h"
-#define levels 5
-bool game_ongoing = 1;
+#define levels 11
+bool game_ongoing_mg2 = 1;
 
 K_TIMER_DEFINE(secTimerMg2, NULL, NULL);
 
@@ -23,7 +23,7 @@ uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input
 
 	if (sequence[input] != input_sequence[input]) {
 		printk("Sequences don't match\n");
-		lcdStringWrite("Inorrect!");
+		lcdStringWrite("Incorrect!");
 		return 1;
 	}
 
@@ -57,7 +57,7 @@ void get_input(uint8_t* sequence, uint8_t level){
 		input_sequence[i] = get_btnmatrix_input_number_untimed();
 		if(check_sequence(sequence, input_sequence, i) == 1){
 			show_incorrect();
-			game_ongoing = 0;
+			game_ongoing_mg2 = 0;
 			break;
 		}
 	}
@@ -74,13 +74,13 @@ int playMg2() {
 	
 	generate_sequence(sequence);
 	
-	while (game_ongoing)
+	while (game_ongoing_mg2)
 	{
 		native_loop();
 		show_sequence(sequence, level);
 		get_input(sequence, level);
 
-		if(game_ongoing){
+		if(game_ongoing_mg2){
 			lcdStringWrite("Correct!");
 			show_correct();
 			lcdClear();
@@ -88,17 +88,21 @@ int playMg2() {
 
 		if(level < levels - 1){
 			level++;
+			score = score + 100;
 		}
 		else{
-			game_ongoing = false;
+			lcdStringWrite("gewonnen!");
+			game_ongoing_mg2 = false;
+			k_msleep(400);
 		}
 	}
-
+	
 	lcdClear();
 	lcdDisable();
 
 	clear_btnmatrix_leds();
+	
 	k_msleep(100);
-
+	printk("Score is  %d\n", score );
 	return (int)score;
 }
