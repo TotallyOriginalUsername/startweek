@@ -3,7 +3,7 @@
 #define display_time 5000
 
 char *mg9Threads[mg9ThreadCount] = {"abcbtn"};
-bool game_ongoing = 1;
+bool game_ongoing_mg9 = 1;
 
 void getMg9Threads(char ***names, unsigned *amount) {
 	*names = mg9Threads;
@@ -56,7 +56,7 @@ int playMg9() {
 	lcdEnable();
 
 	//generate number, press lower(a) or higher(c), generate second number
-	while (game_ongoing)
+	while (game_ongoing_mg9)
 	{
 		native_loop();;
 
@@ -96,7 +96,7 @@ int playMg9() {
 		round++;
 
 		if(round >= max_rounds){
-			game_ongoing = 0;
+			game_ongoing_mg9 = 0;
 		}
 	}
 

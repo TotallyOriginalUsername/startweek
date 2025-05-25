@@ -5,7 +5,7 @@ K_TIMER_DEFINE(secTimerMg10, NULL, NULL);
 char *mg10Threads[mg10ThreadCount] = {"btnmatrix_out", "btnmatrix_in"};
 uint8_t mole_position = 0;
 uint8_t mole_count = 0;
-bool game_ongoing = 1;
+bool game_ongoing_mg10 = 1;
 
 void getMg10Threads(char ***names, unsigned *amount) {
 	*names = mg10Threads;
@@ -56,11 +56,11 @@ static void check_input(uint8_t* btnmatrix_in){
 		printk("Mole pressed\n");
 		lcdStringWrite("Mol gevangen!");
 		if(mole_count == 10){
-			game_ongoing = 0;
+			game_ongoing_mg10 = 0;
 		}
 	}
 	else{
-		game_ongoing = 0;
+		game_ongoing_mg10 = 0;
 		lcdStringWrite("Mol ontsnapt!");
 		printk("Mole escaped\n");
 	}
@@ -87,7 +87,7 @@ int playMg10() {
 	lcdEnable();
 	wait_till_game_start();
 	
-	while (game_ongoing)
+	while (game_ongoing_mg10)
 	{
 		native_loop();
 		clear_btnmatrix_leds();
