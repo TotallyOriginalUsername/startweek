@@ -1,0 +1,144 @@
+#include "sdCard.h"
+
+#define MAX_PATH 128
+
+/*
+ *  Note the fatfs library is able to mount only strings inside _VOLUME_STRS
+ *  in ffconf.h
+ */
+#define DISK_DRIVE_NAME "SD"
+#define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
+
+static FATFS fat_fs;
+/* mounting info */
+static struct fs_mount_t mp = {
+	.type = FS_FATFS,
+	.fs_data = &fat_fs,
+};
+
+static const char *disk_mount_pt = DISK_MOUNT_PT;
+
+uint8_t sd_card_init(){
+    static const char *disk_pdrv = DISK_DRIVE_NAME;
+	uint64_t memory_size_mb;
+	uint32_t block_count;
+	uint32_t block_size;
+
+	if (disk_access_init(disk_pdrv) != 0) {
+		printk("Storage init ERROR!");
+		return 1;
+	}
+
+	if (disk_access_ioctl(disk_pdrv,
+			DISK_IOCTL_GET_SECTOR_COUNT, &block_count)) {
+		printk("Unable to get sector count");
+		return 1;
+	}
+		printk("Block count %u", block_count);
+
+	if (disk_access_ioctl(disk_pdrv,
+			DISK_IOCTL_GET_SECTOR_SIZE, &block_size)) {
+		printk("Unable to get sector size");
+	return 1;
+	}
+	printk("Sector size %u\n", block_size);
+
+	memory_size_mb = (uint64_t)block_count * block_size;
+	printk("Memory Size(MB) %u\n", (uint32_t)(memory_size_mb >> 20));
+
+	mp.mnt_point = disk_mount_pt;
+
+	int res = fs_mount(&mp);
+    if(res == 0){
+        printk("Disk mounted.\n");
+    }
+    else {
+        printk("Error mounting disk\n");
+    }
+
+    return 0;
+}
+
+void sd_card_unmount(){
+    fs_unmount(&mp);
+}
+
+// Clear the score from the SD card
+uint8_t sd_clear_score(){
+    int ret;
+	int score = 0;
+	char file_data_buffer[200];
+    struct fs_file_t data_filp;
+
+    fs_file_t_init(&data_filp);
+    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_RDWR);
+    if (ret) {
+        printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+        return -2;
+    }
+
+	ret = fs_truncate(&data_filp, 0);
+    if (ret) {
+        printk("%s -- failed to truncate file (err = %d)\n", __func__, ret);
+        return -2;
+    }
+
+	sprintf(file_data_buffer, "%d\n", score);
+	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+
+	fs_close(&data_filp);
+
+    return 0;
+}
+
+// Get the score from the SD card
+int sd_get_score(){
+    int ret;
+	int score;
+    char file_data_buffer[20];
+    struct fs_file_t data_filp;
+
+    fs_file_t_init(&data_filp);
+
+    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_READ);
+	if (ret) {
+		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return -2;
+	} else {
+		//printk("%s - successfully opened file\n", __func__);
+	}
+
+	ret = fs_read(&data_filp, file_data_buffer, 200);
+	fs_close(&data_filp);
+
+	sscanf(file_data_buffer, "%d", &score);
+
+    return score;
+}
+
+// Set the score from the SD card
+uint8_t sd_set_score(int score){
+    int ret;
+	int current_score;
+	int new_score;
+    char file_data_buffer[20];
+    struct fs_file_t data_filp;
+
+	current_score = sd_get_score();
+	new_score = current_score+score;
+
+    fs_file_t_init(&data_filp);
+
+    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_WRITE);
+	if (ret) {
+		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return -2;
+	} else {
+		//printk("%s - successfully opened file\n", __func__);
+	}
+
+	sprintf(file_data_buffer, "%d\n", new_score);
+	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	fs_close(&data_filp);
+	return 0;
+}
