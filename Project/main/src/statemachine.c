@@ -53,7 +53,6 @@ void init_state(struct state *state) {
 		}
 	}
 	initialize();
-	sd_clear_score();
 	Startupdelay = 0;
 	state->next = idle_state;
 }

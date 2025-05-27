@@ -6,7 +6,9 @@
 #include <zephyr/storage/disk_access.h>
 #include <zephyr/fs/fs.h>
 #include <zephyr/sys/printk.h>
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #include <ff.h>
+#endif
 #include <string.h>
 
 uint8_t sd_card_init();

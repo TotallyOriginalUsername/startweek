@@ -9,6 +9,7 @@
 #define DISK_DRIVE_NAME "SD"
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
 
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static FATFS fat_fs;
 /* mounting info */
 static struct fs_mount_t mp = {
@@ -17,8 +18,10 @@ static struct fs_mount_t mp = {
 };
 
 static const char *disk_mount_pt = DISK_MOUNT_PT;
+#endif
 
 uint8_t sd_card_init(){
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     static const char *disk_pdrv = DISK_DRIVE_NAME;
 	uint64_t memory_size_mb;
 	uint32_t block_count;
@@ -55,16 +58,19 @@ uint8_t sd_card_init(){
     else {
         printk("Error mounting disk\n");
     }
-
+#endif
     return 0;
 }
 
 void sd_card_unmount(){
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     fs_unmount(&mp);
+#endif
 }
 
 // Clear the score from the SD card
 uint8_t sd_clear_score(){
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
 	int score = 0;
 	char file_data_buffer[200];
@@ -87,14 +93,15 @@ uint8_t sd_clear_score(){
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
 
 	fs_close(&data_filp);
-
+#endif
     return 0;
 }
 
 // Get the score from the SD card
 int sd_get_score(){
-    int ret;
-	int score;
+	int score = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    int ret = 0;
     char file_data_buffer[20];
     struct fs_file_t data_filp;
 
@@ -112,12 +119,13 @@ int sd_get_score(){
 	fs_close(&data_filp);
 
 	sscanf(file_data_buffer, "%d", &score);
-
+#endif
     return score;
 }
 
-// Set the score from the SD card
+// Set the score in the file on the SD card
 uint8_t sd_set_score(int score){
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
 	int current_score;
 	int new_score;
@@ -140,5 +148,6 @@ uint8_t sd_set_score(int score){
 	sprintf(file_data_buffer, "%d\n", new_score);
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
 	fs_close(&data_filp);
+#endif
 	return 0;
 }
