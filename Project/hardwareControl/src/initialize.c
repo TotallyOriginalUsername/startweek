@@ -23,5 +23,6 @@ uint8_t initialize()
 	ret += sevenSegmentInit();
 	ret += magnetometer_init();
 	ret += gyroscope_init();
+	ret += sd_card_init();
 	return ret;
 }
