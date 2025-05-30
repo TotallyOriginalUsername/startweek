@@ -55,7 +55,7 @@ void draw_game_mg5(uint16_t plate_mask){
 }
 
 // Detects if a fruit properly hit the plate.
-bool hit_detection(uint16_t plate_mask){
+static bool hit_detection(uint16_t plate_mask){
 
 	if (fruit_masks_mg5[14] != 0)
 	{
