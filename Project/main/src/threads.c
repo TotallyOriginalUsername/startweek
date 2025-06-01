@@ -1,5 +1,6 @@
 #include "threads.h"
 
+LOG_MODULE_REGISTER(threads);
 //#include <zephyr/kernel.h>
 
 // Thread startupdelay
@@ -77,7 +78,7 @@ uint8_t startbuttonGetMutexValue()
 	} 
 	else 
 	{
-		printf("Cannot lock startbutton\n");
+		LOG_ERR("Cannot lock startbutton\n");
 	}
 	return startbuttonMutexValueRet; //Return unprotected value
 }
@@ -110,7 +111,7 @@ uint8_t* btnmatrix_inGetMutexValue()
 	} 
 	else 
 	{
-		printf("Cannot lock btnmatrix_in\n");
+		LOG_ERR("Cannot lock btnmatrix_in\n");
 	}
 	return btnmatrix_inMutexValueRet; //Return unprotected value
 }
@@ -146,7 +147,7 @@ uint8_t* switchesGetMutexValue()
 	} 
 	else 
 	{
-		printf("Cannot lock switchs\n");
+		LOG_ERR("Cannot lock switchs\n");
 	}
 	return switchsMutexValueRet; //Return unprotected value
 }
@@ -179,7 +180,7 @@ int32_t potmeterGetMutexValue()
 	} 
 	else 
 	{
-		printf("Cannot lock potmeter\n");
+		LOG_ERR("Cannot lock potmeter\n");
 	}
 	return potmeterMutexValueRet; //Return unprotected value
 }
@@ -213,7 +214,7 @@ uint8_t* abcbtnGetMutexValue()
 	} 
 	else 
 	{
-		printf("Cannot lock abcbtn\n");
+		LOG_ERR("Cannot lock abcbtn\n");
 	}
 	return abcbtnMutexValueRet; //Return unprotected value
 }
@@ -386,7 +387,7 @@ void tsevenseg(void) {
 void enableThreads(char **names, unsigned amount) {
 	for (int i = 0; i < amount; i++) {
 		// Resume each desired thread
-		printf("Enabling thread %s\n", names[i]);
+		LOG_DBG("Enabling thread %s\n", names[i]);
 		setThread(names[i], true);
 	}
 }
@@ -394,7 +395,7 @@ void enableThreads(char **names, unsigned amount) {
 void disableThreads(char **names, unsigned amount) {
 	for (int i = 0; i < amount; i++) {
 		// Suspend each desired thread
-		printf("Suspending thread %s\n", names[i]);
+		LOG_DBG("Suspending thread %s\n", names[i]);
 		setThread(names[i], false);
 	}
 }
@@ -450,7 +451,7 @@ void setThread(char* name, bool state) {
 		state ? k_thread_resume(tsevenseg_id) : k_thread_suspend(tsevenseg_id);
 		return;
 	}
-	printf("Unknown thread: %s\n", name);
+	LOG_ERR("Unknown thread: %s\n", name);
 }
 
 void disableAllThreads() {

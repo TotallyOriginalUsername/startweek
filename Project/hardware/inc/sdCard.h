@@ -2,10 +2,10 @@
 #define SDCARD_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/device.h>
 #include <zephyr/storage/disk_access.h>
 #include <zephyr/fs/fs.h>
-#include <zephyr/sys/printk.h>
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #include <ff.h>
 #endif

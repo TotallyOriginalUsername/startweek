@@ -2,6 +2,7 @@
 #define MINIGAME9_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/random/random.h>
 #include "genericGpio.h"
 #include "helperFunctions.h"

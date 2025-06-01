@@ -6,6 +6,7 @@
 #define native_loop()
 #endif
 K_TIMER_DEFINE(secTimerMg4, NULL, NULL);
+LOG_MODULE_REGISTER(mg_4);
 
 char *mg4Threads[mg4ThreadCount] = {"startbtn", "buzzers", "abcbtn"};
 

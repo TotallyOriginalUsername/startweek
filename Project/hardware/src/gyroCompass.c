@@ -4,6 +4,8 @@
 #include <math.h>
 #include <zephyr/kernel.h>
 
+LOG_MODULE_REGISTER(gyroCompass);
+
 #define M_PIL 3.141592653589793238462643383279502884L
 #define zero 0
 #define MINDELTATRIG 1
@@ -509,7 +511,7 @@ uint8_t magnetometer_set_sampling_freq(int aFreq)
 							SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr);
 	if (error != 0)
 	{
-		printf("Cannot set sampling frequency for magnetometer.\n");
+		LOG_ERR("Cannot set sampling frequency for magnetometer.\n");
 		return 10;
 	}
 
@@ -532,14 +534,14 @@ uint8_t magnetometer_init(void)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (magnetometer_is_init)
 	{
-		printf("Magnetometer already initialized\n");
+		LOG_ERR("Magnetometer already initialized\n");
 		return 2;
 	}
 
 	magnetometer = DEVICE_DT_GET(DT_ALIAS(magnetometer));
 	if (!device_is_ready(magnetometer))
 	{
-		printf("Could not get LIS3MDL device\n");
+		LOG_ERR("Could not get LIS3MDL device\n");
 		return 1;
 	}
 
@@ -603,7 +605,7 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 
 	if (!magnetometer_is_init)
 	{
-		printf("Magnetometer not initialized\n");
+		LOG_ERR("Magnetometer not initialized\n");
 		return 1;
 	}
 
@@ -652,7 +654,7 @@ uint8_t gyroscope_set_sampling_freq(int aFreq)
 							SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr);
 	if (error != 0)
 	{
-		printf("Cannot set sampling frequency for accelerometer.\n");
+		LOG_ERR("Cannot set sampling frequency for accelerometer.\n");
 		return 10;
 	}
 
@@ -660,7 +662,7 @@ uint8_t gyroscope_set_sampling_freq(int aFreq)
 							SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr);
 	if (error != 0)
 	{
-		printf("Cannot set sampling frequency for gyro.\n");
+		LOG_ERR("Cannot set sampling frequency for gyro.\n");
 		return 20;
 	}
 
@@ -682,7 +684,7 @@ uint8_t gyroscope_init(void)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (gyroscope_is_init)
 	{
-		printf("Magnetometer already initialized\n");
+		LOG_ERR("Magnetometer already initialized\n");
 		return 2;
 	}
 
@@ -691,7 +693,7 @@ uint8_t gyroscope_init(void)
 
 	if (!device_is_ready(gyroscope))
 	{
-		printk("%s: device not ready.\n", gyroscope->name);
+		LOG_ERR("%s: device not ready.\n", gyroscope->name);
 		return 1;
 	}
 
@@ -720,7 +722,7 @@ uint8_t gyroscope_exit(void)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gyroscope_is_init)
 	{
-		printf("Gyroscope not initialized\n");
+		LOG_ERR("Gyroscope not initialized\n");
 		return 1;
 	}
 
@@ -749,7 +751,7 @@ uint8_t gyroscope_get_acceleration(int16_t aAcceleration[3])
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gyroscope_is_init)
 	{
-		printf("Gyroscope not initialized\n");
+		LOG_ERR("Gyroscope not initialized\n");
 		return 1;
 	}
 
@@ -782,7 +784,7 @@ uint8_t gyroscope_get_gyro(float aGyro[3])
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!gyroscope_is_init)
 	{
-		printf("Gyroscope not initialized\n");
+		LOG_ERR("Gyroscope not initialized\n");
 		return 1;
 	}
 
@@ -816,7 +818,7 @@ uint8_t gyroscope_get_roll(int *aRoll)
 	uint16_t tempResult[3];
 	if (!gyroscope_is_init)
 	{
-		printf("Gyroscope not initialized\n");
+		LOG_ERR("Gyroscope not initialized\n");
 		return 1;
 	}
 
@@ -874,7 +876,7 @@ uint8_t gyroscope_get_pitch(int *aPitch)
 	int16_t tempResult[3];
 	if (!gyroscope_is_init)
 	{
-		printf("Gyroscope not initialized\n");
+		LOG_ERR("Gyroscope not initialized\n");
 		return 1;
 	}
 
@@ -932,12 +934,12 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	int errorCode = 0;
 	if (!gyroscope_is_init)
 	{
-		printf("Gyroscope not initialized\n");
+		LOG_ERR("Gyroscope not initialized\n");
 		return 1;
 	}
 	if (!magnetometer_is_init)
 	{
-		printf("Magnetometer not initialized\n");
+		LOG_ERR("Magnetometer not initialized\n");
 		return 2;
 	}
 	errorCode = magnetometer_get_magneto(MagnetoValue);

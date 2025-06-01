@@ -35,7 +35,7 @@ int64_t getLongitude() {
 static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites,
 			       uint16_t size)
 {
-	//printf("%s reported %u satellites!\r\n", dev->name, size);
+	//LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
 	//lcdClear();
 	//char words[27];
 	//char value[3];

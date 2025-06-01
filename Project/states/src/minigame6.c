@@ -5,7 +5,7 @@
 #define native_loop()
 #endif
 K_TIMER_DEFINE(secTimerMg6, NULL, NULL);
-
+LOG_MODULE_REGISTER(mg_6);
 
 char *mg6Threads[mg6ThreadCount] = {"startbtn", "sevenseg", "abcbtn"};
 
