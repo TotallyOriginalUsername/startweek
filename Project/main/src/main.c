@@ -47,10 +47,6 @@ void tmain(void) // Core thread
 	setup_ui(lv_scr_act());
 	#endif
 	LOG_INF("Main\n");
-	LOG_ERR("Test Err\n");
-	LOG_WRN("Test Wrn\n");
-	LOG_INF("Test inf\n");
-	LOG_DBG("Test Debug\n");
 
 	startStatemachine();
 }
