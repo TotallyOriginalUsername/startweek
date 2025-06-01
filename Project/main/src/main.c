@@ -12,6 +12,9 @@
 // The stack size of all threads
 #define STACKSIZE 1024
 
+// Give the main thread enough stack size to handle the sd card
+#define STACKSIZE_MAIN 2048
+
 // Thread priority values (lower value is higher priority)
 #define TMAIN_PRIORITY 8
 
@@ -48,7 +51,7 @@ void tmain(void) // Core thread
 }
 
 // Define the threads
-K_THREAD_DEFINE(tmain_id, STACKSIZE, tmain, NULL, NULL, NULL, TMAIN_PRIORITY, 0, 0);
+K_THREAD_DEFINE(tmain_id, STACKSIZE_MAIN, tmain, NULL, NULL, NULL, TMAIN_PRIORITY, 0, 0);
 #if defined(CONFIG_ARCH_POSIX)
 K_THREAD_DEFINE(tlvgl_id, STACKSIZE2, lvgl_task_handler_loop, NULL, NULL, NULL, TLVGL_PRIORITY, 0, 0);
 #endif

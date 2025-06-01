@@ -9,6 +9,7 @@
 #include "lcd.h"
 #include "ledMatrix.h"
 #include "potmeter.h"
+#include "sdCard.h"
 #include "sevenSegment.h"
 
 
