@@ -25,7 +25,7 @@ void set_abc_button(int button, bool value){
         lv_obj_set_style_bg_color(buttons_abc[button], lv_color_hex(0xFFFFFF), 0);
     }
     else{
-        LOG_ERR("set_abc_button received an improper state");
+        printk("set_abc_button received an improper state");
     }
 }
 
@@ -37,7 +37,7 @@ void set_start_button(bool value){
         lv_obj_set_style_bg_color(button_start, lv_color_hex(0xFFFFFF), 0);
     }
     else{
-        LOG_ERR("set_start_button received an improper state");
+        printk("set_start_button received an improper state");
     }
 }
 
@@ -50,7 +50,7 @@ void set_button(int button, int state){
         lv_obj_set_style_bg_color(buttons[button], lv_color_hex(0xFFFFFF), 0);
     }
     else{
-        LOG_ERR("set_button received an improper state");
+        printk("set_button received an improper state");
     }
 }
 
@@ -66,7 +66,7 @@ void set_led(int led, int state){
         lv_obj_set_style_bg_color(leds[led], lv_color_hex(0x000000), 0);
     }
     else{
-        LOG_ERR("set_led received an improper state");
+        printk("set_led received an improper state");
     }
 }
 
@@ -78,7 +78,7 @@ void set_led_circle(int led, int state){
         lv_obj_set_style_bg_color(leds_circle[led], lv_color_hex(0x000000), 0);
     }
     else{
-        LOG_ERR("set_led_circle received an improper state");
+        printk("set_led_circle received an improper state");
     }
 }
 
