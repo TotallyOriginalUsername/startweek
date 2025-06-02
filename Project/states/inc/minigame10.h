@@ -1,7 +1,12 @@
 #ifndef MINIGAME10_H
 #define MINIGAME10_H
 
-#define mg10ThreadCount 5
+#include <zephyr/kernel.h>
+#include <zephyr/random/random.h>
+#include "lcd.h"
+#include "helperFunctions.h"
+
+#define mg10ThreadCount 2
 
 void getMg10Threads(char ***, unsigned *);
 

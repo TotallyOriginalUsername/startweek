@@ -109,7 +109,7 @@ void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size){
 	printk("5 sec wait\n");
 	while ((!(k_timer_status_get(&timer) > 0)) && (input_count == 0)){
 		memcpy(input_array, abcbtnGetMutexValue(), size);
-		for (int i = 0; i < 16; i++){
+		for (int i = 0; i < 3; i++){
 			if (input_array[i] == 0){
 				input_count++;
 			}
@@ -150,6 +150,24 @@ uint8_t get_btnmatrix_input_number(uint16_t input_time){
 			}
 		}
 		native_loop();
+	}
+	return 17;
+}
+
+//Returns the pressed button, or 17 upon failure
+uint8_t get_btnmatrix_input_number_untimed(){
+	uint8_t input = 0;
+    uint8_t input_array[16];
+
+    while (input == 0){
+        memcpy(input_array, btnmatrix_inGetMutexValue(), sizeof(input_array));
+		for (int i = 0; i < 16; i++){
+			if (input_array[i] == 0){
+				input = 1;
+				return i;
+			}
+		}
+		k_sleep(K_MSEC(1));
 	}
 	return 17;
 }

@@ -1,7 +1,13 @@
 #ifndef MINIGAME7_H
 #define MINIGAME7_H
 
-#define mg7ThreadCount 2
+#include <zephyr/kernel.h>
+#include <stdio.h>
+#include <zephyr/random/random.h>
+#include <string.h>
+#include "helperFunctions.h"
+
+#define mg7ThreadCount 3
 
 void getMg7Threads(char ***, unsigned *);
 

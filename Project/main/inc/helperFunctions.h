@@ -21,6 +21,7 @@ void wait_till_switches_rest();
 void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size);
 void get_btnmatrix_input(uint16_t input_time, uint8_t* input_array, size_t size);
 uint8_t get_btnmatrix_input_number(uint16_t input_time);
+uint8_t get_btnmatrix_input_number_untimed();
 void set_btnmatrix_led(uint8_t position);
 
 #endif //HELPERFUNCTIONS_H
