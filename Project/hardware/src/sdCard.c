@@ -1,5 +1,8 @@
 #include "sdCard.h"
 
+#include <lcd.h>
+#include <stdlib.h>
+
 #define MAX_PATH 128
 
 /*
@@ -148,6 +151,80 @@ uint8_t sd_set_score(int score){
 	sprintf(file_data_buffer, "%d\n", new_score);
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
 	fs_close(&data_filp);
+#endif
+	return 0;
+}
+
+int64_t sd_get_pokemon_locations(struct PokemonLocation **locations, size_t *pokemon_count)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	static struct PokemonLocation *static_locations = NULL;
+	int ret;
+	char file_data_buffer[256]; // Buffer to hold file data
+	struct fs_file_t data_filp;
+
+	// Free previously allocated locations if they exist
+	if (static_locations) {
+		free(static_locations);
+		static_locations = NULL;
+	}
+
+	fs_file_t_init(&data_filp);
+
+	ret = fs_open(&data_filp, "/SD:/pokemon_locations.txt", FS_O_READ);
+	if (ret) {
+		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+
+		// test
+		char buf[32];
+		sprintf(buf, "Failed to open file: %d", ret);
+		lcdStringWrite(buf);
+		k_msleep(1000);
+
+		return -2;
+	} else {
+		//printk("%s - successfully opened file\n", __func__);
+	}
+
+	ssize_t len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
+	fs_close(&data_filp);
+	if (len < 0) {
+		printk("Failed to read file\n");
+
+		// test
+		lcdStringWrite("Failed to read file");
+		k_msleep(1000);
+
+		return -2;
+	}
+	file_data_buffer[len] = '\0';
+
+	struct PokemonLocationsWrapper wrapper = {0};
+	ret = json_obj_parse(file_data_buffer, len, pokemon_locations_wrapper_descr, ARRAY_SIZE(pokemon_locations_wrapper_descr), &wrapper);
+	if (ret < 0) {
+		printk("JSON parse error: %d\n", ret);
+
+		// test
+		lcdStringWrite("JSON parse error");
+		k_msleep(1000);
+
+		return -2;
+	}
+
+	*pokemon_count = wrapper.locations_count;
+	static_locations = malloc(wrapper.locations_count * sizeof(struct PokemonLocation));
+	if (static_locations == NULL) {
+		printk("Memory allocation failed\n");
+
+		// test
+		lcdStringWrite("Memory allocation failed");
+		k_msleep(1000);
+
+		return -2;
+	}
+	memcpy(static_locations, wrapper.locations, wrapper.locations_count * sizeof(struct PokemonLocation));
+	*locations = static_locations;
+
 #endif
 	return 0;
 }
