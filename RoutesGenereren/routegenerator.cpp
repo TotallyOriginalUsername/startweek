@@ -1,3 +1,4 @@
+
 #include "routegenerator.h"
 
 #include <vector>
@@ -8,22 +9,12 @@
 #include <fstream>
 #include <string>
 
-
 using namespace std;
 
 const int NUM_HOTPOINTS = 5;
 const int NUM_ROUTES = 10;
 const float MAX_DISTANCE_RATIO = 1.15f;
 const float WALKING_SPEED_PX_PER_MIN = 84.0f; // 1.4 m/s → 84 px/min
-
-struct Point {
-    float x, y;
-    float cost = 1.0f; // tijd op locatie in minuten
-};
-
-bool operator==(const Point& a, const Point& b) {
-    return a.x == b.x && a.y == b.y;
-}
 
 struct Edge {
     int u, v;
@@ -164,8 +155,13 @@ void saveRoutesToFiles(const vector<vector<int>>& routes, const vector<vector<Po
     }
 }
 
+// Global variables for GUI access
+vector<vector<int>> routeIndices;
+vector<vector<Point>> selectedPoints;
+vector<Point> allPoints;
+
 void generate_routes() {
-    vector<Point> allPoints = {
+    allPoints = {
         {100, 100, 2.0}, {300, 200, 1.5}, {500, 400, 3.5}, {200, 500, 2.5}, {600, 100, 4.0},
         {150, 300, 1.0}, {400, 350, 1.0}, {250, 50, 3.0}, {550, 250, 2.0}, {700, 150, 2.0},
         {120, 500, 1.5}, {320, 270, 1.0}, {530, 420, 2.5}, {260, 430, 2.0}, {580, 130, 3.0},
@@ -184,14 +180,14 @@ void generate_routes() {
     random_device rd;
     mt19937 g(rd());
 
-    vector<vector<Point>> selectedPoints;
-    vector<vector<int>> routes;
+    selectedPoints.clear();
+    routeIndices.clear();
     vector<float> routeTimes;
     bool valid = false;
 
     while (!valid) {
         selectedPoints = vector<vector<Point>>(NUM_ROUTES, vector<Point>(hotpoints));
-        routes.clear();
+        routeIndices.clear();
         routeTimes.clear();
 
         shuffle(waypoints.begin(), waypoints.end(), g);
@@ -207,8 +203,9 @@ void generate_routes() {
         }
 
         for (int i = 0; i < NUM_ROUTES; ++i) {
-            routes.push_back(christofides(selectedPoints[i]));
-            routeTimes.push_back(totalRouteCost(routes.back(), selectedPoints[i]));
+            auto route = christofides(selectedPoints[i]);
+            routeIndices.push_back(route);
+            routeTimes.push_back(totalRouteCost(route, selectedPoints[i]));
         }
 
         float minTime = *min_element(routeTimes.begin(), routeTimes.end());
@@ -220,5 +217,5 @@ void generate_routes() {
         cout << "Route " << i + 1 << " tijd: " << routeTimes[i] << " min" << endl;
     }
 
-    saveRoutesToFiles(routes, selectedPoints, allPoints);
+    saveRoutesToFiles(routeIndices, selectedPoints, allPoints);
 }
