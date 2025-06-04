@@ -1,7 +1,8 @@
 #include "sdCard.h"
 
-#include <lcd.h>
 #include <stdlib.h>
+
+LOG_MODULE_REGISTER(sdCard);
 
 #define MAX_PATH 128
 
@@ -13,9 +14,9 @@
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
 
 static const char *type_file[] = { // File paths for different types of locations. Dirty fix to have this here.
-	"/SD:/poko.txt",
-	"/SD:/loc.txt",
-	"/SD:/trlo.txt"
+	"/SD:/poko.txt", // pokemon locations
+	"/SD:/loc.txt", // general locations
+	"/SD:/trlo.txt" // trivia locations
 };
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
@@ -162,7 +163,7 @@ uint8_t sd_set_score(int score){
 }
 
 
-uint8_t st_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
+uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int ret = 0;
@@ -172,45 +173,28 @@ uint8_t st_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 	fs_file_t_init(&data_filp);
 
 	if (type >= sizeof(type_file) / sizeof(type_file[0])) {
-		printk("Invalid type index: %d\n", type);
+		LOG_ERR("No such file type known: %d", type);
 		return -1;
 	}
 
 	ret = fs_open(&data_filp, type_file[type], FS_O_READ);
 	if (ret) {
-		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
-
-		// test
-		char buf_test[64];
-		sprintf(buf_test, "Failed to open file: %d", ret);
-		lcdStringWrite(buf_test);
-		k_msleep(1000);
-
+		LOG_ERR("Failed to open file: %s (err = %d)", type_file[type], ret);
 		return -2;
 	} else {
-		//printk("%s - successfully opened file\n", __func__);
+		LOG_MSG_DBG("Opened file: %s", type_file[type]);
 	}
 
-	 *len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
+	*len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
 	fs_close(&data_filp);
 
 	if (len < 0) {
-		printk("Failed to read file\n");
-
-		// test
-		lcdStringWrite("Failed to read file");
-		k_msleep(1000);
-
+		LOG_ERR("Failed to read file: %s", type_file[type]);
 		return -2;
 	}
 
 	if (*len >= max_len) {
-		printk("Buffer too small for file data\n");
-
-		// test
-		lcdStringWrite("Buffer too small");
-		k_msleep(1000);
-
+		LOG_ERR("Buffer size too small. Requested: %zu, Available: %zu", *len, max_len);
 		return -3;
 	}
 

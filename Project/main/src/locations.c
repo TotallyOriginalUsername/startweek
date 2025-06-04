@@ -7,6 +7,8 @@
 #include <zephyr/data/json.h>
 #include "sdCard.h"
 
+LOG_MODULE_REGISTER(locations);
+
 #define MAX_TYPES (1 << (sizeof(uint16_t) * 8))
 #define BUFFER_SIZE 512 // dirty to have this here.
 
@@ -25,7 +27,7 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
 {
     char json_buf[BUFFER_SIZE];
     size_t len = 0;
-    int ret = st_get_locations(type, json_buf, &len, BUFFER_SIZE);
+    int ret = sd_get_locations(type, json_buf, &len, BUFFER_SIZE);
     if (ret != 0)
         return ret;
 
@@ -41,8 +43,9 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     struct json_obj json_arr;
     ret = json_arr_separate_object_parse_init(&json_arr, json_buf, len);
     if (ret < 0) {
+        LOG_ERR("Parse init error: %d", ret);
         free(locArray);
-        return -3;
+        return ret;
     }
 
     size_t i = 0;
@@ -51,10 +54,10 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
         ret = json_arr_separate_parse_object(&json_arr, loc_descr, 2, &locArray[i]);
         if (ret == 0) break; // End of array
         if (ret < 0) {
-            // Log error and clean up
-
+            LOG_ERR("Parse error at index %zu: %d", i, ret);
+            // Free allocated locations before returning
             free(locArray);
-            return -3;
+            return ret;
         }
     }
 
