@@ -1,4 +1,7 @@
 #include "minigame2.h"
+
+LOG_MODULE_REGISTER(mg_2);
+
 #define levels 11
 bool game_ongoing_mg2 = 1;
 
@@ -22,7 +25,7 @@ char oneLinersMG2[MG2_ONELINERS][32] = {
 uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input){
 
 	if (sequence[input] != input_sequence[input]) {
-		printk("Sequences don't match\n");
+		LOG_INF("Sequences don't match\n");
 		lcdStringWrite("Incorrect!");
 		return 1;
 	}
@@ -31,12 +34,12 @@ uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input
 }
 
 void generate_sequence(uint8_t* sequence) {
-	printk("Sequence:");
+	LOG_INF("Sequence:");
 	for(int i = 0; i < levels; i++){
 		sequence[i] = sys_rand32_get() % 15;
-		printk(" %d", sequence[i]);
+		LOG_INF(" %d", sequence[i]);
 	}
-	printk("\n");
+	LOG_INF("\n");
 }
 
 void show_sequence(uint8_t* sequence, uint8_t level){
@@ -103,6 +106,6 @@ int playMg2() {
 	clear_btnmatrix_leds();
 	
 	k_msleep(100);
-	printk("Score is  %d\n", score );
+	LOG_INF("Score is  %d\n", score );
 	return (int)score;
 }

@@ -1,5 +1,6 @@
 #include "minigame8.h"
 
+LOG_MODULE_REGISTER(mg_8);
 K_TIMER_DEFINE(timerMg8, NULL, NULL);
 
 char *mg8Threads[mg8ThreadCount] = {"startbtn", "btnmatrix_in", "btnmatrix_out"};
@@ -57,7 +58,7 @@ int playMg8() {
 		native_loop();
 		if(get_any_btnmatrix() == 0){
 			remaining_time = k_timer_remaining_get(&timerMg8);
-			printk("Button pressed at: %d\n", remaining_time);
+			LOG_INF("Button pressed at: %d\n", remaining_time);
 			break;
 		}
 	}
@@ -74,7 +75,7 @@ int playMg8() {
 	else{
 		score = score - (10000 - remaining_time)/10;
 	}
-	printk("Score: %d\n", score);
+	LOG_INF("Score: %d\n", score);
 
 	btnmatrix_outSetMutexValue(btnmatrix_off);
 	k_msleep(100);

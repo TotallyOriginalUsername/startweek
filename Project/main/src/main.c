@@ -6,8 +6,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/sys/util.h>
-#include <zephyr/sys/printk.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(main);
 
 // The stack size of all threads
 #define STACKSIZE 1024
@@ -38,14 +39,14 @@ void tmain(void) // Core thread
 	const struct device *display_dev;
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 	if (!device_is_ready(display_dev)) {
-		printk("Device not ready, aborting test");
+		LOG_ERR("Device not ready, aborting test");
 	}
 
 	display_blanking_off(display_dev);
 
 	setup_ui(lv_scr_act());
 	#endif
-	printf("Main\n");
+	LOG_INF("Main\n");
 
 	startStatemachine();
 }

@@ -2,7 +2,7 @@
 
 #if defined(CONFIG_ARCH_POSIX)
 #include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(app, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_DECLARE(lvglUI);
 
 #define MAIN_WIDTH 520
 #define MAIN_HEIGHT 520

@@ -2,6 +2,7 @@
 #define HELPERFUNCTIONS_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 #include "threads.h"
 

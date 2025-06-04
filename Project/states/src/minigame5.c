@@ -1,5 +1,7 @@
 #include "minigame5.h"
 
+LOG_MODULE_REGISTER(mg_5);
+
 void plate_timer_handler_mg5(struct k_timer *timer_id);
 K_TIMER_DEFINE(plateTimer_mg5, plate_timer_handler_mg5, NULL);
 K_TIMER_DEFINE(fruitTimer_mg5, NULL, NULL);
@@ -181,7 +183,7 @@ int playMg5() {
 		draw_game_mg5(plate_mask);
 	}
 
-	printk("Score: %d\n", score);
+	LOG_INF("Score: %d\n", score);
 	abcledsSet('a', 0);
 	abcledsSet('c', 0);
 	lcdClear();
