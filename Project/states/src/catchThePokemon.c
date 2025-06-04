@@ -1,6 +1,8 @@
 #include "catchThePokemon.h"
 #include <stdlib.h>
 
+LOG_MODULE_REGISTER(catchThePokemon);
+
 #define TIME_MAX 10
 #define TIME_MIN 0
 #define TIME_STEP 1
@@ -188,6 +190,7 @@ bool checkPokemonLeft()
 {
     if(pokemonCaught >= POKEMON)
     {
+        LOG_INF("All pokemon caught!");
         lcdStringWrite("You have caught all pokemon!");
 
         game_ongoing_pokemon = false;
@@ -195,6 +198,7 @@ bool checkPokemonLeft()
 
     else if ((pokemonCaught  + pokemonFled) >= POKEMONLOCATIONS)
     {
+        LOG_INF("No pokemon left to catch! Caught: %d, Fled: %d", pokemonCaught, pokemonFled);
         lcdStringWrite("No pokemon left!");
 
         game_ongoing_pokemon = false;
@@ -565,6 +569,7 @@ int catchingMg()
 
             if (caughtPokemon == true)
             {
+                LOG_INF("Caught the pokemon! Attempt: %d", attemptCounter);
                 lcdStringWrite("Je hebt een pokemon gevangen!");
                 playSound(0); // play sound catch
                 pokemonCaught++;
@@ -573,6 +578,7 @@ int catchingMg()
             }
             else
             {
+                LOG_INF("Missed the pokemon! Attempt: %d", attemptCounter);
                 lcdStringWrite("Mis! Probeer opnieuw!");
                 playSound(2); // catch fail sound
                 k_msleep(1000);
@@ -587,7 +593,7 @@ int catchingMg()
     uint8_t ledCircle[8] = {0};
     ledcircleSetMutexValue(ledCircle); // set all LEDs to 0
 
-    return 0;
+    return attemptCounter;
 }
 
 /**
@@ -638,20 +644,21 @@ int playCatchThePokemon()
     err = initMg();
     if (err)
     {
-        printf_catchThePokemon("Init error %d", err);
-        lcdStringWrite("Init error");
-        k_msleep(1000);
-        // return err code if severe enough?
+        LOG_ERR("Init error: %d", err);
+        // lcdStringWrite("Init error");
+        // k_msleep(1000);
     }
 
     for (int i = 0; i < 5; i++)
     {
+        LOG_INF("Pokemon %d is nearby", i);
         // play sound
         playSound(i);
         lcdStringWrite("Pokemon is in de buurt!");
         k_msleep(1000);
     }
 
+    int score = 0;
     while (game_ongoing_pokemon)
     {
         // draw game
@@ -662,20 +669,16 @@ int playCatchThePokemon()
             err = pokemonGame();
             if (err)
             {
-                lcdStringWrite("Pokemon Error");
-                k_msleep(1000);
+                LOG_ERR("Pokemon game error: %d", err);
+                // lcdStringWrite("Pokemon Error");
+                // k_msleep(1000);
             }
         }
         else
         {
             catchEvent = false;
 
-            err = catchingMg();
-            if (err)
-            {
-                lcdStringWrite("Pokemon Catching Minigame Error");
-                k_msleep(1000);
-            }
+            score = catchingMg();
         }
 
         // delay

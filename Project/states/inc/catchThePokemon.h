@@ -1,13 +1,6 @@
 #ifndef CATCHTHEPOKEMON_H
 #define CATCHTHEPOKEMON_H
 
-#define DEBUG_MODE
-#ifdef DEBUG_MODE
-#define printf_catchThePokemon printf
-#else
-#define printf_catchThePokemon(...)
-#endif //DEBUG_MODE
-
 #include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
 #include <zephyr/logging/log.h>
