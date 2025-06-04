@@ -6,6 +6,7 @@
 #include "threads.h"
 #include "lcd.h"
 #include "genericGpio.h"
+#include "helperFunctions.h"
 
 #define mg4ThreadCount 3
 

@@ -1,5 +1,6 @@
 #include "minigame4.h"
 
+
 #ifdef CONFIG_ARCH_POSIX
 #define native_loop() k_sleep(K_MSEC(1))
 #else
@@ -14,15 +15,16 @@ void getMg4Threads(char ***names, unsigned *amount) {
 	*amount = mg4ThreadCount;
 }
 
-#define MG4_ONELINERS 2
+#define MG4_ONELINERS 3
 char oneLinersMG4[MG4_ONELINERS][32] = {
+	"locale Trivia!",
 	"Zephyr 3.6",
 	"Z3.6 SDK 0.16.9"
 };
 
 char questions[AMOUNT_QUESTIONS][MAX_SIZE] = {
 	"Hoe oud is Siem?",
-	"Hoe groot is    Siem?",
+	"Hoe groot is Siem?",
 	"Waar werkt Siem?",
 	"Waar woont Siem?"
 };
@@ -40,7 +42,7 @@ const int correctAnswer[AMOUNT_QUESTIONS] = {
 	0,
 	0,
 };
-
+/*
 void showOnelinersMG4()
 {
 	bool done = false;
@@ -79,7 +81,7 @@ void showOnelinersMG4()
 	//lcdClear();
 	//lcdDisable();
 }
-
+*/
 
 int playMg4() {
 	uint32_t score = 1000;
@@ -87,13 +89,14 @@ int playMg4() {
 	bool showQuestion = true;
 	bool correct = false;
 	bool buttonReleased = true;
-	showOnelinersMG4();
+	static uint8_t questionIndex = 0;
+	show_oneliners(oneLinersMG4 , MG4_ONELINERS);
 	k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 	abcledsSet('a',true);
 	abcledsSet('b',true);
 	abcledsSet('c',true);
 	while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}	
-	for (uint8_t questionIndex = 0; questionIndex < AMOUNT_QUESTIONS; questionIndex++)
+	if( questionIndex < AMOUNT_QUESTIONS)
 	{
 		correct = false;
 		while (!correct)
@@ -144,7 +147,7 @@ int playMg4() {
 					else
 					{
 						lcdStringWrite("Incorrect!");
-						score -= 100;
+						score -= 400;
 					}
 					break;
 				case 1:
@@ -156,7 +159,7 @@ int playMg4() {
 					else
 					{
 						lcdStringWrite("Incorrect!");
-						score -= 100;
+						score -= 400;
 					}
 					break;
 				case 2:
@@ -168,7 +171,7 @@ int playMg4() {
 					else
 					{
 						lcdStringWrite("Incorrect!");
-						score -= 100;
+						score -= 400;
 					}
 					break;
 				default:
@@ -179,11 +182,15 @@ int playMg4() {
 				showQuestion = true;
 			}
 		}
-	}
+	} 
+	questionIndex++;
 	abcledsSet('a',false);
 	abcledsSet('b',false);
 	abcledsSet('c',false);
 	lcdDisable();
 	lcdClear();
+	if (score < 0){
+		score = 0;
+	}
 	return score;
 }
