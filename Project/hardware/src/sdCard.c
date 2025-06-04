@@ -12,6 +12,12 @@
 #define DISK_DRIVE_NAME "SD"
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
 
+static const char *type_file[] = { // File paths for different types of locations. Dirty fix to have this here.
+	"/SD:/poko.txt",
+	"/SD:/loc.txt",
+	"/SD:/trlo.txt"
+};
+
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static FATFS fat_fs;
 /* mounting info */
@@ -155,30 +161,29 @@ uint8_t sd_set_score(int score){
 	return 0;
 }
 
-int64_t sd_get_pokemon_locations(struct PokemonLocation **locations, size_t *pokemon_count)
+
+uint8_t st_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	static struct PokemonLocation *static_locations = NULL;
-	int ret;
-	char file_data_buffer[256]; // Buffer to hold file data
+	int ret = 0;
+	char file_data_buffer[max_len]; // Buffer to hold file data
 	struct fs_file_t data_filp;
-
-	// Free previously allocated locations if they exist
-	if (static_locations) {
-		free(static_locations);
-		static_locations = NULL;
-	}
 
 	fs_file_t_init(&data_filp);
 
-	ret = fs_open(&data_filp, "/SD:/pokemon_locations.txt", FS_O_READ);
+	if (type >= sizeof(type_file) / sizeof(type_file[0])) {
+		printk("Invalid type index: %d\n", type);
+		return -1;
+	}
+
+	ret = fs_open(&data_filp, type_file[type], FS_O_READ);
 	if (ret) {
 		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
 
 		// test
-		char buf[32];
-		sprintf(buf, "Failed to open file: %d", ret);
-		lcdStringWrite(buf);
+		char buf_test[64];
+		sprintf(buf_test, "Failed to open file: %d", ret);
+		lcdStringWrite(buf_test);
 		k_msleep(1000);
 
 		return -2;
@@ -186,8 +191,9 @@ int64_t sd_get_pokemon_locations(struct PokemonLocation **locations, size_t *pok
 		//printk("%s - successfully opened file\n", __func__);
 	}
 
-	ssize_t len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
+	 *len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
 	fs_close(&data_filp);
+
 	if (len < 0) {
 		printk("Failed to read file\n");
 
@@ -197,33 +203,20 @@ int64_t sd_get_pokemon_locations(struct PokemonLocation **locations, size_t *pok
 
 		return -2;
 	}
-	file_data_buffer[len] = '\0';
 
-	struct PokemonLocationsWrapper wrapper = {0};
-	ret = json_obj_parse(file_data_buffer, len, pokemon_locations_wrapper_descr, ARRAY_SIZE(pokemon_locations_wrapper_descr), &wrapper);
-	if (ret < 0) {
-		printk("JSON parse error: %d\n", ret);
+	if (*len >= max_len) {
+		printk("Buffer too small for file data\n");
 
 		// test
-		lcdStringWrite("JSON parse error");
+		lcdStringWrite("Buffer too small");
 		k_msleep(1000);
 
-		return -2;
+		return -3;
 	}
 
-	*pokemon_count = wrapper.locations_count;
-	static_locations = malloc(wrapper.locations_count * sizeof(struct PokemonLocation));
-	if (static_locations == NULL) {
-		printk("Memory allocation failed\n");
+	file_data_buffer[*len] = '\0';
 
-		// test
-		lcdStringWrite("Memory allocation failed");
-		k_msleep(1000);
-
-		return -2;
-	}
-	memcpy(static_locations, wrapper.locations, wrapper.locations_count * sizeof(struct PokemonLocation));
-	*locations = static_locations;
+	memcpy(buf, file_data_buffer, *len + 1);
 
 #endif
 	return 0;

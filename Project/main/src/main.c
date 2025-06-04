@@ -13,7 +13,7 @@
 #define STACKSIZE 1024
 
 // Give the main thread enough stack size to handle the sd card
-#define STACKSIZE_MAIN 2048
+#define STACKSIZE_MAIN 4096
 
 // Thread priority values (lower value is higher priority)
 #define TMAIN_PRIORITY 8
