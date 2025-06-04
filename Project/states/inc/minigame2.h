@@ -9,6 +9,7 @@
 #endif //DEBUG_MODE
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
 #include "threads.h"
 #include "lcd.h"

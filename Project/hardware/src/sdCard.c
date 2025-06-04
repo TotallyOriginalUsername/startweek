@@ -1,7 +1,6 @@
 #include "sdCard.h"
 
 #include <stdlib.h>
-
 LOG_MODULE_REGISTER(sdCard);
 
 #define MAX_PATH 128
@@ -38,35 +37,35 @@ uint8_t sd_card_init(){
 	uint32_t block_size;
 
 	if (disk_access_init(disk_pdrv) != 0) {
-		printk("Storage init ERROR!");
+		LOG_ERR("Storage init ERROR!");
 		return 1;
 	}
 
 	if (disk_access_ioctl(disk_pdrv,
 			DISK_IOCTL_GET_SECTOR_COUNT, &block_count)) {
-		printk("Unable to get sector count");
+		LOG_ERR("Unable to get sector count");
 		return 1;
 	}
-		printk("Block count %u", block_count);
+		LOG_INF("Block count %u", block_count);
 
 	if (disk_access_ioctl(disk_pdrv,
 			DISK_IOCTL_GET_SECTOR_SIZE, &block_size)) {
-		printk("Unable to get sector size");
+		LOG_ERR("Unable to get sector size");
 	return 1;
 	}
-	printk("Sector size %u\n", block_size);
+	LOG_INF("Sector size %u\n", block_size);
 
 	memory_size_mb = (uint64_t)block_count * block_size;
-	printk("Memory Size(MB) %u\n", (uint32_t)(memory_size_mb >> 20));
+	LOG_INF("Memory Size(MB) %u\n", (uint32_t)(memory_size_mb >> 20));
 
 	mp.mnt_point = disk_mount_pt;
 
 	int res = fs_mount(&mp);
     if(res == 0){
-        printk("Disk mounted.\n");
+        LOG_INF("Disk mounted.\n");
     }
     else {
-        printk("Error mounting disk\n");
+        LOG_ERR("Error mounting disk\n");
     }
 #endif
     return 0;
@@ -89,13 +88,13 @@ uint8_t sd_clear_score(){
     fs_file_t_init(&data_filp);
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_RDWR);
     if (ret) {
-        printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+        LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
         return -2;
     }
 
 	ret = fs_truncate(&data_filp, 0);
     if (ret) {
-        printk("%s -- failed to truncate file (err = %d)\n", __func__, ret);
+        LOG_ERR("%s -- failed to truncate file (err = %d)\n", __func__, ret);
         return -2;
     }
 
@@ -119,10 +118,10 @@ int sd_get_score(){
 
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_READ);
 	if (ret) {
-		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
 		return -2;
 	} else {
-		//printk("%s - successfully opened file\n", __func__);
+		//LOG_ERR("%s - successfully opened file\n", __func__);
 	}
 
 	ret = fs_read(&data_filp, file_data_buffer, 200);
@@ -149,10 +148,10 @@ uint8_t sd_set_score(int score){
 
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_WRITE);
 	if (ret) {
-		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
 		return -2;
 	} else {
-		//printk("%s - successfully opened file\n", __func__);
+		//LOG_ERR("%s - successfully opened file\n", __func__);
 	}
 
 	sprintf(file_data_buffer, "%d\n", new_score);

@@ -1,8 +1,9 @@
 #include "buzzers.h"
 #include <zephyr/kernel.h>
-#include <zephyr/sys/printk.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
+
+LOG_MODULE_REGISTER(buzzers);
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static struct pwm_dt_spec buzzer1 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer1));
@@ -29,17 +30,17 @@ uint8_t buzzersInit()
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     if (!pwm_is_ready_dt(&buzzer1))
     {
-        printk("Error: PWM device %s is not ready\n", buzzer1.dev->name);
+        LOG_ERR("Error: PWM device %s is not ready\n", buzzer1.dev->name);
         return 1;
     }
     if (!pwm_is_ready_dt(&buzzer2))
     {
-        printk("Error: PWM device %s is not ready\n", buzzer2.dev->name);
+        LOG_ERR("Error: PWM device %s is not ready\n", buzzer2.dev->name);
         return 1;
     }
     if (!pwm_is_ready_dt(&buzzer3))
     {
-        printk("Error: PWM device %s is not ready\n", buzzer3.dev->name);
+        LOG_ERR("Error: PWM device %s is not ready\n", buzzer3.dev->name);
         return 1;
     }
 #endif
@@ -66,18 +67,18 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
 
     if (!isInit)
     {
-        printf("Buzzers not initialized");
+        LOG_ERR("Buzzers not initialized");
         return 1;
     }
 
     if (aBuzzerNum < 1 || aBuzzerNum > 3)
     {
-        printf("Incorrect buzzer number\n");
+        LOG_ERR("Incorrect buzzer number\n");
         return 2;
     }
     if (aFreq < 20 || aFreq > 20000)
     {
-        printf("Frequency outside accepted range\n");
+        LOG_ERR("Frequency outside accepted range\n");
         return 3;
     }
     period = PWM_HZ(aFreq);
@@ -116,13 +117,13 @@ uint8_t buzzerTurnOff(int aBuzzerNum)
 
     if (!isInit)
     {
-        printf("Buzzers not initialized");
+        LOG_ERR("Buzzers not initialized");
         return 1;
     }
 
     if (aBuzzerNum < 1 || aBuzzerNum > 3)
     {
-        printf("Incorrect buzzer number\n");
+        LOG_ERR("Incorrect buzzer number\n");
         return 2;
     }
 

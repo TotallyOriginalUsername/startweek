@@ -2,6 +2,7 @@
 #define MINIGAME8_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include "buttonMatrix.h"
 #include "helperFunctions.h"
 #include "threads.h"

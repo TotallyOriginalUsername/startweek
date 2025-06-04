@@ -2,6 +2,7 @@
 #define MINIGAME10_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/random/random.h>
 #include "lcd.h"
 #include "helperFunctions.h"

@@ -2,6 +2,7 @@
 #define MINIGAME5_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
 #include <zephyr/random/random.h>
 #include <string.h>

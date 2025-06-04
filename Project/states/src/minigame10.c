@@ -1,5 +1,6 @@
 #include "minigame10.h"
 
+LOG_MODULE_REGISTER(mg_10);
 K_TIMER_DEFINE(secTimerMg10, NULL, NULL);
 
 char *mg10Threads[mg10ThreadCount] = {"btnmatrix_out", "btnmatrix_in"};
@@ -23,12 +24,12 @@ char oneLinersMG10[MG10_ONELINERS][32] = {
 static void generate_mole(){
 	uint32_t random_time = 0;
 	random_time = (sys_rand32_get() % 2000) + 2000;
-	printk("random time: %d\n", random_time);
+	LOG_INF("random time: %d\n", random_time);
 
 	k_msleep(random_time);
 
 	mole_position = sys_rand32_get() % 15;
-	printk("random mole: %d\n", mole_position);
+	LOG_INF("random mole: %d\n", mole_position);
 
 	set_btnmatrix_led(mole_position);
 }
@@ -46,14 +47,14 @@ static void check_input(uint8_t* btnmatrix_in){
 	}
 
 	if(input_count > 1){
-		printk("Too many buttons pressed\n");
+		LOG_INF("Too many buttons pressed\n");
 		lcdStringWrite("Probeer opnieuw!");
 		return;
 	}
 
 	if(player_input == mole_position){
 		mole_count++;
-		printk("Mole pressed\n");
+		LOG_INF("Mole pressed\n");
 		lcdStringWrite("Mol gevangen!");
 		if(mole_count == 10){
 			game_ongoing_mg10 = 0;
@@ -62,7 +63,7 @@ static void check_input(uint8_t* btnmatrix_in){
 	else{
 		game_ongoing_mg10 = 0;
 		lcdStringWrite("Mol ontsnapt!");
-		printk("Mole escaped\n");
+		LOG_INF("Mole escaped\n");
 	}
 }
 
@@ -97,7 +98,7 @@ int playMg10() {
 		check_input(btnmatrix_in);
 	}
 	score = mole_count * 100;
-	printk("Score: %d\n", score);
+	LOG_INF("Score: %d\n", score);
 
 	lcdClear();
 	lcdDisable();
