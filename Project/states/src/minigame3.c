@@ -9,8 +9,8 @@ void getMg3Threads(char ***names, unsigned *amount) {
 	*amount = mg3ThreadCount;
 }
 
-#define MG7_ONELINERS 3
-char oneLinersMG7[MG7_ONELINERS][32] = {
+#define MG3_ONELINERS 3
+char oneLinersMG3[MG3_ONELINERS][32] = {
 	"Kopieer de vorm! ",
 	"Maak de ledmatrix vorm na",
 	"op de knoppenmatrix"
@@ -43,7 +43,7 @@ int playMg3() {
 	uint32_t score = 500;
 	bool shapes_match = 0;
 
-	show_oneliners(oneLinersMG7, MG7_ONELINERS);
+	show_oneliners(oneLinersMG3, MG3_ONELINERS);
 	lcdEnable();
 	wait_till_game_start();
 

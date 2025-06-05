@@ -91,7 +91,7 @@ int playMg9() {
 			k_msleep(5000);
 		}
 		else{
-			lcdStringWrite("Inorrect!");
+			lcdStringWrite("Incorrect!");
 			LOG_INF("Incorrect!\n");
 			k_msleep(5000);
 		}
@@ -105,6 +105,7 @@ int playMg9() {
 
 	lcdClear();
 	lcdDisable();
+	k_msleep(100);
 	
 	return (int)score;
 }
