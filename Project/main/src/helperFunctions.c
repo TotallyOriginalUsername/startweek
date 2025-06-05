@@ -3,6 +3,40 @@
 LOG_MODULE_REGISTER(helperFunctions);
 K_TIMER_DEFINE(timer, NULL, NULL);
 
+//Convert btnmatrix input to btnmatrix output format
+void btnmatrix_in_to_out(uint8_t* btnmatrix_input, uint8_t* btnmatrix_output){
+	for (uint8_t i = 0; i < 16; i++) {
+        if (!btnmatrix_input[i]) {
+            uint8_t row = i / 4;
+#ifdef CONFIG_ARCH_POSIX
+            uint8_t column = i % 4;
+#else
+            uint8_t column = 3 - (i % 4);
+#endif
+            btnmatrix_output[row] |= (1 << column);
+        }
+    }
+}
+
+//Convert btnmatrix output to ledmatrix format
+void btnmatrix_to_ledmatrix(uint8_t* btnmatrix_shape, uint16_t* ledmatrix_shape){
+
+	for (int row = 0; row < 4; row++) {
+        uint16_t ledmatrix_row = 0;
+
+        for (int bit = 0; bit < 4; bit++) {
+            if (btnmatrix_shape[row] & (1 << bit)) {
+                ledmatrix_row |= (0b1111 << (bit * 4));
+            }
+        }
+
+        ledmatrix_shape[row * 4] = ledmatrix_row;
+        ledmatrix_shape[row * 4 + 1] = ledmatrix_row;
+        ledmatrix_shape[row * 4 + 2] = ledmatrix_row;
+        ledmatrix_shape[row * 4 + 3] = ledmatrix_row;
+    }
+}
+
 //clears the btnmatrix led matrix
 void clear_btnmatrix_leds(){
 	uint8_t data_button_matrix[4] = {0};

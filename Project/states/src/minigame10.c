@@ -81,6 +81,7 @@ static void wait_till_game_start(){
 int playMg10() {
 	uint32_t score = 0;
 	uint8_t btnmatrix_in[16] = {1};
+	uint8_t btnmatrix_off[4] = {0};
 	uint16_t input_time = 5000;
 
 	show_oneliners(oneLinersMG10, MG10_ONELINERS);
@@ -102,6 +103,8 @@ int playMg10() {
 
 	lcdClear();
 	lcdDisable();
+	btnmatrix_outSetMutexValue(btnmatrix_off);
+	k_msleep(100);
 	
 	return (int)score;
 }

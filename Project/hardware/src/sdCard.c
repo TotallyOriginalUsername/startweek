@@ -1,5 +1,6 @@
 #include "sdCard.h"
 
+#include <stdlib.h>
 LOG_MODULE_REGISTER(sdCard);
 
 #define MAX_PATH 128
@@ -12,6 +13,13 @@ LOG_MODULE_REGISTER(sdCard);
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+
+static const char *type_file[] = { // File paths for different types of locations. Dirty fix to have this here.
+	"/SD:/poko.txt", // pokemon locations
+	"/SD:/loc.txt", // general locations
+	"/SD:/trlo.txt" // trivia locations
+};
+
 static FATFS fat_fs;
 /* mounting info */
 static struct fs_mount_t mp = {
@@ -82,19 +90,34 @@ uint8_t sd_clear_score(){
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_RDWR);
     if (ret) {
         LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
-        return -2;
+        return ret;
     }
 
 	ret = fs_truncate(&data_filp, 0);
     if (ret) {
         LOG_ERR("%s -- failed to truncate file (err = %d)\n", __func__, ret);
-        return -2;
+        return ret;
     }
 
 	sprintf(file_data_buffer, "%d\n", score);
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to write to file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		LOG_INF("%s - successfully cleared score\n", __func__);
+	}
 
-	fs_close(&data_filp);
+	// Close the file
+
+	ret = fs_close(&data_filp);
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to close file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		LOG_INF("%s - successfully closed file\n", __func__);
+	}
+
 #endif
     return 0;
 }
@@ -150,6 +173,50 @@ uint8_t sd_set_score(int score){
 	sprintf(file_data_buffer, "%d\n", new_score);
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
 	fs_close(&data_filp);
+#endif
+	return 0;
+}
+
+
+uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[max_len]; // Buffer to hold file data
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	if (type >= sizeof(type_file) / sizeof(type_file[0])) {
+		LOG_ERR("No such file type known: %d", type);
+		return -1;
+	}
+
+	ret = fs_open(&data_filp, type_file[type], FS_O_READ);
+	if (ret) {
+		LOG_ERR("Failed to open file: %s (err = %d)", type_file[type], ret);
+		return -2;
+	} else {
+		LOG_MSG_DBG("Opened file: %s", type_file[type]);
+	}
+
+	*len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
+	fs_close(&data_filp);
+
+	if (len < 0) {
+		LOG_ERR("Failed to read file: %s", type_file[type]);
+		return -2;
+	}
+
+	if (*len >= max_len) {
+		LOG_ERR("Buffer size too small. Requested: %zu, Available: %zu", *len, max_len);
+		return -3;
+	}
+
+	file_data_buffer[*len] = '\0';
+
+	memcpy(buf, file_data_buffer, *len + 1);
+
 #endif
 	return 0;
 }
