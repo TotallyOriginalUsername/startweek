@@ -1,3 +1,8 @@
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <zephyr/logging/log.h>
 // Example of how to define locatoins (use latitude and longitude in units of nanodegrees)
 #define NR_OF_LOCS 10
 #define LAT_LOC_A 51689023000	// De markt
@@ -24,3 +29,12 @@
 
 #define LAT_LOC_DB 51689194440	// Den Bosch: paadje langs slagboom bij de parkeerplaats onder Avans (paadje aan gebouwkant)
 #define LON_LOC_DB 5286555560
+
+// fixed locations:
+
+struct Location {
+    int64_t x;
+    int64_t y;
+};
+
+int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);

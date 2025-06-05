@@ -2,6 +2,7 @@
 #define THREADS_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 #include "buttonMatrix.h"
 #include "buzzers.h"
@@ -18,8 +19,6 @@ extern uint32_t Startupdelay;
 
 // Total number of threads
 #define THREAD_AMOUNT 10
-
-#define printf(...)
 
 // The stack size of all threads
 #define STACKSIZE 1024

@@ -6,7 +6,10 @@
 #include "circleMatrix.h"
 #include "locations.h"
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
+
+LOG_MODULE_REGISTER(idle);
 
 #define REQUIRED_DIST_METERS 20
 #define ANGLE_BUFFER_SIZE 10
@@ -79,7 +82,7 @@ int playIdle() {
 		}
 	}
 	if (allGamesFinished) {
-		printf("All games completed\n");
+		LOG_INF("All games completed\n");
 		return -1;
 	}
 
@@ -96,7 +99,7 @@ int playIdle() {
 		int64_t currLat = getLatitude();		// Get the current latitude
 		int64_t currLon = getLongitude();		// Get the current longitude
 		if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
-			//printf("GPS does not have a lock!\n");
+			//LOG_ERR("GPS does not have a lock!\n");
 			lcdStringWrite("GPS heeft geen  fix..");
 			k_msleep(500);
 			lcdStringWrite("GPS heeft geen  fix...");
@@ -171,7 +174,7 @@ void setLedCircleDirWidth(unsigned dir, unsigned width) {
 					enableLed = true;
 				}
 			}
-			//printf("Byte %d bit %d (bitindex %d): %d\n", byteCount, bitCount, bitIndex, enableLed);
+			//LOG_WRN("Byte %d bit %d (bitindex %d): %d\n", byteCount, bitCount, bitIndex, enableLed);
 			if (enableLed) {
 				outputValues[byteCount] |= (1 << (7-bitCount));
 			}

@@ -2,8 +2,10 @@
 #define GYROCOMPASS_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/logging/log.h>
 
 //defines
 #define gyro_sample_freq 119 //see lsm6dso kconfig of zephyr for acceptable values. Note this is for accelometer and gyro
