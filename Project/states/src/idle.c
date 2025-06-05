@@ -14,12 +14,6 @@ LOG_MODULE_REGISTER(idle);
 #define REQUIRED_DIST_METERS 20
 #define ANGLE_BUFFER_SIZE 10
 #define GAMES_AMOUNT 10
-#define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
-#define DIST_MIN_WIDTH 100 // Was 1000	//Distance at which the circle has maximum width
-#define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
-#define LEDS_MIN_WIDTH 7	// Amount of LEDS at DIST_MIN_WIDTH
-#define LEDS_MAX_WIDTH 32	// Amount of LEDS at DIST_MAX_WIDTH
-#define LEDS_RANGE_WIDTH (LEDS_MAX_WIDTH - LEDS_MIN_WIDTH)
 
 unsigned idleThreadCount = 1;
 char *idleThreads[1] = {"ledcircle"};
@@ -28,12 +22,13 @@ double angleSinBuffer[ANGLE_BUFFER_SIZE];
 double angleCosBuffer[ANGLE_BUFFER_SIZE];
 
 int getLedWidth(int distance) {
-	if (distance > DIST_MIN_WIDTH) { return LEDS_MIN_WIDTH; }
-	if (distance < DIST_MAX_WIDTH) { return LEDS_MAX_WIDTH; }
-	distance -= DIST_MAX_WIDTH;
-	double distFraction = (double)distance / DIST_RANGE;
-	distFraction = 1 - distFraction;
-	return LEDS_RANGE_WIDTH*distFraction + LEDS_MIN_WIDTH;
+	// if (distance > DIST_MIN_WIDTH) { return LEDS_MIN_WIDTH; }
+	// if (distance < DIST_MAX_WIDTH) { return LEDS_MAX_WIDTH; }
+	// distance -= DIST_MAX_WIDTH;
+	// double distFraction = (double)distance / DIST_RANGE;
+	// distFraction = 1 - distFraction;
+	// return LEDS_RANGE_WIDTH*distFraction + LEDS_MIN_WIDTH;
+	return 0;
 }
 
 int circleMovingAvg(int newValue) {
@@ -95,7 +90,7 @@ int playIdle() {
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
-		break;
+		// break;
 		int64_t currLat = getLatitude();		// Get the current latitude
 		int64_t currLon = getLongitude();		// Get the current longitude
 		if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
@@ -139,49 +134,49 @@ void setLedCircleDirWidth(unsigned dir, unsigned width) {
 	// dir must be in degrees (so zero through 359)
 	// widtb: total width of the 'band' in pixels
 
-	const int nrPixels = 64;
-	const int maxDir = 359;
-	float centerFloat = (float)dir / maxDir;
-	int centerPixel = round(centerFloat * nrPixels);
-
-	int leftBound = centerPixel - (width / 2);
-	if (leftBound < 0 ) {
-		leftBound = nrPixels + leftBound;
-	}
-	int rightBound = centerPixel + (width / 2);
-	if (rightBound > (nrPixels - 1)) {
-		rightBound = rightBound - nrPixels;
-	}
-	bool overlap = false;
-	if (leftBound > rightBound) {
-		overlap = true;
-	}
-
-	const int nrBytes = 8;
-	const int nrBits = 8;
-	uint8_t outputValues[8] = {0,0,0,0,0,0,0,0};	// Initialize to zero (all LEDs off)
-	for (int byteCount = 0; byteCount < nrBytes; byteCount++) {
-		for (int bitCount = 0; bitCount < nrBits; bitCount++) {
-			int bitIndex = 8 * byteCount + bitCount;
-			//bool enableLed = (!overlap && (bitIndex >= leftBound) && (bitIndex >= rightBound)) || (overlap && (bitIndex >= leftBound || bitIndex <= rightBound));
-			bool enableLed = false;
-			if (!overlap) {
-				if (bitIndex >= leftBound && bitIndex <= rightBound) {
-					enableLed = true;
-				}
-			} else {
-				if (bitIndex >= leftBound || bitIndex <= rightBound) {
-					enableLed = true;
-				}
-			}
-			//LOG_WRN("Byte %d bit %d (bitindex %d): %d\n", byteCount, bitCount, bitIndex, enableLed);
-			if (enableLed) {
-				outputValues[byteCount] |= (1 << (7-bitCount));
-			}
-
-		}
-	}
-	ledcircleSetMutexValue(outputValues);
+	// const int nrPixels = 64;
+	// const int maxDir = 359;
+	// float centerFloat = (float)dir / maxDir;
+	// int centerPixel = round(centerFloat * nrPixels);
+	//
+	// int leftBound = centerPixel - (width / 2);
+	// if (leftBound < 0 ) {
+	// 	leftBound = nrPixels + leftBound;
+	// }
+	// int rightBound = centerPixel + (width / 2);
+	// if (rightBound > (nrPixels - 1)) {
+	// 	rightBound = rightBound - nrPixels;
+	// }
+	// bool overlap = false;
+	// if (leftBound > rightBound) {
+	// 	overlap = true;
+	// }
+	//
+	// const int nrBytes = 8;
+	// const int nrBits = 8;
+	// uint8_t outputValues[8] = {0,0,0,0,0,0,0,0};	// Initialize to zero (all LEDs off)
+	// for (int byteCount = 0; byteCount < nrBytes; byteCount++) {
+	// 	for (int bitCount = 0; bitCount < nrBits; bitCount++) {
+	// 		int bitIndex = 8 * byteCount + bitCount;
+	// 		//bool enableLed = (!overlap && (bitIndex >= leftBound) && (bitIndex >= rightBound)) || (overlap && (bitIndex >= leftBound || bitIndex <= rightBound));
+	// 		bool enableLed = false;
+	// 		if (!overlap) {
+	// 			if (bitIndex >= leftBound && bitIndex <= rightBound) {
+	// 				enableLed = true;
+	// 			}
+	// 		} else {
+	// 			if (bitIndex >= leftBound || bitIndex <= rightBound) {
+	// 				enableLed = true;
+	// 			}
+	// 		}
+	// 		//LOG_WRN("Byte %d bit %d (bitindex %d): %d\n", byteCount, bitCount, bitIndex, enableLed);
+	// 		if (enableLed) {
+	// 			outputValues[byteCount] |= (1 << (7-bitCount));
+	// 		}
+	//
+	// 	}
+	// }
+	// ledcircleSetMutexValue(outputValues);
 }
 
 void ledCircleDemo() {
