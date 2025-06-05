@@ -120,5 +120,7 @@ int playMg6() {
 	k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
 	while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
 	sevensegSetMutexValue(clear,0);
+	k_msleep(100);
+
 	return score;
 }
