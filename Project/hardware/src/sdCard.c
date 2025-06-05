@@ -89,19 +89,34 @@ uint8_t sd_clear_score(){
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_RDWR);
     if (ret) {
         LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
-        return -2;
+        return ret;
     }
 
 	ret = fs_truncate(&data_filp, 0);
     if (ret) {
         LOG_ERR("%s -- failed to truncate file (err = %d)\n", __func__, ret);
-        return -2;
+        return ret;
     }
 
 	sprintf(file_data_buffer, "%d\n", score);
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to write to file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		LOG_INF("%s - successfully cleared score\n", __func__);
+	}
 
-	fs_close(&data_filp);
+	// Close the file
+
+	ret = fs_close(&data_filp);
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to close file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		LOG_INF("%s - successfully closed file\n", __func__);
+	}
+
 #endif
     return 0;
 }
