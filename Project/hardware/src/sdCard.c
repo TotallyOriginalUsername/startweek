@@ -12,13 +12,14 @@ LOG_MODULE_REGISTER(sdCard);
 #define DISK_DRIVE_NAME "SD"
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
 
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+
 static const char *type_file[] = { // File paths for different types of locations. Dirty fix to have this here.
 	"/SD:/poko.txt", // pokemon locations
 	"/SD:/loc.txt", // general locations
 	"/SD:/trlo.txt" // trivia locations
 };
 
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 static FATFS fat_fs;
 /* mounting info */
 static struct fs_mount_t mp = {
