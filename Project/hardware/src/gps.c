@@ -1,6 +1,8 @@
 #include "gps.h"
 #include "lcd.h"
 #include <zephyr/device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/drivers/gnss.h>
 #include <math.h>
 #include <stdio.h>
@@ -8,14 +10,16 @@
 
 # define M_PI		3.14159265358979323846	/* pi */
 
+LOG_MODULE_REGISTER(gps, LOG_LEVEL_INF);
+
 struct gnss_data gpsData;
 
-// static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
-// {
-// 	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
-// 		gpsData = *data;
-// 	}
-// }
+static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
+{
+	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
+		gpsData = *data;
+	}
+}
 
 struct gnss_data getGnssData() {
 	return gpsData;
@@ -29,22 +33,18 @@ int64_t getLongitude() {
 	return gpsData.nav_data.longitude;
 }
 
-// GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
 
 #if CONFIG_GNSS_SATELLITES
 static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites,
 			       uint16_t size)
 {
-	//LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
-	//lcdClear();
-	//char words[27];
-	//char value[3];
-	//sprintf(value, "%d", size);
-	////value[0] = (char)(size + '0');
-	//strcpy(words,"Nr. of satellites:");
-	//strcat(words, value);
-	//lcdStringWrite(words);
-	//k_busy_wait(3000000);	
+	LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
+	// lcdClear();
+	// char words[27];
+	// sprintf(words, "Nr. of satellites: %d", size);
+	// lcdStringWrite(words);
+	// k_busy_wait(3000000);
 }
 #endif
 
