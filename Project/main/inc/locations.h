@@ -26,11 +26,8 @@
 #define LAT_LOC_J 51696882000	// Bossche Brouwers
 #define LON_LOC_J 5299578000
 
-
 #define LAT_LOC_DB 51689194440	// Den Bosch: paadje langs slagboom bij de parkeerplaats onder Avans (paadje aan gebouwkant)
 #define LON_LOC_DB 5286555560
-
-// fixed locations:
 
 struct Location {
     int64_t x;
@@ -38,3 +35,6 @@ struct Location {
 };
 
 int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);
+int circleMovingAvg(int newValue);
+int get_led_width(int distance);
+void set_led_circle_dir_dist(unsigned dir, int distance);

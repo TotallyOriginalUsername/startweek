@@ -27,9 +27,4 @@ uint8_t get_btnmatrix_input_number(uint16_t input_time);
 uint8_t get_btnmatrix_input_number_untimed();
 void set_btnmatrix_led(uint8_t position);
 
-// TODO: Move to locations once pr#32 is merged
-int circleMovingAvg(int newValue);
-int get_led_width(int distance);
-void led_circle_dir_width(unsigned dir, int distance);
-
 #endif //HELPERFUNCTIONS_H
