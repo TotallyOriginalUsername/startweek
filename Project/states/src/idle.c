@@ -95,7 +95,7 @@ int playIdle() {
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
-		break;
+		// break;
 		int64_t currLat = getLatitude();		// Get the current latitude
 		int64_t currLon = getLongitude();		// Get the current longitude
 		if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
