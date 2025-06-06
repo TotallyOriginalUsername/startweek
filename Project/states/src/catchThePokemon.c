@@ -7,6 +7,7 @@ LOG_MODULE_REGISTER(catchThePokemon);
 #define TIME_MIN 0
 #define TIME_STEP 1
 #define TIME_INTERVAL_MS 100 // Adjust for smoother or faster changes
+#define START_GAME_SOUND 5
 
 char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "btnmatrix_in", "ledcircle", "buzzers", "ledmatrix", "btnmatrix_out"}; // missing lcd threads
 bool game_ongoing_pokemon, catchEvent;
@@ -57,6 +58,12 @@ int soundNoBalls[2][3] = {
     {554, 698, 830},
     {523, 659, 784} // C chord  // C# chord
 };
+
+int soundStartGame[3][3] = {
+    {349, 349, 349},    // F4
+    {698, 698, 698},    // F5
+    {1397, 1397, 1397}  // F6
+};
 /////////////
 
 /**
@@ -70,7 +77,7 @@ void getCatchThePokemonThreads(char ***names, unsigned *amount)
     *amount = catchThePokemonThreadCount;
 }
 
-// TODO: This should be done inside the button matrix not in the game
+// TODO: This should be done inside the button matrix or helperFunctions not in the game
 /**
  * @brief checks if any button is pressed
  * @param buttonsInput pointer to an array of button states
@@ -78,10 +85,12 @@ void getCatchThePokemonThreads(char ***names, unsigned *amount)
  * @returns true if any button is pressed, false otherwise
  * @note handles the inversion of the button states too
  */
-bool isAnyButtonPressed(const uint8_t *buttonsInput, size_t size) {
-    for (size_t i = 0; i < size; i++) {
-        if (!buttonsInput[i]) {
-            return true; // Return immediately if a button is pressed
+bool isAnyButtonPressed() {
+
+    uint8_t *buttonsInput = btnmatrix_inGetMutexValue();
+    for (int i = 0; i < 16; i++){
+        if (buttonsInput[i] == 0){
+            return true;
         }
     }
     return false; // No button is pressed
@@ -132,10 +141,11 @@ void nonBlockingTimeHandler(char *time)
  * @brief plays a sound based on the sound number
  * @param soundNr the number of the sound to play
  */
-int playSound(int soundNr)
+int playSound(int soundNr, int *noteDelayMs)
 {
     int (*soundArray)[3];
     int soundLength;
+    int delay = (noteDelayMs != NULL) ? *noteDelayMs : 200; // Default delay of 200 ms if not provided
 
     // Select the appropriate sound array based on soundNr
     switch (soundNr)
@@ -160,6 +170,10 @@ int playSound(int soundNr)
             soundArray = soundNoBalls;
             soundLength = sizeof(soundNoBalls) / sizeof(soundNoBalls[0]);
             break;
+        case 5:
+            soundArray = soundStartGame; // Assuming soundStartGame is defined elsewhere
+            soundLength = sizeof(soundStartGame) / sizeof(soundStartGame[0]);
+            break;
         default:
             return -1; // Invalid sound number
     }
@@ -171,7 +185,7 @@ int playSound(int soundNr)
         {
             buzzerSetPwm(j, soundArray[i][j]); // Set PWM for each buzzer
         }
-        k_msleep(200); // Delay between chords
+        k_msleep(delay); // Delay between chords
     }
 
     // Turn off all buzzers after playing the sound
@@ -216,8 +230,9 @@ bool checkBallsLeft()
 {
     if (balls <= 0)
     {
+        LOG_DBG("Out of pokeballs!");
         lcdStringWrite("Out of pokeballs");
-        playSound(4); // Play out of balls sound
+        playSound(4, NULL); // Play out of balls sound
         game_ongoing_pokemon = false;
         return false;
     }
@@ -255,6 +270,8 @@ int initMg()
 
     lcdEnable();
     lcdStringWrite("Vind en vang de pokemon!");
+    int soundSpeed = 100;
+    playSound(START_GAME_SOUND, &soundSpeed);
     k_msleep(3000);
 
     err = selectLocations();
@@ -516,11 +533,10 @@ int catchingMg()
 
     uint8_t attemptsPermitted = 1 + (rand() / MAX_ATTEMPTS); // random number
     bool caughtPokemon = false;
-    // generate pokemon locations
+    // generate pokemon locations on matrix
     uint8_t pokemonLocationX = 3 + rand()%11;
     uint8_t pokemonLocationY = 3 + rand()%3;
 
-    // init catchingMg
     while (catchingMgOngoing == true)
     {
         // update time
@@ -537,7 +553,7 @@ int catchingMg()
         if (attemptCounter > attemptsPermitted)
         {
             lcdStringWrite("Pokemon is weg gerend!");
-            playSound(1); // play sound flee
+            playSound(1, NULL); // play sound flee
             pokemonFled++;
             k_msleep(1000);
             catchingMgOngoing = false;
@@ -557,9 +573,8 @@ int catchingMg()
 
         setMatrix();
 
-        uint8_t *buttonsInput = btnmatrix_inGetMutexValue();
 
-        if (isAnyButtonPressed(buttonsInput, sizeof(buttonsInput)))
+        if (isAnyButtonPressed())
         {
             balls--;
             attemptCounter++;
@@ -571,7 +586,7 @@ int catchingMg()
             {
                 LOG_INF("Caught the pokemon! Attempt: %d", attemptCounter);
                 lcdStringWrite("Je hebt een pokemon gevangen!");
-                playSound(0); // play sound catch
+                playSound(0, NULL); // play sound catch
                 pokemonCaught++;
                 k_msleep(1000);
                 catchingMgOngoing = false;
@@ -580,7 +595,7 @@ int catchingMg()
             {
                 LOG_INF("Missed the pokemon! Attempt: %d", attemptCounter);
                 lcdStringWrite("Mis! Probeer opnieuw!");
-                playSound(2); // catch fail sound
+                playSound(2, NULL); // catch fail sound
                 k_msleep(1000);
             }
         }
@@ -626,7 +641,8 @@ int pokemonGame()
     // check if there is a pokemon nearby
     if (pokemonNearby())
     {
-        playSound(3); // play pokemon appeared sound
+        LOG_DBG("Pokemon found!");
+        playSound(3, NULL); // play pokemon appeared sound
         catchEvent = true;
     }
     else
@@ -647,15 +663,6 @@ int playCatchThePokemon()
         LOG_ERR("Init error: %d", err);
         // lcdStringWrite("Init error");
         // k_msleep(1000);
-    }
-
-    for (int i = 0; i < 5; i++)
-    {
-        LOG_INF("Pokemon %d is nearby", i);
-        // play sound
-        playSound(i);
-        lcdStringWrite("Pokemon is in de buurt!");
-        k_msleep(1000);
     }
 
     int score = 0;
