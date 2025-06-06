@@ -35,4 +35,3 @@ struct Location {
 };
 
 int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);
-void set_led_circle_dir_dist(int dir, int distance);

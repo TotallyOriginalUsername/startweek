@@ -5,6 +5,7 @@
 #include "threads.h"
 #include "circleMatrix.h"
 #include "locations.h"
+#include "helperFunctions.h"
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
