@@ -67,4 +67,3 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
 #endif
     return 0;
 }
-

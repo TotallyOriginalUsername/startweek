@@ -26,11 +26,8 @@
 #define LAT_LOC_J 51696882000	// Bossche Brouwers
 #define LON_LOC_J 5299578000
 
-
 #define LAT_LOC_DB 51689194440	// Den Bosch: paadje langs slagboom bij de parkeerplaats onder Avans (paadje aan gebouwkant)
 #define LON_LOC_DB 5286555560
-
-// fixed locations:
 
 struct Location {
     int64_t x;

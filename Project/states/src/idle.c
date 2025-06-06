@@ -5,6 +5,7 @@
 #include "threads.h"
 #include "circleMatrix.h"
 #include "locations.h"
+#include "helperFunctions.h"
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
@@ -12,52 +13,10 @@
 LOG_MODULE_REGISTER(idle);
 
 #define REQUIRED_DIST_METERS 20
-#define ANGLE_BUFFER_SIZE 10
 #define GAMES_AMOUNT 10
-#define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
-#define DIST_MIN_WIDTH 100 // Was 1000	//Distance at which the circle has maximum width
-#define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
-#define LEDS_MIN_WIDTH 7	// Amount of LEDS at DIST_MIN_WIDTH
-#define LEDS_MAX_WIDTH 32	// Amount of LEDS at DIST_MAX_WIDTH
-#define LEDS_RANGE_WIDTH (LEDS_MAX_WIDTH - LEDS_MIN_WIDTH)
 
 unsigned idleThreadCount = 1;
 char *idleThreads[1] = {"ledcircle"};
-
-double angleSinBuffer[ANGLE_BUFFER_SIZE];
-double angleCosBuffer[ANGLE_BUFFER_SIZE];
-
-int getLedWidth(int distance) {
-	if (distance > DIST_MIN_WIDTH) { return LEDS_MIN_WIDTH; }
-	if (distance < DIST_MAX_WIDTH) { return LEDS_MAX_WIDTH; }
-	distance -= DIST_MAX_WIDTH;
-	double distFraction = (double)distance / DIST_RANGE;
-	distFraction = 1 - distFraction;
-	return LEDS_RANGE_WIDTH*distFraction + LEDS_MIN_WIDTH;
-}
-
-int circleMovingAvg(int newValue) {
-	double rad = toRadians(newValue);
-	double sinVal = sin(rad);
-	double cosVal = cos(rad);
-
-	for (int i = ANGLE_BUFFER_SIZE-1; i > 0; i--) {	// Move every entry in the buffer up by one index
-		angleSinBuffer[i] = angleSinBuffer[i-1];
-		angleCosBuffer[i] = angleCosBuffer[i-1];
-	}
-	angleSinBuffer[0] = sinVal;						// Insert the new value
-	angleCosBuffer[0] = cosVal;
-
-	double sinSum = 0;
-	double cosSum = 0;
-	for (int i = 0; i < ANGLE_BUFFER_SIZE; i++) {
-		sinSum += angleSinBuffer[i];
-		cosSum += angleCosBuffer[i];
-	}
-	double sinAvg = sinSum / ANGLE_BUFFER_SIZE;
-	double cosAvg = cosSum / ANGLE_BUFFER_SIZE;
-	return toDegrees(atan2(sinAvg,cosAvg));
-}
 
 void getIdleThreads(char ***names, unsigned *amount) {
 	*names = idleThreads;
@@ -95,115 +54,31 @@ int playIdle() {
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
-		// break;
 		int64_t currLat = getLatitude();		// Get the current latitude
 		int64_t currLon = getLongitude();		// Get the current longitude
 		if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
-			//LOG_ERR("GPS does not have a lock!\n");
+			LOG_ERR("GPS does not have a lock!\n");
 			lcdStringWrite("GPS heeft geen  fix..");
 			k_msleep(500);
 			lcdStringWrite("GPS heeft geen  fix...");
 			k_msleep(500);
-			continue;
-		} else if (!lcdSet) {
-			lcdStringWrite("Volg de LEDs!");
-			lcdSet = true;
+		} else
+		{
+			if (!lcdSet)
+			{
+				lcdStringWrite("Volg de LEDs!");
+				lcdSet = true;
+			}
+
+			distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(lons[locIndex]), nanoDegToLdDeg(lats[locIndex])); // Distance from current position to next location (meters)
+			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(lats[locIndex]), nanoDegToLdDeg(lons[locIndex]));					// Angle between current location and next location
+
+			set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
 		}
-		distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(lons[locIndex]), nanoDegToLdDeg(lats[locIndex])); // Distance from current position to next location (meters)
-		dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(lats[locIndex]), nanoDegToLdDeg(lons[locIndex]));					// Angle between current location and next location
-		
-		int compassDir;
-		gyroCompass_get_heading(&compassDir);	// Angle of device
-
-		compassDir = circleMovingAvg(compassDir);
-		
-		dir = dir - compassDir;					// Add to get the direction compared to the device
-		if (dir < 0 ) {
-			dir += 360;
-		} else if (dir >= 360) {
-			dir -= 360;
-		}
-
-		int ledWidth = getLedWidth(distMeters);
-
-		setLedCircleDirWidth(dir, ledWidth);			// Point the user in the correct direction
 	}
 #endif
 	lcdStringWrite("Gearriveerd!!");
 	k_msleep(4000);
 	completedGames[locIndex] = true;
 	return locIndex;
-}
-
-void setLedCircleDirWidth(unsigned dir, unsigned width) {
-	// dir must be in degrees (so zero through 359)
-	// widtb: total width of the 'band' in pixels
-
-	const int nrPixels = 64;
-	const int maxDir = 359;
-	float centerFloat = (float)dir / maxDir;
-	int centerPixel = round(centerFloat * nrPixels);
-
-	int leftBound = centerPixel - (width / 2);
-	if (leftBound < 0 ) {
-		leftBound = nrPixels + leftBound;
-	}
-	int rightBound = centerPixel + (width / 2);
-	if (rightBound > (nrPixels - 1)) {
-		rightBound = rightBound - nrPixels;
-	}
-	bool overlap = false;
-	if (leftBound > rightBound) {
-		overlap = true;
-	}
-
-	const int nrBytes = 8;
-	const int nrBits = 8;
-	uint8_t outputValues[8] = {0,0,0,0,0,0,0,0};	// Initialize to zero (all LEDs off)
-	for (int byteCount = 0; byteCount < nrBytes; byteCount++) {
-		for (int bitCount = 0; bitCount < nrBits; bitCount++) {
-			int bitIndex = 8 * byteCount + bitCount;
-			//bool enableLed = (!overlap && (bitIndex >= leftBound) && (bitIndex >= rightBound)) || (overlap && (bitIndex >= leftBound || bitIndex <= rightBound));
-			bool enableLed = false;
-			if (!overlap) {
-				if (bitIndex >= leftBound && bitIndex <= rightBound) {
-					enableLed = true;
-				}
-			} else {
-				if (bitIndex >= leftBound || bitIndex <= rightBound) {
-					enableLed = true;
-				}
-			}
-			//LOG_WRN("Byte %d bit %d (bitindex %d): %d\n", byteCount, bitCount, bitIndex, enableLed);
-			if (enableLed) {
-				outputValues[byteCount] |= (1 << (7-bitCount));
-			}
-
-		}
-	}
-	ledcircleSetMutexValue(outputValues);
-}
-
-void ledCircleDemo() {
-	// Just a small demo to show off the led circle in all its glory
-	for (int i = 6; i < 40; i++) {
-		setLedCircleDirWidth(0, i);
-		k_msleep(4);
-	}
-	k_msleep(400);
-	for (int i = 39; i >= 6; i--) {
-		setLedCircleDirWidth(0, i);
-		k_msleep(4);
-	}
-	k_msleep(400);
-	for (int i = 0; i < 360; i++) {
-		setLedCircleDirWidth(i, 10);
-		k_msleep(2);
-	}
-	k_msleep(200);
-	for (int i = 359; i >= 0; i--) {
-		setLedCircleDirWidth(i, 10);
-		k_msleep(2);
-	}
-	k_msleep(300);
 }
