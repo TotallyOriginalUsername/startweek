@@ -5,7 +5,7 @@
 #define native_loop()
 #endif
 K_TIMER_DEFINE(secTimerMg6, NULL, NULL);
-
+LOG_MODULE_REGISTER(mg_6);
 
 char *mg6Threads[mg6ThreadCount] = {"startbtn", "sevenseg", "abcbtn"};
 
@@ -120,5 +120,7 @@ int playMg6() {
 	k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
 	while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
 	sevensegSetMutexValue(clear,0);
+	k_msleep(100);
+
 	return score;
 }

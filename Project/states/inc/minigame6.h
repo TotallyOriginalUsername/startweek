@@ -2,6 +2,7 @@
 #define MINIGAME6_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
 #include "threads.h"
 #include "lcd.h"

@@ -20,9 +20,11 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
-#include <zephyr/sys/printk.h>
+#include <zephyr/logging/log.h>
 
 #include <stdio.h>
+
+LOG_MODULE_REGISTER(statemachine);
 
 // Setup state machine
 struct state;
@@ -43,7 +45,7 @@ state_fn* minigame_states[] = {
 
 // State functions
 void init_state(struct state *state) {
-	printf("Initialization\n");
+	LOG_INF("Initialization\n");
 	disableAllThreads();
 	uint8_t ret = 0;
 	ret = configure();
@@ -68,10 +70,10 @@ void idle_state(struct state *state) {
 	disableThreads(names, amount);
 
 	if (ret < -1 || ret > 9) {
-		printf("Error in idle state\n");
+		LOG_ERR("Error in idle state\n");
 		state->next = 0;
 	} else if (ret == -1) {
-		printf("Going to exit state\n");
+		LOG_INF("Going to exit state\n");
 		state->next = exit_state;
 	} else {
 		// state->next = minigame_states[ret];
@@ -81,7 +83,7 @@ void idle_state(struct state *state) {
 
 void mg1_state(struct state *state) { // Makes use of button and led
 	// Initialise state, enable and disable corresponding threads
-	printf("Minigame 1\n");
+	LOG_INF("Minigame 1\n");
 	int score = 0;
 
 	char **names;
@@ -98,7 +100,7 @@ void mg1_state(struct state *state) { // Makes use of button and led
 }
 
 void mg2_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 2\n");
+	LOG_INF("Minigame 2\n");
 	int score = 0;
 
 	char **names;
@@ -115,7 +117,7 @@ void mg2_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg3_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 3\n");
+	LOG_INF("Minigame 3\n");
 	int score = 0;
 
 	char **names;
@@ -132,7 +134,7 @@ void mg3_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg4_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 4\n");
+	LOG_INF("Minigame 4\n");
 	int score = 0;
 
 	char **names;
@@ -149,7 +151,7 @@ void mg4_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg5_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 5\n");
+	LOG_INF("Minigame 5\n");
 	int score = 0;
 
 	char **names;
@@ -166,7 +168,7 @@ void mg5_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg6_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 6\n");
+	LOG_INF("Minigame 6\n");
 	int score = 0;
 
 	char **names;
@@ -183,7 +185,7 @@ void mg6_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg7_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 7\n");
+	LOG_INF("Minigame 7\n");
 	int score = 0;
 
 	char **names;
@@ -200,7 +202,7 @@ void mg7_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg8_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 8\n");
+	LOG_INF("Minigame 8\n");
 	int score = 0;
 
 	char **names;
@@ -217,7 +219,7 @@ void mg8_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg9_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 9\n");
+	LOG_INF("Minigame 9\n");
 	int score = 0;
 
 	char **names;
@@ -234,7 +236,7 @@ void mg9_state(struct state *state) { // Makes use of gyro and buzzer
 }
 
 void mg10_state(struct state *state) { // Makes use of gyro and buzzer
-	printf("Minigame 10\n");
+	LOG_INF("Minigame 10\n");
 	int score = 0;
 
 	char **names;
@@ -267,7 +269,7 @@ void ctp_state(struct state *state) // Catch the Pokemon minigame
 }
 
 void exit_state(struct state *state) {
-	printf("Exit state");
+	LOG_INF("Exit state");
 	disableAllThreads(); // Shouldn't be required, but just to be sure
 	state->next = 0;
 }

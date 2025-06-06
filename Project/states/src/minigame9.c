@@ -1,4 +1,7 @@
 #include "minigame9.h"
+
+LOG_MODULE_REGISTER(mg_9);
+
 #define max_rounds 5
 #define display_time 5000
 
@@ -63,7 +66,7 @@ int playMg9() {
 		generated_number = sys_rand32_get() % 50;
 		next_generated_number = sys_rand32_get() % 50;
 
-		printk("Is het volgende getal %d hoger of lager dan %d\n", next_generated_number, generated_number);
+		LOG_INF("Is het volgende getal %d hoger of lager dan %d\n", next_generated_number, generated_number);
 		sprintf(lcd_msg, "Getal: %d Volgende getal is", generated_number);
 		lcdStringWrite(lcd_msg);
 
@@ -73,23 +76,23 @@ int playMg9() {
 
 		if(user_input == 0){
 			lcdStringWrite("Druk a.u.b. een knop in");
-			printk("Druk a.u.b. een knop in\n");
+			LOG_INF("Druk a.u.b. een knop in\n");
 		}
 
 		if((next_generated_number < generated_number) && (user_input == 1)){
 			score = score + 200;
 			lcdStringWrite("Correct!");
-			printk("Correct!\n");
+			LOG_INF("Correct!\n");
 			k_msleep(5000);
 		}
 		else if((next_generated_number > generated_number) && (user_input == 2)){
 			lcdStringWrite("Correct!");
-			printk("Correct!\n");
+			LOG_INF("Correct!\n");
 			k_msleep(5000);
 		}
 		else{
-			lcdStringWrite("Inorrect!");
-			printk("Incorrect!\n");
+			lcdStringWrite("Incorrect!");
+			LOG_INF("Incorrect!\n");
 			k_msleep(5000);
 		}
 
@@ -102,6 +105,7 @@ int playMg9() {
 
 	lcdClear();
 	lcdDisable();
+	k_msleep(100);
 	
 	return (int)score;
 }

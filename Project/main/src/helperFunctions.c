@@ -1,6 +1,41 @@
 #include "helperFunctions.h"
 
+LOG_MODULE_REGISTER(helperFunctions);
 K_TIMER_DEFINE(timer, NULL, NULL);
+
+//Convert btnmatrix input to btnmatrix output format
+void btnmatrix_in_to_out(uint8_t* btnmatrix_input, uint8_t* btnmatrix_output){
+	for (uint8_t i = 0; i < 16; i++) {
+        if (!btnmatrix_input[i]) {
+            uint8_t row = i / 4;
+#ifdef CONFIG_ARCH_POSIX
+            uint8_t column = i % 4;
+#else
+            uint8_t column = 3 - (i % 4);
+#endif
+            btnmatrix_output[row] |= (1 << column);
+        }
+    }
+}
+
+//Convert btnmatrix output to ledmatrix format
+void btnmatrix_to_ledmatrix(uint8_t* btnmatrix_shape, uint16_t* ledmatrix_shape){
+
+	for (int row = 0; row < 4; row++) {
+        uint16_t ledmatrix_row = 0;
+
+        for (int bit = 0; bit < 4; bit++) {
+            if (btnmatrix_shape[row] & (1 << bit)) {
+                ledmatrix_row |= (0b1111 << (bit * 4));
+            }
+        }
+
+        ledmatrix_shape[row * 4] = ledmatrix_row;
+        ledmatrix_shape[row * 4 + 1] = ledmatrix_row;
+        ledmatrix_shape[row * 4 + 2] = ledmatrix_row;
+        ledmatrix_shape[row * 4 + 3] = ledmatrix_row;
+    }
+}
 
 //clears the btnmatrix led matrix
 void clear_btnmatrix_leds(){
@@ -41,7 +76,7 @@ void show_oneliners(char input_array[][32], int lines)
 void wait_till_abc_depressed(){
     uint8_t input_count = 1;
     uint8_t *abcbtns;
-    printk("Waiting\n");
+    LOG_WRN("Waiting\n");
 
     while(input_count != 0){
         abcbtns = abcbtnGetMutexValue();
@@ -55,14 +90,14 @@ void wait_till_abc_depressed(){
 		native_loop();
     }
 
-    printk("Done waiting\n");
+    LOG_WRN("Done waiting\n");
 }
 
 //Function to wait untill every 4x4 button has been released
 void wait_till_btnmatrix_depressed(){
     uint8_t input_count = 1;
     uint8_t *btnmatrix;
-    printk("Waiting\n");
+    LOG_WRN("Waiting\n");
 
     while(input_count != 0){
         btnmatrix = btnmatrix_inGetMutexValue();
@@ -76,14 +111,14 @@ void wait_till_btnmatrix_depressed(){
 		native_loop();
     }
 
-    printk("Done waiting\n");
+    LOG_WRN("Done waiting\n");
 }
 
 //Function to wait untill every switch is at rest
 void wait_till_switches_rest(){
     uint8_t input_count = 1;
     uint8_t *switches;
-    printk("Waiting\n");
+    LOG_WRN("Waiting\n");
 
     while(input_count != 0){
         switches = switchesGetMutexValue();
@@ -97,7 +132,7 @@ void wait_till_switches_rest(){
 		native_loop();
     }
 
-    printk("Done waiting\n");
+    LOG_WRN("Done waiting\n");
 }
 
 //Get functions
@@ -106,7 +141,7 @@ void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size){
 	uint8_t input_count = 0;
 
 	k_timer_start(&timer, K_MSEC(input_time), K_NO_WAIT);
-	printk("5 sec wait\n");
+	LOG_WRN("5 sec wait\n");
 	while ((!(k_timer_status_get(&timer) > 0)) && (input_count == 0)){
 		memcpy(input_array, abcbtnGetMutexValue(), size);
 		for (int i = 0; i < 3; i++){
@@ -116,7 +151,7 @@ void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size){
 		}
 		native_loop();
 	}
-	printk("Done waiting\n");
+	LOG_WRN("Done waiting\n");
 }
 
 //wait till the input time has been reached or one btnmatrix button has been pressed
@@ -124,7 +159,7 @@ void get_btnmatrix_input(uint16_t input_time, uint8_t* input_array, size_t size)
 	uint8_t input_count = 0;
 
 	k_timer_start(&timer, K_MSEC(input_time), K_NO_WAIT);
-	printk("5 sec wait\n");
+	LOG_WRN("5 sec wait\n");
 	while ((!(k_timer_status_get(&timer) > 0)) && (input_count == 0)){
 		memcpy(input_array, btnmatrix_inGetMutexValue(), size);
 		for (int i = 0; i < 16; i++){
@@ -134,7 +169,7 @@ void get_btnmatrix_input(uint16_t input_time, uint8_t* input_array, size_t size)
 		}
 		native_loop();
 	}
-	printk("Done waiting\n");
+	LOG_WRN("Done waiting\n");
 }
 
 //Returns the pressed button, or 17 upon failure
