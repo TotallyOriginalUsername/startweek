@@ -2,6 +2,7 @@
 #define MINIGAME4_H
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
 #include "threads.h"
 #include "lcd.h"
@@ -16,5 +17,18 @@ int playMg4();
 #define AMOUNT_QUESTIONS 4
 #define AMOUNT_ANSWERS 3
 #define MAX_SIZE 32
+#define BUFFER_SIZE 512 // dirty to have this here.
+
+	struct Quiz {
+		char question[MAX_SIZE];
+		char answerA[MAX_SIZE];
+		char answerB[MAX_SIZE];
+		char answerC[MAX_SIZE];
+		int correct;
+	};
+
+
+int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t maxQuestions);
+
 
 #endif // MINIGAME4_H

@@ -19,5 +19,6 @@ int sd_get_score();
 uint8_t sd_set_score(int score);
 
 uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len);
+uint8_t sd_get_trivia(uint16_t type, char *buf, size_t *len, size_t max_len);
 
 #endif // SDCARD_H

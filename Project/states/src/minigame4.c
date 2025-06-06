@@ -1,5 +1,6 @@
 #include "minigame4.h"
-
+#include "sdCard.h"
+#include <zephyr/data/json.h>
 
 #ifdef CONFIG_ARCH_POSIX
 #define native_loop() k_sleep(K_MSEC(1))
@@ -7,6 +8,7 @@
 #define native_loop()
 #endif
 K_TIMER_DEFINE(secTimerMg4, NULL, NULL);
+LOG_MODULE_REGISTER(mg_4);
 
 char *mg4Threads[mg4ThreadCount] = {"startbtn", "buzzers", "abcbtn"};
 
@@ -17,7 +19,7 @@ void getMg4Threads(char ***names, unsigned *amount) {
 
 #define MG4_ONELINERS 3
 char oneLinersMG4[MG4_ONELINERS][32] = {
-	"locale Trivia!",
+	"localee Trivia!",
 	"Zephyr 3.6",
 	"Z3.6 SDK 0.16.9"
 };
@@ -83,6 +85,64 @@ void showOnelinersMG4()
 }
 */
 
+
+int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t maxQuestions)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    char json_buf[BUFFER_SIZE];
+    size_t len = 0;
+    int ret = sd_get_trivia(type, json_buf, &len, BUFFER_SIZE);
+    if (ret != 0)
+        return ret;
+
+    struct Quiz *quizArray = malloc(sizeof(struct Quiz) * maxQuestions);
+    if (!quizArray){
+        return -2;
+	}
+
+	static const struct json_obj_descr quiz_descr[] = {
+		JSON_OBJ_DESCR_PRIM(struct Quiz, question, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerA, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerB, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerC, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, correct, JSON_TOK_NUMBER),
+	};
+
+
+    struct json_obj json_arr;
+    ret = json_arr_separate_object_parse_init(&json_arr, json_buf, len);
+    if (ret < 0) {
+        LOG_ERR("Parse init error: %d", ret);
+        free(quizArray);
+        return ret;
+    }
+
+    size_t i = 0;
+    for (; i < maxQuestions; ++i) {
+        memset(&quizArray[i], 0, sizeof(struct Quiz));
+        ret = json_arr_separate_parse_object(&json_arr, quiz_descr, 2, &quizArray[i]);
+        if (ret == 0) break; // End of array
+        if (ret < 0) {
+            LOG_ERR("Parse error at index %zu: %d", i, ret);
+            // Free allocated quiz before returning
+            free(quizArray);
+            return ret;
+        }
+    }
+
+    *count = i;
+    *questions = quizArray;
+	lcdStringWrite("Loaded QUIZEES");
+	k_msleep(3000);
+#endif
+	lcdStringWrite("Loaded Quiz");
+	k_msleep(3000);
+    return 0;
+}
+
+
+
+
 int playMg4() {
 	uint32_t score = 1000;
 	uint8_t *abcBtn;
@@ -90,6 +150,30 @@ int playMg4() {
 	bool correct = false;
 	bool buttonReleased = true;
 	static uint8_t questionIndex = 0;
+
+	struct Quiz *locs = NULL;
+	size_t count = 0;
+	size_t maxQuestions = 32;
+	char buf[64];
+	lcdEnable();
+	int res = trivia_load(3, &locs, &count, maxQuestions);
+	if (res < 1) {
+		sprintf(buf, "failed to load trivia: %d", res);
+		lcdStringWrite(buf);
+		k_msleep(3000);
+		return -1;
+	}
+
+	
+
+	for (size_t i = 0; i < count; ++i) {
+		sprintf(buf, "%d: Q=%s cor= %d", i, locs[i].question , locs[i].correct);
+		lcdStringWrite(buf);
+		LOG_ERR("doing good things: %s", locs[1].question);
+		k_msleep(3000);
+	}
+
+
 	show_oneliners(oneLinersMG4 , MG4_ONELINERS);
 	k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 	abcledsSet('a',true);

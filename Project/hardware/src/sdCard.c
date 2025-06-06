@@ -19,7 +19,8 @@ LOG_MODULE_REGISTER(sdCard);
 static const char *type_file[] = { // File paths for different types of locations. Dirty fix to have this here.
 	"/SD:/poko.txt", // pokemon locations
 	"/SD:/loc.txt", // general locations
-	"/SD:/trlo.txt" // trivia locations
+	"/SD:/trlo.txt", // trivia locations
+	"/SD:/trivia.txt" // trivia locations
 };
 
 static FATFS fat_fs;
@@ -183,7 +184,7 @@ uint8_t sd_set_score(int score){
 
 #define MAX_LEN 32// ugly as fuq
 #define MAX_QUIZZES 4// f me
-
+/*/
 struct Quiz {
 	char question[MAX_LEN];
 	char answerA[MAX_LEN];
@@ -207,8 +208,8 @@ static const struct json_obj_descr quiz_descr[] = {
 
 static const struct json_obj_descr quizset_descr[] = {
 	JSON_OBJ_DESCR_ARRAY(struct QuizSet, quizzes, MAX_QUIZZES, quiz_descr, ARRAY_SIZE(quiz_descr)),
-};
-
+};*/
+/*
 struct Quiz sd_get_trivia(int trivia_index){
 	struct QuizSet questions;
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
@@ -242,6 +243,56 @@ struct Quiz sd_get_trivia(int trivia_index){
 #endif
     return questions.quizzes[trivia_index];
 }
+*/
+
+
+
+uint8_t sd_get_trivia(uint16_t type, char *buf, size_t *len, size_t max_len)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[max_len]; // Buffer to hold file data
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	if (type >= sizeof(type_file) / sizeof(type_file[0])) {
+		LOG_ERR("No such file type known: %d", type);
+		return -1;
+	}
+
+	ret = fs_open(&data_filp, type_file[type], FS_O_READ);
+	if (ret) {
+		LOG_ERR("Failed to open file: %s (err = %d)", type_file[type], ret);
+		return -2;
+	} else {
+		LOG_MSG_DBG("Opened file: %s", type_file[type]);
+	}
+
+	*len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
+	fs_close(&data_filp);
+
+	if (len < 0) {
+		LOG_ERR("Failed to read file: %s", type_file[type]);
+		return -2;
+	}
+
+	if (*len >= max_len) {
+		LOG_ERR("Buffer size too small. Requested: %zu, Available: %zu", *len, max_len);
+		return -3;
+	}
+
+	file_data_buffer[*len] = '\0';
+
+	memcpy(buf, file_data_buffer, *len + 1);
+
+#endif
+	return 0;
+}
+
+
+
+
 
 uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 {
