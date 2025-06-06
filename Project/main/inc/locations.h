@@ -35,6 +35,4 @@ struct Location {
 };
 
 int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);
-int circleMovingAvg(int newValue);
-int get_led_width(int distance);
-void set_led_circle_dir_dist(unsigned dir, int distance);
+void set_led_circle_dir_dist(int dir, int distance);

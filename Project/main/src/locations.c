@@ -17,11 +17,13 @@ LOG_MODULE_REGISTER(locations);
 // LED circle direction to location related definitions
 #define ANGLE_BUFFER_SIZE 10
 #define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
-#define DIST_MIN_WIDTH 100 // Was 1000	//Distance at which the circle has maximum width
+#define DIST_MIN_WIDTH 200 	//Distance at which the circle has maximum width
 #define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
-#define LEDS_MIN_WIDTH 3	// Amount of LEDS at DIST_MIN_WIDTH
-#define LEDS_MAX_WIDTH 32	// Amount of LEDS at DIST_MAX_WIDTH
+#define LEDS_MIN_WIDTH 0	// Amount of LEDS at DIST_MIN_WIDTH
+#define LEDS_MAX_WIDTH 48	// Amount of LEDS at DIST_MAX_WIDTH
 #define LEDS_RANGE_WIDTH (LEDS_MAX_WIDTH - LEDS_MIN_WIDTH)
+#define MAX_DIR 359
+#define NR_OF_LEDS 64
 
 /**
  * @brief Load locations from a file based on the type.
@@ -119,22 +121,20 @@ int circleMovingAvg(int newValue) {
  * @param dir The direction in degrees (0-359) where the LEDs should be centered.
  * @param distance
  */
-void set_led_circle_dir_dist(unsigned dir, int distance)
+void set_led_circle_dir_dist(int dir, int distance)
 {
-	const int nrPixels = 64;
-	const int maxDir = 359;
-	unsigned width = get_led_width(distance); // Convert distance to width in pixels
+	int width = get_led_width(distance); // Convert distance to width in pixels
 
-	float centerFloat = (float)dir / maxDir;
-	int centerPixel = round(centerFloat * nrPixels);
+	float centerFloat = (float)dir / MAX_DIR;
+	int centerPixel = round(centerFloat * NR_OF_LEDS);
 
 	int leftBound = centerPixel - (width / 2);
 	if (leftBound < 0 ) {
-		leftBound = nrPixels + leftBound;
+		leftBound = NR_OF_LEDS + leftBound;
 	}
 	int rightBound = centerPixel + (width / 2);
-	if (rightBound > (nrPixels - 1)) {
-		rightBound = rightBound - nrPixels;
+	if (rightBound > (NR_OF_LEDS - 1)) {
+		rightBound = rightBound - NR_OF_LEDS;
 	}
 	bool overlap = false;
 	if (leftBound > rightBound) {
