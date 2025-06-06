@@ -1,0 +1,7 @@
+mainmenu "Startweek options"
+
+config TESTMODE
+    bool "Test games manually"
+    default n
+
+source "Kconfig.zephyr"
