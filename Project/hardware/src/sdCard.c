@@ -182,7 +182,7 @@ uint8_t sd_set_score(int score){
 
 
 
-#define MAX_LEN 32// ugly as fuq
+#define MAX_LEN 512// ugly as fuq
 #define MAX_QUIZZES 4// f me
 /*/
 struct Quiz {

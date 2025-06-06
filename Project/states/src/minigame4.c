@@ -23,7 +23,7 @@ char oneLinersMG4[MG4_ONELINERS][32] = {
 	"Zephyr 3.6",
 	"Z3.6 SDK 0.16.9"
 };
-
+/*/
 char questions[AMOUNT_QUESTIONS][MAX_SIZE] = {
 	"Hoe oud is Siem?",
 	"Hoe groot is Siem?",
@@ -43,7 +43,7 @@ const int correctAnswer[AMOUNT_QUESTIONS] = {
 	2,
 	0,
 	0,
-};
+};*/
 /*
 void showOnelinersMG4()
 {
@@ -92,11 +92,21 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
     char json_buf[BUFFER_SIZE];
     size_t len = 0;
     int ret = sd_get_trivia(type, json_buf, &len, BUFFER_SIZE);
-    if (ret != 0)
+    if (ret != 0){
         return ret;
+	}
 
-    struct Quiz *quizArray = malloc(sizeof(struct Quiz) * maxQuestions);
+	if (len >= BUFFER_SIZE) {
+    LOG_ERR("JSON too large for buffer");
+    
+    return -3;
+	}
+	json_buf[len] = '\0';  // Ensure null-termination
+
+	LOG_WRN("%s",json_buf);
+    struct Quiz *quizArray = calloc(maxQuestions,sizeof(struct Quiz));
     if (!quizArray){
+		free(quizArray);
         return -2;
 	}
 
@@ -120,7 +130,7 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
     size_t i = 0;
     for (; i < maxQuestions; ++i) {
         memset(&quizArray[i], 0, sizeof(struct Quiz));
-        ret = json_arr_separate_parse_object(&json_arr, quiz_descr, 2, &quizArray[i]);
+        ret = json_arr_separate_parse_object(&json_arr, quiz_descr, ARRAY_SIZE(quiz_descr), &quizArray[i]);
         if (ret == 0) break; // End of array
         if (ret < 0) {
             LOG_ERR("Parse error at index %zu: %d", i, ret);
@@ -129,11 +139,9 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
             return ret;
         }
     }
-
+	LOG_WRN("%s", quizArray[1].question);
     *count = i;
     *questions = quizArray;
-	lcdStringWrite("Loaded QUIZEES");
-	k_msleep(3000);
 #endif
 	lcdStringWrite("Loaded Quiz");
 	k_msleep(3000);
@@ -157,24 +165,29 @@ int playMg4() {
 	char buf[64];
 	lcdEnable();
 	int res = trivia_load(3, &locs, &count, maxQuestions);
-	if (res < 1) {
+	if (res < 0) {
 		sprintf(buf, "failed to load trivia: %d", res);
 		lcdStringWrite(buf);
 		k_msleep(3000);
 		return -1;
 	}
+	sprintf(buf, "count of q =: %d ", count );
+	lcdStringWrite(buf);
+	k_msleep(3000);
 
-	
+
 
 	for (size_t i = 0; i < count; ++i) {
+		locs[i].question[31]  = '\0';
 		sprintf(buf, "%d: Q=%s cor= %d", i, locs[i].question , locs[i].correct);
 		lcdStringWrite(buf);
-		LOG_ERR("doing good things: %s", locs[1].question);
+		LOG_ERR("doing good things: %s", buf);
 		k_msleep(3000);
 	}
 
 
 	show_oneliners(oneLinersMG4 , MG4_ONELINERS);
+	lcdEnable();
 	k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 	abcledsSet('a',true);
 	abcledsSet('b',true);
@@ -186,23 +199,27 @@ int playMg4() {
 		while (!correct)
 		{
 			native_loop();
-			//check if score is 0
-			if(score == 0)
-			{
-				questionIndex = AMOUNT_QUESTIONS;
-				break;
-			}
+
 			//show output
 			if (showQuestion)
 			{
 				showQuestion = false;
-				lcdStringWrite(questions[questionIndex]);
+				sprintf(buf, "%s ", locs[questionIndex].question);
+		
+				lcdStringWrite(buf);
 				k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 				while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}
 
-				for (uint8_t answersIndex = 0; answersIndex < AMOUNT_ANSWERS; answersIndex++)
+				char *answers[AMOUNT_ANSWERS] = { 
+					locs[questionIndex].answerA, 
+					locs[questionIndex].answerB, 
+					locs[questionIndex].answerC
+				};
+
+				for (uint8_t answersIndex = 0; answersIndex < AMOUNT_ANSWERS; answersIndex++) // i am sure there is a better way, i am sorry for destroying
 				{
-					lcdStringWrite(answers[questionIndex][answersIndex]);
+					//sprintf(buf, "%s ",answers[answersIndex]);
+					lcdStringWrite(answers[answersIndex]);
 					k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 					while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}
 				}
@@ -220,7 +237,7 @@ int playMg4() {
 			if ((!abcBtn[2] || !abcBtn[1] || !abcBtn[0]) && buttonReleased)
 			{
 				buttonReleased = false;
-				switch (correctAnswer[questionIndex])
+				switch (locs[questionIndex].correct)
 				{
 				case 0:
 					if (!abcBtn[0])

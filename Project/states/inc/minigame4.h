@@ -17,7 +17,7 @@ int playMg4();
 #define AMOUNT_QUESTIONS 4
 #define AMOUNT_ANSWERS 3
 #define MAX_SIZE 32
-#define BUFFER_SIZE 512 // dirty to have this here.
+#define BUFFER_SIZE 1024 // dirty to have this here.
 
 	struct Quiz {
 		char question[MAX_SIZE];
