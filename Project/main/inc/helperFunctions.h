@@ -27,4 +27,5 @@ uint8_t get_btnmatrix_input_number(uint16_t input_time);
 uint8_t get_btnmatrix_input_number_untimed();
 void set_btnmatrix_led(uint8_t position);
 
+void set_led_circle_dir_dist(int dir, int distance);
 #endif //HELPERFUNCTIONS_H
