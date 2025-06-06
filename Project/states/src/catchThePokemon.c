@@ -1,13 +1,19 @@
 #include "catchThePokemon.h"
+
+#include "helperFunctions.h"
 #include <stdlib.h>
 
 LOG_MODULE_REGISTER(catchThePokemon);
+
+#define HINT_COOLDOWN 3 // in minutes
 
 #define TIME_MAX 10
 #define TIME_MIN 0
 #define TIME_STEP 1
 #define TIME_INTERVAL_MS 100 // Adjust for smoother or faster changes
+
 #define START_GAME_SOUND 5
+#define END_GAME_SOUND 6
 
 char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "btnmatrix_in", "ledcircle", "buzzers", "ledmatrix", "btnmatrix_out"}; // missing lcd threads
 bool game_ongoing_pokemon, catchEvent;
@@ -63,6 +69,13 @@ int soundStartGame[3][3] = {
     {349, 349, 349},    // F4
     {698, 698, 698},    // F5
     {1397, 1397, 1397}  // F6
+};
+
+int soundEndGame[3][3] = {
+
+    {1760, 1760, 1760},  // A6
+    {880, 880, 880},    // A5
+    {440, 440, 440},    // A4
 };
 /////////////
 
@@ -173,6 +186,10 @@ int playSound(int soundNr, int *noteDelayMs)
         case 5:
             soundArray = soundStartGame; // Assuming soundStartGame is defined elsewhere
             soundLength = sizeof(soundStartGame) / sizeof(soundStartGame[0]);
+            break;
+        case 6:
+            soundArray = soundEndGame;
+            soundLength = sizeof(soundEndGame) / sizeof(soundEndGame[0]);
             break;
         default:
             return -1; // Invalid sound number
@@ -529,7 +546,7 @@ int catchingMg()
     char angle = 0; // angle in which the box is tilted (0 to 15)
     char time = 0; // timing to throw the ball (0 to 10)
 
-    srand(k_uptime_get()); // seed random number generator
+    srand(k_uptime_get() + getMinute() + getHour() + getLatitude()); // seed random number generator
 
     uint8_t attemptsPermitted = 1 + (rand() / MAX_ATTEMPTS); // random number
     bool caughtPokemon = false;
@@ -611,11 +628,35 @@ int catchingMg()
     return attemptCounter;
 }
 
+// !NOTE this is basically just the function idle also uses thus it should be moved to a common place instead.
+void set_Pokemon_Hint(int pokemonIndex)
+{
+    const int64_t currLat = getLatitude();		// Get the current latitude
+    const int64_t currLon = getLongitude();		// Get the current longitude
+    if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
+        LOG_ERR("GPS does not have a lock!\n");
+        lcdStringWrite("GPS heeft geen  fix..");
+        k_msleep(500);
+        lcdStringWrite("GPS heeft geen  fix...");
+        k_msleep(500);
+    } else
+    {
+        int dir = 0;
+        int distMeters = 0;
+        lcdClear();
+        distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
+        dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
+
+        set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
+    }
+}
+
 /**
  * @brief checks if a pokemon is nearby
  * @returns true if there a pokemon close enough to trigger catchPokemonEvent false if there are no pokemon nearby
  */
-bool pokemonNearby() {
+bool pokemonNearby()
+{
     for (int i = 0; i < (POKEMONLOCATIONS); i++)
     {
         // check if the pokemon is within the distance
@@ -634,9 +675,16 @@ bool pokemonNearby() {
  */
 int pokemonGame()
 {
+    static int lastEventTime = 0;
+    lastEventTime = getHour() * 60 + getMinute(); // store the last event time in minutes
+    const int currentTime = getHour() * 60 + getMinute(); // get the current time in minutes
+
     // check if game finish conditions have been met
     if(checkBallsLeft() == false || checkPokemonLeft() == false)
         return 0;
+
+    if ((currentTime - lastEventTime) > HINT_COOLDOWN / 2)
+        ledcircleSetMutexValue(NULL); // clear the ledcircle if the cooldown is over
 
     // check if there is a pokemon nearby
     if (pokemonNearby())
@@ -645,10 +693,20 @@ int pokemonGame()
         playSound(3, NULL); // play pokemon appeared sound
         catchEvent = true;
     }
-    else
+    else if ((currentTime - lastEventTime) > HINT_COOLDOWN)
     {
-        // hint event
-        // display general direction of the pokemon
+        lastEventTime = currentTime; // update the last event time
+        bool existingPokemon = false;
+        // hint to the player where a pokemon could be
+        while (existingPokemon == false) // This is possibly very slow if a player is unlucky
+        {
+            int index = rand() % POKEMONLOCATIONS; // random index for the pokemon location
+            if (!pokemonLocation->caught && !pokemonLocation->fled && pokemonCaught < POKEMON) // check if the pokemon was not caught and didn't flee. Also double check that the player hasn't caught all pokemon yet
+            {
+                set_Pokemon_Hint(index);
+                existingPokemon = true; // pokemon exists
+            }
+        }
     }
 
     return 0;
@@ -668,9 +726,7 @@ int playCatchThePokemon()
     int score = 0;
     while (game_ongoing_pokemon)
     {
-        // draw game
-        // play sounds
-
+        // add timer check if players are playing for more than 15 minutes.
         if(!catchEvent)
         {
             err = pokemonGame();
