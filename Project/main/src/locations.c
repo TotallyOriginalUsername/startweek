@@ -5,9 +5,7 @@
 
 #include <stdlib.h>
 #include <zephyr/data/json.h>
-#include "gps.h"
 #include "sdCard.h"
-#include "threads.h"
 
 LOG_MODULE_REGISTER(locations);
 
