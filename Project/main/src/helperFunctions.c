@@ -59,7 +59,9 @@ void clear_btnmatrix_leds(){
 void show_correct(){
 	uint8_t data_button_matrix[4] = {0b00000110, 0b00001001, 0b00001001, 0b00000110};
 	btnmatrix_outSetMutexValue(data_button_matrix);
+	buzzerSetPwm(0, 666); // Play a sound for correct input
 	k_msleep(2000);
+	buzzerTurnOff(0);
 	clear_btnmatrix_leds();
 }
 
@@ -67,7 +69,9 @@ void show_correct(){
 void show_incorrect(){
 	uint8_t data_button_matrix[4] = {0b00001001, 0b00000110, 0b00000110, 0b00001001};
 	btnmatrix_outSetMutexValue(data_button_matrix);
+	buzzerSetPwm(0, 82); // Play a sound for incorrect input
 	k_msleep(2000);
+	buzzerTurnOff(0);
 	clear_btnmatrix_leds();
 }
 

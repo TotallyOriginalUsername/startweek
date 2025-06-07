@@ -63,6 +63,8 @@ uint8_t buzzersInit()
 uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    aBuzzerNum++; // Adjust buzzer number to match the 1-based index used in the function
+
     uint32_t period = 0;
 
     if (!isInit)
@@ -113,6 +115,8 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
 uint8_t buzzerTurnOff(int aBuzzerNum)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    aBuzzerNum++;
+
     uint32_t period = 0;
 
     if (!isInit)

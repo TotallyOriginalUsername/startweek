@@ -7,7 +7,7 @@ bool game_ongoing_mg2 = 1;
 
 K_TIMER_DEFINE(secTimerMg2, NULL, NULL);
 
-char *mg2Threads[mg2ThreadCount] = {"startbtn", "btnmatrix_in", "btnmatrix_out"};
+char *mg2Threads[mg2ThreadCount] = {"startbtn", "btnmatrix_in", "btnmatrix_out", "buzzers"};
 
 void getMg2Threads(char ***names, unsigned *amount) {
 	*names = mg2Threads;
@@ -21,9 +21,15 @@ char oneLinersMG2[MG2_ONELINERS][32] = {
 	"in de juiste    volgorde     "
 };
 
-//returns 0 if sequence matches, 1 if no match
-uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input){
+int noteSounds[16] = {
+	// Frequencies for musical notes corresponding to the matrix
+	220, 233, 249, 261, 277, 294, 330, 349, 392, 440, 466, 523, 554, 587, 659, 698
+};
 
+//returns 0 if sequence matches, 1 if no match
+uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input)
+{
+	k_msleep(200); // wait for a short time to allow a clear difference between user and system
 	if (sequence[input] != input_sequence[input]) {
 		LOG_INF("Sequences don't match\n");
 		lcdStringWrite("Incorrect!");
@@ -42,11 +48,16 @@ void generate_sequence(uint8_t* sequence) {
 	LOG_INF("\n");
 }
 
-void show_sequence(uint8_t* sequence, uint8_t level){
+void show_sequence(uint8_t* sequence, uint8_t level)
+{
+	k_msleep(200); // wait for a short time to allow a clear difference between correct input and the sequence
 	for(int i = 0; i <= level; i++){
+		buzzerSetPwm(0, noteSounds[sequence[i]]);
 		set_btnmatrix_led(sequence[i]);
-		k_msleep(2000);
+		k_msleep(1500);
 		clear_btnmatrix_leds();
+		buzzerTurnOff(0);
+		k_msleep(500); // separation between notes in the sequence
 	}
 }
 
@@ -56,8 +67,12 @@ void get_input(uint8_t* sequence, uint8_t level){
 	lcdStringWrite("Voer de juiste volgorde in!");
 
 	for(int i = 0; i <= level; i++){
-		wait_till_btnmatrix_depressed();
 		input_sequence[i] = get_btnmatrix_input_number_untimed();
+
+		buzzerSetPwm(0, noteSounds[input_sequence[i]] ? noteSounds[input_sequence[i]] : 0);
+		wait_till_btnmatrix_depressed();
+		buzzerTurnOff(0);
+
 		if(check_sequence(sequence, input_sequence, i) == 1){
 			show_incorrect();
 			game_ongoing_mg2 = 0;
