@@ -32,8 +32,8 @@
 struct Location {
     int64_t x;
     int64_t y;
-    char x_str[32]; // String representation of x coordinate
-    char y_str[32]; // String representation of y coordinate
+    int x_int;
+    int y_int;
 };
 
 int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);

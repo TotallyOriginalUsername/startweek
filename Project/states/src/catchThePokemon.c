@@ -25,7 +25,7 @@ bool game_ongoing_pokemon, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
 uint16_t displayMatrix[16] = {0};
 uint64_t startTime;
-int pokemonToCatch = -1;
+int pokemonToCatch[POKEMON] = {0};
 
 struct pokemonLocation
 {
@@ -278,23 +278,22 @@ int selectLocations()
         return ret;
     }
 
-    for (size_t i = 0; i < POKEMONLOCATIONS; ++i)
+    for (int i = 0; i < POKEMONLOCATIONS; i++)
     {
         pokemonLocation[i].lat = locArray[i].x;
         pokemonLocation[i].longi = locArray[i].y;
         pokemonLocation[i].caught = false;
         pokemonLocation[i].fled = false;
         pokemonLocation[i].id = i;
-
-        // test:
-        char tmp[64];
-        snprintf(tmp, sizeof(tmp), "%d: Lat: %lld, Lon: %lld", i, pokemonLocation[i].lat, pokemonLocation[i].longi);
-        lcdStringWrite(tmp);
-        k_msleep(1000); // Wait to display each location
     }
 
-    lcdStringWrite("Locations loaded!");
-    k_msleep(1000); // Wait to display the message
+    lcdStringWrite("Exited location selection");
+    k_msleep(2000); // Wait to display the message
+
+    for (int i = 0; i < POKEMON; i++)
+    {
+        pokemonToCatch[i] = rand() % POKEMONLOCATIONS; // Randomly select pokemon locations
+    }
 
     free(locArray);
     return 0;
@@ -315,6 +314,8 @@ int initMg()
     game_ongoing_pokemon = true;
     catchEvent = false;
     startTime = k_uptime_get(); // Get the current time in milliseconds
+
+    srand(k_uptime_get() + getMinute() + getHour() + getLatitude()); // seed random number generator
 
     lcdEnable();
     lcdStringWrite("Vind en vang de pokemon!");
@@ -580,8 +581,6 @@ int catchingMg()
     char angle = 0; // angle in which the box is tilted (0 to 15)
     char time = 0; // timing to throw the ball (0 to 10)
 
-    srand(k_uptime_get() + getMinute() + getHour() + getLatitude()); // seed random number generator
-
     uint8_t attemptsPermitted = 1 + (rand() / MAX_ATTEMPTS); // random number
     bool caughtPokemon = false;
     // generate pokemon locations on matrix
@@ -669,7 +668,7 @@ void set_Pokemon_Hint(int pokemonIndex)
     const int64_t currLon = getLongitude();		// Get the current longitude
     if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
         LOG_ERR("GPS does not have a lock!\n");
-        lcdStringWrite("GPS 1 heeft geen  fix..");
+        lcdStringWrite("GPS heeft geen  fix..");
         k_msleep(1000);
     } else
     {
@@ -689,7 +688,9 @@ void set_Pokemon_Hint(int pokemonIndex)
  */
 bool pokemonNearby()
 {
-    for (int i = 0; i < (POKEMONLOCATIONS); i++)
+    lcdStringWrite("Zoek naar Pokemon..");
+    k_msleep(1000); // Wait for a second to show the message
+    for (int i = 0; i < (POKEMON); i++)
     {
         // check if the pokemon is within the distance
         int64_t currLat = getLatitude();
@@ -697,27 +698,24 @@ bool pokemonNearby()
         if (currLat == 0 && currLon == 0) // GPS doesn't have lock
         {
             LOG_ERR("GPS does not have a lock!\n");
-            lcdStringWrite("GPS 2 heeft geen  fix..");
+            lcdStringWrite("GPS heeft geen  fix..");
+            k_msleep(1000);
+            lcdStringWrite("GPS heeft geen  fix..");
             k_msleep(1000);
             return false; // No pokemon nearby if GPS is not locked
         }
 
-        int distance = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), (pokemonLocation[i].lat), (pokemonLocation[i].longi));
+        int distance = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonToCatch[i]].lat), nanoDegToLdDeg(pokemonLocation[pokemonToCatch[i]].longi));
         if (distance < POKEMON_DISTANCE)
         {
-            char tmp[48];
-            snprintf(tmp, sizeof(tmp), "ID: %d, Distance: %d meters", pokemonLocation[i].id, distance);
-            LOG_ERR("Pokemon with ID %d is nearby at a distance of %d meters", pokemonLocation[i].id, distance);
-            lcdStringWrite(tmp);
-            k_msleep(10000);
-
-            pokemonToCatch = i;
+            LOG_INF("Pokemon with ID %d is nearby at a distance of %d meters", pokemonLocation[i].id, distance);
             return true;
         }
-        LOG_ERR("Pokemon with ID %d is at a distance of %d meters", pokemonLocation[i].id, distance);
-        LOG_ERR("Curr Lat: %lld, Curr Lon: %lld", currLat, currLon);
-        LOG_ERR("Pokemon Lat: %lld, Pokemon Lon: %lld", pokemonLocation[i].lat, pokemonLocation[i].longi);
-        k_msleep(100);
+
+        char tmp[32];
+        snprintf(tmp, sizeof(tmp), "Pokemon %d is %d m away", pokemonLocation[pokemonToCatch[i]].id, distance);
+        lcdStringWrite(tmp); // Display the distance to the pokemon
+        k_msleep(1000); // Wait for a second to show the distance
 
     }
     return false;
@@ -754,8 +752,8 @@ int pokemonGame()
         // hint to the player where a pokemon could be
         while (existingPokemon == false) // This is possibly very slow if a player is unlucky
         {
-            int index = rand() % POKEMONLOCATIONS; // random index for the pokemon location
-            if (!pokemonLocation->caught && !pokemonLocation->fled && pokemonCaught < POKEMON) // check if the pokemon was not caught and didn't flee. Also double check that the player hasn't caught all pokemon yet
+            int index = pokemonToCatch[rand() % POKEMON]; // random index for the pokemon location
+            if (!pokemonLocation[index].caught && !pokemonLocation[index].fled && pokemonCaught < POKEMON) // check if the pokemon was not caught and didn't flee. Also double check that the player hasn't caught all pokemon yet
             {
                 set_Pokemon_Hint(index);
                 existingPokemon = true; // pokemon exists

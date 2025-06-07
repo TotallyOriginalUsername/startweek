@@ -38,8 +38,8 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
         return -2;
 
     struct json_obj_descr loc_descr[] = {
-        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x, JSON_TOK_NUMBER),
-        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_int, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_int, JSON_TOK_NUMBER),
     };
 
     struct json_obj json_arr;
@@ -68,18 +68,9 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
             return ret;
         }
         i++;
+        locArray[i].x = (int64_t)locArray[i].x_int * 1000; // convert back to nanodegrees
+        locArray[i].y = (int64_t)locArray[i].y_int * 1000;
     }
-
-    char tmp[256];
-    snprintf(tmp, sizeof(tmp), "count: %zu, maxLocations: %zu", i, maxLocations);
-    for (int k = 0; k < i; k++) {
-        k_msleep(1000); // Wait to display each location
-        snprintf(tmp, sizeof(tmp), "B) %d: Lat:%llu, Lon: %llu", k, locArray[k].x, locArray[k].y);
-        lcdStringWrite(tmp);
-        k_msleep(1000); // Wait to display each location
-    }
-    lcdStringWrite(tmp);
-    k_msleep(2000); // Wait to display the message
 
     *count = i;
     *locations = locArray;
