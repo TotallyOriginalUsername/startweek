@@ -10,6 +10,10 @@
 #include "genericGpio.h"
 #include "gps.h"
 #include "buzzers.h"
+#include "helperFunctions.h"
+#include "sdCard.h"
+#include "locations.h"
+#include <stdlib.h>
 
 #define catchThePokemonThreadCount 6
 

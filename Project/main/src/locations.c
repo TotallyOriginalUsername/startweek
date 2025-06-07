@@ -3,11 +3,6 @@
 //
 #include "locations.h"
 
-#include <lcd.h>
-#include <stdlib.h>
-#include <zephyr/data/json.h>
-#include "sdCard.h"
-
 LOG_MODULE_REGISTER(locations);
 
 #define MAX_TYPES (1 << (sizeof(uint16_t) * 8))
@@ -38,8 +33,8 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
         return -2;
 
     struct json_obj_descr loc_descr[] = {
-        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_int, JSON_TOK_NUMBER),
-        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_int, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_from_sd, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_from_sd, JSON_TOK_NUMBER),
     };
 
     struct json_obj json_arr;
@@ -57,8 +52,6 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
         if (ret == 0)
         {
             LOG_INF("End of array reached at index %zu", i);
-            lcdStringWrite("End of array reached");
-            k_msleep(2000); // Wait to display the message
             break; // End of array
         }
         if (ret < 0) {
@@ -68,8 +61,8 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
             return ret;
         }
         i++;
-        locArray[i].x = (int64_t)locArray[i].x_int * 1000; // convert back to nanodegrees
-        locArray[i].y = (int64_t)locArray[i].y_int * 1000;
+        locArray[i].x = (int64_t)locArray[i].x_from_sd * 1000; // convert back to nanodegrees
+        locArray[i].y = (int64_t)locArray[i].y_from_sd * 1000;
     }
 
     *count = i;

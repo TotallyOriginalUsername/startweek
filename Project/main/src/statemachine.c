@@ -260,9 +260,17 @@ void ctp_state(struct state *state) // Catch the Pokemon minigame
 	getCatchThePokemonThreads(&names, &amount);
 	enableThreads(names, amount);
 
-	playCatchThePokemon();
+	int ret = playCatchThePokemon();
+
+	if ( ret < 0 )
+	{
+		LOG_ERR("Error in catch the pokemon state\n");
+		state->next = 0; // Exit state
+		return;
+	}
 
 	disableThreads(names, amount);
+	sd_set_score(ret);
 
 	state->next = idle_state;
 }

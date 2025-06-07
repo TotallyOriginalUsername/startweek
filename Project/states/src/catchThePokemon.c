@@ -1,10 +1,5 @@
 #include "catchThePokemon.h"
 
-#include "helperFunctions.h"
-#include "sdCard.h"
-#include "locations.h"
-#include <stdlib.h>
-
 LOG_MODULE_REGISTER(catchThePokemon);
 
 #define HINT_COOLDOWN 3 // in minutes
@@ -20,16 +15,23 @@ LOG_MODULE_REGISTER(catchThePokemon);
 
 #define MAX_SCORE 1000 // Maximum score for the game
 
+// Curve parameters for aim minigame
+#define CURVE_DAMPEN 0.5 // affects how quickly the curve increases
+#define AIM_DIRECTION_OFFSET 8
+
+#define BALLTHROWNARRAYSIZE 4
+
 char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "btnmatrix_in", "ledcircle", "buzzers", "ledmatrix", "btnmatrix_out"}; // missing lcd threads
 bool game_ongoing_pokemon, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
 uint16_t displayMatrix[16] = {0};
 uint64_t startTime;
-int pokemonToCatch[POKEMON] = {0};
+uint8_t pokemonToCatch[POKEMON] = {0};
+static bool increasing = true;
 
 struct pokemonLocation
 {
-    int id;
+    uint8_t id;
     int64_t lat;
     int64_t longi;
     bool caught;
@@ -115,7 +117,6 @@ bool isAnyButtonPressed() {
     return false; // No button is pressed
 }
 
-static bool increasing = true;
 /**
  * @brief updates the time value based on the increasing or decreasing state
  * @param time pointer to the time value to be updated
@@ -225,23 +226,23 @@ int playSound(int soundNr, int *noteDelayMs)
  */
 bool checkPokemonLeft()
 {
+    bool pokemonLeft = true;
     if(pokemonCaught >= POKEMON)
     {
         LOG_INF("All pokemon caught!");
         lcdStringWrite("You have caught all pokemon!");
 
-        game_ongoing_pokemon = false;
+        pokemonLeft = false;
     }
-
     else if ((pokemonCaught  + pokemonFled) >= POKEMONLOCATIONS)
     {
         LOG_INF("No pokemon left to catch! Caught: %d, Fled: %d", pokemonCaught, pokemonFled);
         lcdStringWrite("No pokemon left!");
 
-        game_ongoing_pokemon = false;
+        pokemonLeft = false;
     }
 
-    return game_ongoing_pokemon;
+    return pokemonLeft;
 }
 
 /**
@@ -284,7 +285,7 @@ int selectLocations()
         pokemonLocation[i].longi = locArray[i].y;
         pokemonLocation[i].caught = false;
         pokemonLocation[i].fled = false;
-        pokemonLocation[i].id = i;
+        pokemonLocation[i].id = (uint8_t)i;
     }
 
     lcdStringWrite("Exited location selection");
@@ -335,13 +336,12 @@ int initMg()
  * @brief pushes matrix to ledmatrix and sets the displayMatrix to 0
  * @returns 0 if everything went as expected
  */
-int setMatrix()
+void setMatrix()
 {
     ledmatrixSetMutexValue(displayMatrix);
 
     // clear displayMatrix
     memset(displayMatrix, 0, sizeof(displayMatrix));
-    return 0;
 }
 
 /**
@@ -352,9 +352,9 @@ int setMatrix()
  * @note Advisory position is to not go below Y 8
  * @note X position should be between 3 and 12
  */
-int displayPokemon(char x, char y)
+int displayPokemon(uint8_t x, uint8_t y)
 {
-    int8_t offsetX = -3;
+    int8_t offsetX = -3; // The offset is used so that the pokemon doesn't appear half over the edge of the display. This way the pokemon is always fully visible.
     int8_t offsetY = -3;
     for (int i = 0; i < 5; i++)
     {
@@ -370,8 +370,6 @@ int displayPokemon(char x, char y)
  */
 int displayAimDirection(char angle)
 {
-#define CURVE_DAMPEN 0.5 // affects how quickly the curve increases
-#define AIM_DIRECTION_OFFSET 8
     // Map the angle to a direction (-7 to +7)
     int direction = (angle * 14) / 15 - 7; // Map angle (0-15) to range (-7 to +7)
 
@@ -442,7 +440,6 @@ int displayTiming(char time)
  */
 int displayBallThrow(void)
 {
-#define BALLTHROWNARRAYSIZE 4
     // technically could've only defined 1/4th of the array and mirrored it(twice)
     uint16_t ballThrown[BALLTHROWNARRAYSIZE][16] =  {
         {
@@ -711,12 +708,6 @@ bool pokemonNearby()
             LOG_INF("Pokemon with ID %d is nearby at a distance of %d meters", pokemonLocation[i].id, distance);
             return true;
         }
-
-        char tmp[32];
-        snprintf(tmp, sizeof(tmp), "Pokemon %d is %d m away", pokemonLocation[pokemonToCatch[i]].id, distance);
-        lcdStringWrite(tmp); // Display the distance to the pokemon
-        k_msleep(1000); // Wait for a second to show the distance
-
     }
     return false;
 }
@@ -733,7 +724,10 @@ int pokemonGame()
 
     // check if game finish conditions have been met
     if(checkBallsLeft() == false || checkPokemonLeft() == false)
+    {
+        game_ongoing_pokemon = false;
         return 0;
+    }
 
     if ((currentTime - lastEventTime) > HINT_COOLDOWN / 2)
         ledcircleSetMutexValue(NULL); // clear the ledcircle if the cooldown is over
@@ -771,7 +765,7 @@ int calculateScore(int totalAttempts)
 
     // formula used:
     // Score = ((Caught / totalPokemon) * 400) / (sqrt((0.3*attempts)/(caught/totalpokemon) * ((timeTaken+ 3 * minute)/minute) * 10 - 150
-    score = ((pokemonCaught / (double)POKEMON) * 400) / (sqrt(0.3 * (totalAttempts / ((double)pokemonCaught / (double)POKEMON))) * ((totalTime + 180000) / 60000) * 10 - 150);
+    score = ((pokemonCaught / (double)POKEMON) * 400) / (sqrt(0.3 * (totalAttempts / ((double)pokemonCaught / (double)POKEMON))) * ((totalTime + 180000) / 60000) * 10 - 150) * (MAX_SCORE / 1000);
 
     if (score < 0)
         score = 0;
@@ -829,15 +823,6 @@ int playCatchThePokemon()
     {
         totalAttepts += score[i];
     }
-    int totalScore = sd_get_score();
-    totalScore += calculateScore(totalAttepts);
-    err = sd_set_score(totalScore);
-    if (err)
-    {
-        LOG_ERR("Error setting score: %d", err);
-    }
 
-
-
-    return 0;
+    return calculateScore(totalAttepts);
 }
