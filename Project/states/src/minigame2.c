@@ -73,7 +73,10 @@ void get_input(uint8_t* sequence, uint8_t level){
 		buzzerTurnOff(0);
 
 		if(check_sequence(sequence, input_sequence, i) == 1){
+			k_msleep(200); // wait for a short time to allow a clear difference between user and system
+			buzzerSetPwm(0, 82); // Play a sound for incorrect input
 			show_incorrect();
+			buzzerTurnOff(0);
 			game_ongoing_mg2 = 0;
 			break;
 		}
@@ -98,8 +101,11 @@ int playMg2() {
 		get_input(sequence, level);
 
 		if(game_ongoing_mg2){
+			k_msleep(200); // wait for a short time to allow a clear difference between user and system
 			lcdStringWrite("Correct!");
+			buzzerSetPwm(0, 666); // Play a sound for correct input
 			show_correct();
+			buzzerTurnOff(0);
 			lcdClear();
 		}
 

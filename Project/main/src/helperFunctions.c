@@ -57,23 +57,17 @@ void clear_btnmatrix_leds(){
 
 //function to show a circle on the button matrix for 2 seconds
 void show_correct(){
-	k_msleep(200); // wait for a short time to allow a clear difference between user and system
 	uint8_t data_button_matrix[4] = {0b00000110, 0b00001001, 0b00001001, 0b00000110};
 	btnmatrix_outSetMutexValue(data_button_matrix);
-	buzzerSetPwm(0, 666); // Play a sound for correct input
 	k_msleep(2000);
-	buzzerTurnOff(0);
 	clear_btnmatrix_leds();
 }
 
 //function to show a cross on the button matrix  for 2 seconds
 void show_incorrect(){
-	k_msleep(200); // wait for a short time to allow a clear difference between user and system
 	uint8_t data_button_matrix[4] = {0b00001001, 0b00000110, 0b00000110, 0b00001001};
 	btnmatrix_outSetMutexValue(data_button_matrix);
-	buzzerSetPwm(0, 82); // Play a sound for incorrect input
 	k_msleep(2000);
-	buzzerTurnOff(0);
 	clear_btnmatrix_leds();
 }
 
