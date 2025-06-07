@@ -29,7 +29,6 @@ int noteSounds[16] = {
 //returns 0 if sequence matches, 1 if no match
 uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input)
 {
-	k_msleep(200); // wait for a short time to allow a clear difference between user and system
 	if (sequence[input] != input_sequence[input]) {
 		LOG_INF("Sequences don't match\n");
 		lcdStringWrite("Incorrect!");
