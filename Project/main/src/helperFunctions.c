@@ -4,7 +4,7 @@ LOG_MODULE_REGISTER(helperFunctions);
 K_TIMER_DEFINE(timer, NULL, NULL);
 
 // LED circle direction to location related definitions
-#define ANGLE_BUFFER_SIZE 20 // Number of angles to average for the circle direction
+#define ANGLE_BUFFER_SIZE 10 // Number of angles to average for the circle direction
 #define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
 #define DIST_MIN_WIDTH 200 	//Distance at which the circle has maximum width
 #define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
@@ -332,4 +332,24 @@ void set_led_circle_dir_dist(int dir, int distance)
 		}
 	}
 	ledcircleSetMutexValue(outputValues);
+}
+
+/**
+ * @brief Convert degrees to radians.
+ * @param dir The angle in degrees.
+ * @return The angle in radians.
+ */
+int get_relative_dir(int dir)
+{
+	int compassDir;
+	gyroCompass_get_heading(&compassDir);	// Angle of device
+	compassDir = circleMovingAvg(compassDir);
+	dir = dir - compassDir;					// Add to get the direction compared to the device
+	if (dir < 0 ) {
+		dir += 360;
+	} else if (dir >= 360)
+	{
+		dir -= 360;
+	}
+	return dir;	// Return the direction relative to the device
 }

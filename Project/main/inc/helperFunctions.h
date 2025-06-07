@@ -28,4 +28,5 @@ uint8_t get_btnmatrix_input_number_untimed();
 void set_btnmatrix_led(uint8_t position);
 
 void set_led_circle_dir_dist(int dir, int distance);
+int get_relative_dir(int dir);
 #endif //HELPERFUNCTIONS_H

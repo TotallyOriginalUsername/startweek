@@ -57,7 +57,7 @@ int playIdle() {
 		int64_t currLat = getLatitude();		// Get the current latitude
 		int64_t currLon = getLongitude();		// Get the current longitude
 		if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
-			LOG_ERR("GPS does not have a lock!\n");
+			LOG_ERR("GPS does not have a lock! Lat: %llu Lon: %llu\n", currLat, currLon);
 			lcdStringWrite("GPS heeft geen  fix..");
 			k_msleep(500);
 			lcdStringWrite("GPS heeft geen  fix...");
@@ -73,7 +73,7 @@ int playIdle() {
 			distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(lons[locIndex]), nanoDegToLdDeg(lats[locIndex])); // Distance from current position to next location (meters)
 			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(lats[locIndex]), nanoDegToLdDeg(lons[locIndex]));					// Angle between current location and next location
 
-			set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
+			set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
 		}
 	}
 #endif
