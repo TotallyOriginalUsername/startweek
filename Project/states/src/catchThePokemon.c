@@ -2,6 +2,12 @@
 
 LOG_MODULE_REGISTER(catchThePokemon);
 
+#define BALLS 16
+#define POKEMON 5 // number of pokemon to catch
+#define POKEMONLOCATIONS 32 // number of locations where pokemon can be found
+#define MAX_ATTEMPTS 8
+#define POKEMON_DISTANCE 10 // meters
+
 #define HINT_COOLDOWN 3 // in minutes
 
 #define TIME_MAX 10
@@ -143,7 +149,7 @@ void updateThrowTiming(uint8_t *timing_of_throw)
 
 /**
  * @brief handles the non-blocking time update
- * @param time pointer to the time value to be updated
+ * @param timing_of_throw pointer to the time value to be updated
  */
 void nonBlockingTimeHandler(uint8_t *timing_of_throw)
 {
@@ -230,14 +236,16 @@ bool checkPokemonLeft()
     if(pokemonCaught >= POKEMON)
     {
         LOG_INF("All pokemon caught!");
-        lcdStringWrite("You have caught all pokemon!");
+        lcdStringWrite("Je hebt alle pokemon");
+        k_msleep(1000);
+        lcdStringWrite("gevangen!");
 
         pokemonLeft = false;
     }
     else if ((pokemonCaught  + pokemonFled) >= POKEMONLOCATIONS)
     {
         LOG_INF("No pokemon left to catch! Caught: %d, Fled: %d", pokemonCaught, pokemonFled);
-        lcdStringWrite("No pokemon left!");
+        lcdStringWrite("Geen pokemon over!");
 
         pokemonLeft = false;
     }
@@ -255,7 +263,7 @@ bool checkBallsLeft()
     if (balls <= 0)
     {
         LOG_DBG("Out of pokeballs!");
-        lcdStringWrite("Out of pokeballs");
+        lcdStringWrite("Geen ballen over!");
         playSound(4, NULL); // Play out of balls sound
         game_ongoing_pokemon = false;
         return false;
@@ -666,11 +674,10 @@ void set_Pokemon_Hint(int pokemonIndex)
         int dir = 0;
         int distMeters = 0;
         lcdStringWrite("Volg het licht!");
-        lcdClear();
         distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
         dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
 
-        set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
+        set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
     }
 }
 

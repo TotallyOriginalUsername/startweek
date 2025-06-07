@@ -17,12 +17,6 @@
 
 #define catchThePokemonThreadCount 6
 
-#define BALLS 16
-#define POKEMON 5 // number of pokemon to catch
-#define POKEMONLOCATIONS 32 // number of locations where pokemon can be found
-#define MAX_ATTEMPTS 8
-#define POKEMON_DISTANCE 10 // meters
-
 void getCatchThePokemonThreads(char ***, unsigned *);
 
 int playCatchThePokemon();
