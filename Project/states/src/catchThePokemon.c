@@ -119,24 +119,24 @@ bool isAnyButtonPressed() {
 
 /**
  * @brief updates the time value based on the increasing or decreasing state
- * @param time pointer to the time value to be updated
+ * @param timing_of_throw pointer to the time value to be updated
  */
-void updateTime(char *time)
+void updateThrowTiming(uint8_t *timing_of_throw)
 {
-    // Update the time value based on the increasing or decreasing state
+    // Update the timing_of_throwtiming value based on the increasing or decreasing state
     if (increasing) {
-        *time += TIME_STEP;
+        *timing_of_throw += TIME_STEP;
     } else {
-        *time -= TIME_STEP;
+        *timing_of_throw -= TIME_STEP;
     }
 
-    // Cap the time value at the defined limits
-    if (*time >= TIME_MAX) {
-        *time = TIME_MAX; // Cap the time at max
+    // Cap the timing_of_throw value at the defined limits
+    if (*timing_of_throw >= TIME_MAX) {
+        *timing_of_throw = TIME_MAX; // Cap the timing_of_throw at max
         increasing = false; // Switch to decreasing when max is reached
     }
-    else if (*time <= TIME_MIN) {
-        *time = TIME_MIN; // Cap the time at min
+    else if (*timing_of_throw <= TIME_MIN) {
+        *timing_of_throw = TIME_MIN; // Cap the timing_of_throw at min
         increasing = true; // Switch to increasing when min is reached
     }
 }
@@ -145,14 +145,14 @@ void updateTime(char *time)
  * @brief handles the non-blocking time update
  * @param time pointer to the time value to be updated
  */
-void nonBlockingTimeHandler(char *time)
+void nonBlockingTimeHandler(uint8_t *timing_of_throw)
 {
     static int64_t lastUpdate = 0;
     int64_t currentTime = k_uptime_get(); // Get the current time in milliseconds
 
     if (currentTime - lastUpdate > TIME_INTERVAL_MS)
     {
-        updateTime(time);
+        updateThrowTiming(timing_of_throw);
         lastUpdate = currentTime; // Update the last update time
     }
 }
@@ -288,9 +288,6 @@ int selectLocations()
         pokemonLocation[i].id = (uint8_t)i;
     }
 
-    lcdStringWrite("Exited location selection");
-    k_msleep(2000); // Wait to display the message
-
     for (int i = 0; i < POKEMON; i++)
     {
         pokemonToCatch[i] = rand() % POKEMONLOCATIONS; // Randomly select pokemon locations
@@ -315,8 +312,6 @@ int initMg()
     game_ongoing_pokemon = true;
     catchEvent = false;
     startTime = k_uptime_get(); // Get the current time in milliseconds
-
-    srand(k_uptime_get() + getMinute() + getHour() + getLatitude()); // seed random number generator
 
     lcdEnable();
     lcdStringWrite("Vind en vang de pokemon!");
@@ -350,7 +345,6 @@ void setMatrix()
  * @param y center y coordinate of the pokemon on the 16x16 LED
  * @returns 0 if everything went as expected
  * @note Advisory position is to not go below Y 8
- * @note X position should be between 3 and 12
  */
 int displayPokemon(uint8_t x, uint8_t y)
 {
@@ -671,6 +665,7 @@ void set_Pokemon_Hint(int pokemonIndex)
     {
         int dir = 0;
         int distMeters = 0;
+        lcdStringWrite("Volg het licht!");
         lcdClear();
         distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
         dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
@@ -685,7 +680,7 @@ void set_Pokemon_Hint(int pokemonIndex)
  */
 bool pokemonNearby()
 {
-    lcdStringWrite("Zoek naar Pokemon..");
+    lcdStringWrite("Vind en vang de Pokemon!");
     k_msleep(1000); // Wait for a second to show the message
     for (int i = 0; i < (POKEMON); i++)
     {
