@@ -33,6 +33,18 @@ int64_t getLongitude() {
 	return gpsData.nav_data.longitude;
 }
 
+struct gnss_time getGnssTime() {
+	return gpsData.utc;
+}
+
+uint8_t getHour() {
+	return gpsData.utc.hour;
+}
+
+uint8_t getMinute() {
+	return gpsData.utc.minute;
+}
+
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
 
 #if CONFIG_GNSS_SATELLITES
@@ -64,7 +76,15 @@ long double toDegrees(const long double radians)
     long double one_rad = 180 / (M_PI);
     return (one_rad * radians);
 }
- 
+
+/**
+ * @brief Get the distance between two coordinates in meters
+ *
+ * Calculate the distance between two coordinates in meters using the Haversine formula.
+ * Takes a latitude and longitude (twice) for two coordinates.
+ *
+ * @return Distance between the coordinate arguments in meters
+ */
 long double getDistanceMeters(long double lat1, long double long1, 
                      long double lat2, long double long2)
 {
