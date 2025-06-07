@@ -2,6 +2,7 @@
 #include "statemachine.h"
 #include "threads.h"
 #include "sdCard.h"
+#include "gps.h"
 
 #include "idle.h"
 #include "minigame1.h"
@@ -56,6 +57,19 @@ void init_state(struct state *state) {
 	}
 	initialize();
 	Startupdelay = 0;
+
+	// check if current time is the same as the start time
+	int16_t start_time = 0;
+	int16_t current_time = 0;
+	while (current_time != start_time || current_time == 0)
+	{
+		start_time = sd_get_start_time();
+		int16_t hour = getHour();
+		int16_t minute = getMinute();
+		current_time = (int16_t)((hour * 60) + minute);
+		LOG_INF("Start time: %d, Current time: %d", start_time, current_time);
+	}
+
 	state->next = idle_state;
 }
 
