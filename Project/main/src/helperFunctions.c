@@ -8,7 +8,7 @@ K_TIMER_DEFINE(timer, NULL, NULL);
 #define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
 #define DIST_MIN_WIDTH 200 	//Distance at which the circle has maximum width
 #define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
-#define LEDS_MIN_WIDTH 0	// Amount of LEDS at DIST_MIN_WIDTH
+#define LEDS_MIN_WIDTH 3	// Amount of LEDS at DIST_MIN_WIDTH
 #define LEDS_MAX_WIDTH 48	// Amount of LEDS at DIST_MAX_WIDTH
 #define LEDS_RANGE_WIDTH (LEDS_MAX_WIDTH - LEDS_MIN_WIDTH)
 #define MAX_DIR 359

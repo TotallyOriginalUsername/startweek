@@ -3,6 +3,7 @@
 //
 #include "locations.h"
 
+#include <lcd.h>
 #include <stdlib.h>
 #include <zephyr/data/json.h>
 #include "sdCard.h"
@@ -10,7 +11,7 @@
 LOG_MODULE_REGISTER(locations);
 
 #define MAX_TYPES (1 << (sizeof(uint16_t) * 8))
-#define BUFFER_SIZE 512 // dirty to have this here.
+#define BUFFER_SIZE 8192 // dirty to have this here.
 
 /**
  * @brief Load locations from a file based on the type.
@@ -37,8 +38,8 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
         return -2;
 
     struct json_obj_descr loc_descr[] = {
-        JSON_OBJ_DESCR_PRIM(struct Location, x, JSON_TOK_NUMBER),
-        JSON_OBJ_DESCR_PRIM(struct Location, y, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y, JSON_TOK_NUMBER),
     };
 
     struct json_obj json_arr;
@@ -50,17 +51,35 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     }
 
     size_t i = 0;
-    for (; i < maxLocations; ++i) {
+    while (i < maxLocations) {
         memset(&locArray[i], 0, sizeof(struct Location));
         ret = json_arr_separate_parse_object(&json_arr, loc_descr, 2, &locArray[i]);
-        if (ret == 0) break; // End of array
+        if (ret == 0)
+        {
+            LOG_INF("End of array reached at index %zu", i);
+            lcdStringWrite("End of array reached");
+            k_msleep(2000); // Wait to display the message
+            break; // End of array
+        }
         if (ret < 0) {
             LOG_ERR("Parse error at index %zu: %d", i, ret);
             // Free allocated locations before returning
             free(locArray);
             return ret;
         }
+        i++;
     }
+
+    char tmp[256];
+    snprintf(tmp, sizeof(tmp), "count: %zu, maxLocations: %zu", i, maxLocations);
+    for (int k = 0; k < i; k++) {
+        k_msleep(1000); // Wait to display each location
+        snprintf(tmp, sizeof(tmp), "B) %d: Lat:%llu, Lon: %llu", k, locArray[k].x, locArray[k].y);
+        lcdStringWrite(tmp);
+        k_msleep(1000); // Wait to display each location
+    }
+    lcdStringWrite(tmp);
+    k_msleep(2000); // Wait to display the message
 
     *count = i;
     *locations = locArray;

@@ -182,7 +182,7 @@ uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int ret = 0;
-	char file_data_buffer[max_len]; // Buffer to hold file data
+	char file_data_buffer[2*max_len]; // Buffer to hold file data
 	struct fs_file_t data_filp;
 
 	fs_file_t_init(&data_filp);

@@ -1,6 +1,8 @@
 #include "catchThePokemon.h"
 
 #include "helperFunctions.h"
+#include "sdCard.h"
+#include "locations.h"
 #include <stdlib.h>
 
 LOG_MODULE_REGISTER(catchThePokemon);
@@ -12,13 +14,17 @@ LOG_MODULE_REGISTER(catchThePokemon);
 #define TIME_STEP 1
 #define TIME_INTERVAL_MS 100 // Adjust for smoother or faster changes
 
+// sounds
 #define START_GAME_SOUND 5
 #define END_GAME_SOUND 6
+
+#define MAX_SCORE 1000 // Maximum score for the game
 
 char *catchThePokemonThreads[catchThePokemonThreadCount] = {"startbtn", "btnmatrix_in", "ledcircle", "buzzers", "ledmatrix", "btnmatrix_out"}; // missing lcd threads
 bool game_ongoing_pokemon, catchEvent;
 uint8_t balls, pokemonCaught, pokemonFled;
 uint16_t displayMatrix[16] = {0};
+uint64_t startTime;
 int pokemonToCatch = -1;
 
 struct pokemonLocation
@@ -263,11 +269,35 @@ bool checkBallsLeft()
  */
 int selectLocations()
 {
-    for (int i = 0; i < POKEMONLOCATIONS; i++)
-    {
-        // fill location array with random available locations
+    struct Location *locArray = NULL;
+    size_t count = 0;
+    int ret = locations_load(0, &locArray, &count, POKEMONLOCATIONS);
+    if (ret != 0 || count < POKEMONLOCATIONS) {
+        // handle error
+        LOG_ERR("Failed to load locations or not enough locations. Error: %d, location count: %zu", ret, count);
+        return ret;
     }
-    return true;
+
+    for (size_t i = 0; i < POKEMONLOCATIONS; ++i)
+    {
+        pokemonLocation[i].lat = locArray[i].x;
+        pokemonLocation[i].longi = locArray[i].y;
+        pokemonLocation[i].caught = false;
+        pokemonLocation[i].fled = false;
+        pokemonLocation[i].id = i;
+
+        // test:
+        char tmp[64];
+        snprintf(tmp, sizeof(tmp), "%d: Lat: %lld, Lon: %lld", i, pokemonLocation[i].lat, pokemonLocation[i].longi);
+        lcdStringWrite(tmp);
+        k_msleep(1000); // Wait to display each location
+    }
+
+    lcdStringWrite("Locations loaded!");
+    k_msleep(1000); // Wait to display the message
+
+    free(locArray);
+    return 0;
 }
 
 /**
@@ -284,6 +314,7 @@ int initMg()
     pokemonFled = 0;
     game_ongoing_pokemon = true;
     catchEvent = false;
+    startTime = k_uptime_get(); // Get the current time in milliseconds
 
     lcdEnable();
     lcdStringWrite("Vind en vang de pokemon!");
@@ -292,7 +323,10 @@ int initMg()
     k_msleep(3000);
 
     err = selectLocations();
-    // init hints
+    if (err != 0) {
+        LOG_ERR("Failed to select locations: %d", err);
+        return err; // Return error if location selection fails
+    }
     return 0;
 }
 
@@ -635,10 +669,8 @@ void set_Pokemon_Hint(int pokemonIndex)
     const int64_t currLon = getLongitude();		// Get the current longitude
     if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
         LOG_ERR("GPS does not have a lock!\n");
-        lcdStringWrite("GPS heeft geen  fix..");
-        k_msleep(500);
-        lcdStringWrite("GPS heeft geen  fix...");
-        k_msleep(500);
+        lcdStringWrite("GPS 1 heeft geen  fix..");
+        k_msleep(1000);
     } else
     {
         int dir = 0;
@@ -660,11 +692,33 @@ bool pokemonNearby()
     for (int i = 0; i < (POKEMONLOCATIONS); i++)
     {
         // check if the pokemon is within the distance
-        if (getDistanceMeters(getLatitude(), getLongitude(), pokemonLocation[i].lat, pokemonLocation[i].longi) < POKEMON_DISTANCE)
+        int64_t currLat = getLatitude();
+        int64_t currLon = getLongitude();
+        if (currLat == 0 && currLon == 0) // GPS doesn't have lock
         {
+            LOG_ERR("GPS does not have a lock!\n");
+            lcdStringWrite("GPS 2 heeft geen  fix..");
+            k_msleep(1000);
+            return false; // No pokemon nearby if GPS is not locked
+        }
+
+        int distance = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), (pokemonLocation[i].lat), (pokemonLocation[i].longi));
+        if (distance < POKEMON_DISTANCE)
+        {
+            char tmp[48];
+            snprintf(tmp, sizeof(tmp), "ID: %d, Distance: %d meters", pokemonLocation[i].id, distance);
+            LOG_ERR("Pokemon with ID %d is nearby at a distance of %d meters", pokemonLocation[i].id, distance);
+            lcdStringWrite(tmp);
+            k_msleep(10000);
+
             pokemonToCatch = i;
             return true;
         }
+        LOG_ERR("Pokemon with ID %d is at a distance of %d meters", pokemonLocation[i].id, distance);
+        LOG_ERR("Curr Lat: %lld, Curr Lon: %lld", currLat, currLon);
+        LOG_ERR("Pokemon Lat: %lld, Pokemon Lon: %lld", pokemonLocation[i].lat, pokemonLocation[i].longi);
+        k_msleep(100);
+
     }
     return false;
 }
@@ -712,6 +766,27 @@ int pokemonGame()
     return 0;
 }
 
+int calculateScore(int totalAttempts)
+{
+    uint64_t totalTime = k_uptime_get() - startTime; // calculate the total time in milliseconds
+    int score = 0;
+
+    // formula used:
+    // Score = ((Caught / totalPokemon) * 400) / (sqrt((0.3*attempts)/(caught/totalpokemon) * ((timeTaken+ 3 * minute)/minute) * 10 - 150
+    score = ((pokemonCaught / (double)POKEMON) * 400) / (sqrt(0.3 * (totalAttempts / ((double)pokemonCaught / (double)POKEMON))) * ((totalTime + 180000) / 60000) * 10 - 150);
+
+    if (score < 0)
+        score = 0;
+    if (score > MAX_SCORE)
+        score = MAX_SCORE;
+    return score;
+}
+
+/**
+ * @brief starts the catch the pokemon game
+ * @returns 0 if everything went as expected
+ * @note this function is called from the main thread
+ */
 int playCatchThePokemon()
 {
     int err;
@@ -719,11 +794,15 @@ int playCatchThePokemon()
     if (err)
     {
         LOG_ERR("Init error: %d", err);
-        // lcdStringWrite("Init error");
-        // k_msleep(1000);
+
+        char tmp[32];
+        snprintf(tmp, sizeof(tmp), "Pokemon init error: %d", err);
+        lcdStringWrite(tmp);
+        k_msleep(10000);
+        return err; // Return error if initialization fails
     }
 
-    int score = 0;
+    int score[POKEMON] = {0};
     while (game_ongoing_pokemon)
     {
         // add timer check if players are playing for more than 15 minutes.
@@ -740,15 +819,27 @@ int playCatchThePokemon()
         else
         {
             catchEvent = false;
-
-            score = catchingMg();
+            int minigameNr = pokemonCaught + pokemonFled; // the minigame number is the amount of pokemon caught + fled since one of these always happens
+            score[minigameNr] = catchingMg();
         }
 
         // delay
     }
 
-    // gameover + handle score
-    // cleanup game
+    int totalAttepts = 0;
+    for (int i = 0; i < POKEMON; i++)
+    {
+        totalAttepts += score[i];
+    }
+    int totalScore = sd_get_score();
+    totalScore += calculateScore(totalAttepts);
+    err = sd_set_score(totalScore);
+    if (err)
+    {
+        LOG_ERR("Error setting score: %d", err);
+    }
+
+
 
     return 0;
 }
