@@ -4,6 +4,7 @@
 #include "sdCard.h"
 #include "gps.h"
 
+#include "endGame.h"
 #include "idle.h"
 #include "minigame1.h"
 #include "minigame2.h"
@@ -35,12 +36,14 @@ struct state {
 	int i;
 };
 
-state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, exit_state;
+state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, end_game_state, exit_state;
 // Array of state functions
 state_fn* minigame_states[] = {
     mg1_state, mg2_state, mg3_state, mg4_state, mg5_state,
     mg6_state, mg7_state, mg8_state, mg9_state, mg10_state
 };
+
+static int16_t end_time;
 
 // State functions
 void init_state(struct state *state) {
@@ -67,8 +70,10 @@ void init_state(struct state *state) {
 		int16_t hour = getHour();
 		int16_t minute = getMinute();
 		current_time = (int16_t)((hour * 60) + minute);
-		LOG_INF("Start time: %d, Current time: %d", start_time, current_time);
+		// LOG_INF("Start time: %d, Current time: %d", start_time, current_time);
 	}
+
+	end_time = sd_get_end_time();
 
 	state->next = idle_state;
 }
@@ -263,13 +268,50 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 	state->next = idle_state;
 }
 
+
+void end_game_state(struct state *state)
+{
+	LOG_INF("End game state");
+
+	char **names;
+	unsigned amount;
+	getMg10Threads(&names, &amount);
+	enableThreads(names, amount);
+
+	playEndGame();
+
+	disableThreads(names, amount);
+
+	// state->next = exit_state;
+}
+
 void exit_state(struct state *state) {
 	LOG_INF("Exit state");
 	disableAllThreads(); // Shouldn't be required, but just to be sure
 	state->next = 0;
 }
 
+bool check_end_time_reached() {
+	// Get the current time
+	int16_t hour = getHour();
+	int16_t minute = getMinute();
+	int16_t current_time = (int16_t)((hour * 60) + minute);
+
+	// Check if the end time has been reached
+	if (current_time >= end_time) {
+		LOG_INF("End time reached: %d", current_time);
+		return true;
+	}
+	return false;
+}
+
+
 void startStatemachine() {
 	struct state state = {init_state, 0};
-	while (state.next) state.next(&state);
+	while (state.next)
+	{
+		state.next(&state);
+		if (check_end_time_reached())
+			state.next = exit_state; // Transition to exit state if end time is reached
+	}
 }

@@ -261,9 +261,16 @@ int16_t get_time(uint8_t type)
 	}
 
 	ret = fs_read(&data_filp, file_data_buffer, 200);
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to read file (err = %d)\n", __func__, ret);
+		fs_close(&data_filp);
+		return ret; // narrowing conversion from 'int' to 'int16_t' may lose data
+	} else {
+		// LOG_MSG_DBG("%s - successfully read file\n", __func__);
+	}
 	fs_close(&data_filp);
 
-	sscanf(file_data_buffer, "%d", &time);
+	sscanf(file_data_buffer, "%hd", &time);
 #endif
 	return time;
 }
