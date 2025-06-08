@@ -39,17 +39,17 @@ void getEndGameThreads(char ***names, unsigned *amount) {
 void playEndGame()
 {
     int score = 0;
-    char score_string[5];
+    char score_string[16];
     int distMeters = 100;	// Initialize to a value outside the expected range
     int dir = 0;			// Direction the user must head in
 
     score = sd_get_score();
-    snprintf(score_string, sizeof(score_string), "%04d", score);
-
-    sevenSegmentSet(score_string, 0);
+    snprintf(score_string, sizeof(score_string), "Score: %04d", score);
 
     while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
         show_oneliners(oneLinersEndGame, End_Game_ONELINERS);
+        lcdStringWrite(score_string);
+        k_msleep(3000);
 
         int64_t currLat = getLatitude();		// Get the current latitude
         int64_t currLon = getLongitude();		// Get the current longitude
@@ -67,4 +67,5 @@ void playEndGame()
             set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
         }
     }
+    lcdStringWrite(score_string);
 }
