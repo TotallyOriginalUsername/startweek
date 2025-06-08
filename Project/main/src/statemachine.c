@@ -56,7 +56,7 @@ void init_state(struct state *state) {
 	}
 	initialize();
 	Startupdelay = 0;
-	state->next = mg4_state;
+	state->next = idle_state;
 }
 
 void idle_state(struct state *state) {
