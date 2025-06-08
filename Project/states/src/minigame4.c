@@ -111,10 +111,10 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
 	}
 
 	static const struct json_obj_descr quiz_descr[] = {
-		JSON_OBJ_DESCR_PRIM(struct Quiz, question, JSON_TOK_STRING),
-		JSON_OBJ_DESCR_PRIM(struct Quiz, answerA, JSON_TOK_STRING),
-		JSON_OBJ_DESCR_PRIM(struct Quiz, answerB, JSON_TOK_STRING),
-		JSON_OBJ_DESCR_PRIM(struct Quiz, answerC, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, question, JSON_TOK_STRING_BUF),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerA, JSON_TOK_STRING_BUF),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerB, JSON_TOK_STRING_BUF),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerC, JSON_TOK_STRING_BUF),
 		JSON_OBJ_DESCR_PRIM(struct Quiz, correct, JSON_TOK_NUMBER),
 	};
 
