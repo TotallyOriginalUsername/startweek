@@ -71,7 +71,7 @@ void init_state(struct state *state) {
 		int16_t minute = getMinute();
 		current_time = (int16_t)((hour * 60) + minute);
 		// LOG_INF("Start time: %d, Current time: %d", start_time, current_time);
-		char buffer[16];
+		char buffer[32];
 		sprintf(buffer, "Spel start in %d min", minute);
 		lcdStringWrite(buffer);
 	}
