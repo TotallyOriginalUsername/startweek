@@ -64,6 +64,7 @@ void init_state(struct state *state) {
 	// check if current time is the same as the start time
 	int16_t start_time = 0;
 	int16_t current_time = 0;
+	lcdEnable();
 	while (current_time < start_time || current_time == 0)
 	{
 		start_time = sd_get_start_time();
