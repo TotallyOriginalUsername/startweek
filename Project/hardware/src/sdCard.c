@@ -182,68 +182,7 @@ uint8_t sd_set_score(int score){
 
 
 
-#define MAX_LEN 512// ugly as fuq
-#define MAX_QUIZZES 4// f me
-/*/
-struct Quiz {
-	char question[MAX_LEN];
-	char answerA[MAX_LEN];
-	char answerB[MAX_LEN];
-	char answerC[MAX_LEN];
-	int correct;
-};
-
-struct QuizSet {
-	struct Quiz quizzes[MAX_QUIZZES]; // ugly as fuq
-};
-
-static const struct json_obj_descr quiz_descr[] = {
-	JSON_OBJ_DESCR_PRIM(struct Quiz, question, JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct Quiz, answerA, JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct Quiz, answerB, JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct Quiz, answerC, JSON_TOK_STRING),
-	JSON_OBJ_DESCR_PRIM(struct Quiz, correct, JSON_TOK_NUMBER),
-};
-
-
-static const struct json_obj_descr quizset_descr[] = {
-	JSON_OBJ_DESCR_ARRAY(struct QuizSet, quizzes, MAX_QUIZZES, quiz_descr, ARRAY_SIZE(quiz_descr)),
-};*/
-/*
-struct Quiz sd_get_trivia(int trivia_index){
-	struct QuizSet questions;
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-    int ret = 0;
-    char file_data_buffer[50];
-    struct fs_file_t data_filp;
-
-    fs_file_t_init(&data_filp);
-
-    ret = fs_open(&data_filp, "/SD:/trivia.txt", FS_O_READ);
-	if (ret) {
-		printk("%s -- failed to open file (err = %d)\n", __func__, ret);
-		return -2;
-	} else {
-		//printk("%s - successfully opened file\n", __func__);
-	}
-
-	ret = fs_read(&data_filp, file_data_buffer, 200);
-	fs_close(&data_filp);
-
-	int ret = json_obj_parse(json_blob, strlen(json_blob), quizset_descr, ARRAY_SIZE(quizset_descr), &quiz_set);
-
-	//sscanf(file_data_buffer, "%s", &question); // this wont work
-
-#else
-	strcpy(questions.quizzes[0].question , "test question");
-	strcpy(questions.quizzes[0].answerA , "a = wrong");
-	strcpy(questions.quizzes[0].answerB , "b = wright");
-	strcpy(questions.quizzes[0].answerC , "c = wrong2");
-	questions.quizzes[0].correct = 0;
-#endif
-    return questions.quizzes[trivia_index];
-}
-*/
+#define MAX_LEN 512// ugly
 
 
 

@@ -19,7 +19,7 @@ void getMg4Threads(char ***names, unsigned *amount) {
 
 #define MG4_ONELINERS 3
 char oneLinersMG4[MG4_ONELINERS][32] = {
-	"localee Trivia!",
+	"lokale Trivia!",
 	"Zephyr 3.6",
 	"Z3.6 SDK 0.16.9"
 };
@@ -108,20 +108,11 @@ int playMg4() {
 		k_msleep(3000);
 		return -1;
 	}
-	sprintf(buf, "count of q =: %d ", count );
-	lcdStringWrite(buf);
-	k_msleep(3000);
 
-
-
-	for (size_t i = 0; i < count; ++i) {
-		locs[i].question[31]  = '\0';
-		sprintf(buf, "%d: Q=%s cor= %d", i, locs[i].question , locs[i].correct);
-		lcdStringWrite(buf);
-		LOG_ERR("doing good things: %s", buf);
-		k_msleep(3000);
-	}
-
+	
+	sprintf(buf, "Total questions loaded =: %d ", count );
+	LOG_INF(" %s", buf);
+	
 
 	show_oneliners(oneLinersMG4 , MG4_ONELINERS);
 	lcdEnable();
