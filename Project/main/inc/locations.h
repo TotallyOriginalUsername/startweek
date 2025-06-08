@@ -10,6 +10,7 @@
 struct Location {
     int64_t x;
     int64_t y;
+    uint8_t mg_id; // Minigame ID, 0 if not applicable
 };
 
 int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);

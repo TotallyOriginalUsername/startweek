@@ -35,24 +35,30 @@ static struct locations {
 	uint8_t mg_id;
 } locations[NR_OF_LOCS] = {0};
 
+static size_t locations_count = 0;
+
 // TODO: Add minigame ID's to the locations struct
 void initLocations()
 {
 	struct Location *locArray = NULL;
-	size_t count = 0;
-	int ret = locations_load(1, &locArray, &count, NR_OF_LOCS);
+	char lcd_msg[32];
+	int ret = locations_load(1, &locArray, &locations_count, NR_OF_LOCS);
 	if (ret != 0)
 	{
+		snprintf(lcd_msg, sizeof(lcd_msg), "Init loc err: %d", ret);
+		lcdEnable();
+		lcdStringWrite(lcd_msg);
+		k_msleep(2000);
 		LOG_ERR("Failed to load locations from disk");
 		return;
 	}
 
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < locations_count; i++)
 	{
 		locations[i].lat = locArray[i].x;
 		locations[i].lon = locArray[i].y;
-		locations[i].mg_id = 0; // Set to 0 for now, must be set later based on the game ID
-		LOG_INF("Location %d: lat=%lld, lon=%lld", i, locations[i].lat, locations[i].lon);
+		locations[i].mg_id = locArray[i].mg_id < GAMES_AMOUNT ? locArray[i].mg_id : -2; // -2 if no minigame is assigned or out of range
+		LOG_INF("Location %d: lat=%lld, lon=%lld, mg_id=%d", i, locations[i].lat, locations[i].lon, locations[i].mg_id);
 	}
 }
 
@@ -112,8 +118,10 @@ int playIdle() {
 #endif
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	if (locations[0].lat == 0 || locations[0].lon == 0) // Check if locations are initialized
+	static bool firstTimeIdle = true; // i know should be in init but this is easier for now.
+	if (firstTimeIdle) // Check if locations are initialized
 	{
+		firstTimeIdle = false;
 		initLocations();
 	}
 #endif
@@ -130,6 +138,12 @@ int playIdle() {
 	}
 	if (allGamesFinished) {
 		LOG_INF("All games completed\n");
+		return -1;
+	}
+
+	if (locIndex >= locations_count)
+	{
+		LOG_INF("All locations have been visited.");
 		return -1;
 	}
 
@@ -166,5 +180,5 @@ int playIdle() {
 	k_msleep(4000);
 	completedGames[locIndex] = true;
 	locIndex++; // Increment the index to the  next location.
-	return locIndex--; // Return the index of the game that has to be played.
+	return locations[locIndex--].mg_id; // Return the index of the game that has to be played.
 }

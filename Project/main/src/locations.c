@@ -36,10 +36,27 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     if (!locArray)
         return -2;
 
-    struct json_obj_descr loc_descr[] = {
+
+    struct json_obj_descr loc_descr_type1[] = {
+        JSON_OBJ_DESCR_PRIM(struct Location, x, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM(struct Location, y, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM(struct Location, mg_id, JSON_TOK_NUMBER),
+    };
+    struct json_obj_descr loc_descr_type0[] = {
         JSON_OBJ_DESCR_PRIM(struct Location, x, JSON_TOK_NUMBER),
         JSON_OBJ_DESCR_PRIM(struct Location, y, JSON_TOK_NUMBER),
     };
+
+    const struct json_obj_descr *loc_descr;
+    size_t loc_descr_len;
+
+    if (type == 1) {
+        loc_descr = loc_descr_type1;
+        loc_descr_len = ARRAY_SIZE(loc_descr_type1);
+    } else {
+        loc_descr = loc_descr_type0;
+        loc_descr_len = ARRAY_SIZE(loc_descr_type0);
+    }
 
     struct json_obj json_arr;
     ret = json_arr_separate_object_parse_init(&json_arr, json_buf, len);
@@ -52,7 +69,7 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     size_t i = 0;
     for (; i < maxLocations; ++i) {
         memset(&locArray[i], 0, sizeof(struct Location));
-        ret = json_arr_separate_parse_object(&json_arr, loc_descr, 2, &locArray[i]);
+        ret = json_arr_separate_parse_object(&json_arr, loc_descr, loc_descr_len, &locArray[i]);
         if (ret == 0) break; // End of array
         if (ret < 0) {
             LOG_ERR("Parse error at index %zu: %d", i, ret);
