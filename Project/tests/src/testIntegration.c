@@ -1,6 +1,4 @@
-//#define INTEGRATION
-
-#ifdef INTEGRATION
+#ifdef CONFIG_TEST_INTEGRATION
 
 #include <zephyr/ztest.h>
 #include "threads.h"

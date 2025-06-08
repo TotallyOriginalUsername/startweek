@@ -11,6 +11,7 @@ file(GLOB SRC_MAIN_SOURCES 				"src/*.c")
 file(GLOB SRC_STATES_SOURCES 			"../states/src/*.c")
 file(GLOB SRC_STATEMACHINE 				"../main/src/statemachine.c")
 file(GLOB SRC_THREADS 					"../main/src/threads.c")
+file(GLOB SRC_HELPFUNC 					"../main/src/helperFunctions.c")
 
 # Add your source files
 target_sources(app PRIVATE 
@@ -20,6 +21,7 @@ target_sources(app PRIVATE
 	${SRC_STATES_SOURCES}
 	${SRC_STATEMACHINE}
 	${SRC_THREADS}
+	${SRC_HELPFUNC}
 )
 
 # Add include directories

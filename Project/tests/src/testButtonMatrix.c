@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_BUTTONMATRIX
+
 #include <zephyr/ztest.h>
 #include "buttonMatrix.h"
 
@@ -42,3 +44,4 @@ ZTEST(testButtonMatrix, test_Buttons_Get_one)
 		zassert_equal(a,1);
 	}
 }
+#endif
