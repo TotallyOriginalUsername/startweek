@@ -19,11 +19,11 @@ int playMg4();
 #define MAX_SIZE 32
 #define BUFFER_SIZE 1024 // dirty to have this here.
 
-	struct Quiz {
-		char question[MAX_SIZE];
-		char answerA[MAX_SIZE];
-		char answerB[MAX_SIZE];
-		char answerC[MAX_SIZE];
+	struct Quiz {  //this is dangerous
+		char* question;
+		char* answerA;
+		char* answerB;
+		char* answerC;
 		int correct;
 	};
 

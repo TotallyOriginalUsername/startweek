@@ -23,68 +23,6 @@ char oneLinersMG4[MG4_ONELINERS][32] = {
 	"Zephyr 3.6",
 	"Z3.6 SDK 0.16.9"
 };
-/*/
-char questions[AMOUNT_QUESTIONS][MAX_SIZE] = {
-	"Hoe oud is Siem?",
-	"Hoe groot is Siem?",
-	"Waar werkt Siem?",
-	"Waar woont Siem?"
-};
-
-char answers[AMOUNT_QUESTIONS][AMOUNT_ANSWERS][MAX_SIZE] = {
-	{"A: 3 jaar", "B: 8 jaar", "C: 14 minuten"},
-	{"A: 77cm", "B: 108cm", "C: 135cm"},
-	{"A: Supermarkt", "B: Dierentuin", "C: School"},
-	{"A: Limburg", "B: Gelderland", "C: Brabant"}
-};
-
-const int correctAnswer[AMOUNT_QUESTIONS] = {
-	1,
-	2,
-	0,
-	0,
-};*/
-/*
-void showOnelinersMG4()
-{
-	bool done = false;
-	lcdEnable();
-	lcdStringWrite("Druk op start");
-	while (!done)
-	{
-		native_loop();
-		if(startbuttonGet())
-		{	
-			startledSet(1);
-		}
-		else
-		{
-			startledSet(0);
-			for (uint8_t i = 0; i < MG4_ONELINERS; i++)
-			{
-			lcdStringWrite(oneLinersMG4[i]);
-			k_timer_start(&secTimerMg4, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}	
-			}
-			startledSet(1);
-			while (true)
-			{
-				native_loop();
-				if(!startbuttonGet())
-				{	
-				done = true;
-				break;
-				}
-			}
-			
-		}
-	}
-	startledSet(0);
-	//lcdClear();
-	//lcdDisable();
-}
-*/
-
 
 int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t maxQuestions)
 {
@@ -98,7 +36,6 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
 
 	if (len >= BUFFER_SIZE) {
     LOG_ERR("JSON too large for buffer");
-    
     return -3;
 	}
 	json_buf[len] = '\0';  // Ensure null-termination
@@ -111,10 +48,10 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
 	}
 
 	static const struct json_obj_descr quiz_descr[] = {
-		JSON_OBJ_DESCR_PRIM(struct Quiz, question, JSON_TOK_STRING_BUF),
-		JSON_OBJ_DESCR_PRIM(struct Quiz, answerA, JSON_TOK_STRING_BUF),
-		JSON_OBJ_DESCR_PRIM(struct Quiz, answerB, JSON_TOK_STRING_BUF),
-		JSON_OBJ_DESCR_PRIM(struct Quiz, answerC, JSON_TOK_STRING_BUF),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, question, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerA, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerB, JSON_TOK_STRING),
+		JSON_OBJ_DESCR_PRIM(struct Quiz, answerC, JSON_TOK_STRING),
 		JSON_OBJ_DESCR_PRIM(struct Quiz, correct, JSON_TOK_NUMBER),
 	};
 
