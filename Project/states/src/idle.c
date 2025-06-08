@@ -14,6 +14,7 @@ LOG_MODULE_REGISTER(idle);
 
 #define REQUIRED_DIST_METERS 20
 #define GAMES_AMOUNT 10
+#define NR_OF_LOCS 64
 
 #if defined(CONFIG_TESTMODE)
 unsigned idleThreadCount = 2;
@@ -26,6 +27,33 @@ char *idleThreads[1] = {"ledcircle"};
 void getIdleThreads(char ***names, unsigned *amount) {
 	*names = idleThreads;
 	*amount = idleThreadCount;
+}
+
+static struct locations {
+	int64_t lat;
+	int64_t lon;
+	uint8_t mg_id;
+} locations[NR_OF_LOCS] = {0};
+
+// TODO: Add minigame ID's to the locations struct
+void initLocations()
+{
+	struct Location *locArray = NULL;
+	size_t count = 0;
+	int ret = locations_load(1, &locArray, &count, NR_OF_LOCS);
+	if (ret != 0)
+	{
+		LOG_ERR("Failed to load locations from disk");
+		return;
+	}
+
+	for (int i = 0; i < count; i++)
+	{
+		locations[i].lat = locArray[i].x;
+		locations[i].lon = locArray[i].y;
+		locations[i].mg_id = 0; // Set to 0 for now, must be set later based on the game ID
+		LOG_INF("Location %d: lat=%lld, lon=%lld", i, locations[i].lat, locations[i].lon);
+	}
 }
 
 int playIdle() {
@@ -84,9 +112,10 @@ int playIdle() {
 #endif
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	// Create and randomize array of coordinates
-	int64_t lats[NR_OF_LOCS] = {LAT_LOC_A, LAT_LOC_B, LAT_LOC_C, LAT_LOC_D, LAT_LOC_E, LAT_LOC_F, LAT_LOC_G, LAT_LOC_H, LAT_LOC_I, LAT_LOC_J};
-	int64_t lons[NR_OF_LOCS] = {LON_LOC_A, LON_LOC_B, LON_LOC_C, LON_LOC_D, LON_LOC_E, LON_LOC_F, LON_LOC_G, LON_LOC_H, LON_LOC_I, LON_LOC_J};
+	if (locations[0].lat == 0 || locations[0].lon == 0) // Check if locations are initialized
+	{
+		initLocations();
+	}
 #endif
 	static int locIndex = 0;
 	static bool completedGames[GAMES_AMOUNT] = {false, false, false, false, false, false, false, false, false, false};
@@ -104,9 +133,6 @@ int playIdle() {
 		return -1;
 	}
 
-	while (completedGames[locIndex] == true) {
-		locIndex = rand() % 10;	// Keep getting random index until a game which has not been done yet is found
-	}
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
@@ -129,8 +155,8 @@ int playIdle() {
 				lcdSet = true;
 			}
 
-			distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(lons[locIndex]), nanoDegToLdDeg(lats[locIndex])); // Distance from current position to next location (meters)
-			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(lats[locIndex]), nanoDegToLdDeg(lons[locIndex]));					// Angle between current location and next location
+			distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon)); // Distance from current position to next location (meters)
+			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon));					// Angle between current location and next location
 
 			set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
 		}
@@ -139,5 +165,6 @@ int playIdle() {
 	lcdStringWrite("Gearriveerd!!");
 	k_msleep(4000);
 	completedGames[locIndex] = true;
-	return locIndex;
+	locIndex++; // Increment the index to the  next location.
+	return locIndex--; // Return the index of the game that has to be played.
 }
