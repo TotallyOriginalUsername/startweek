@@ -48,6 +48,7 @@ void playEndGame()
 
     while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
         show_oneliners(oneLinersEndGame, End_Game_ONELINERS);
+        lcdEnable();
         lcdStringWrite(score_string);
         k_msleep(3000);
 
@@ -61,8 +62,8 @@ void playEndGame()
             k_msleep(500);
         } else
         {
-            distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(LON_LOC_AVANS), nanoDegToLdDeg(LON_LOC_AVANS));    // Distance from current position to next location (meters)
-            dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(LON_LOC_AVANS), nanoDegToLdDeg(LON_LOC_AVANS));					                        // Angle between current location and next location
+            distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(LAT_LOC_AVANS), nanoDegToLdDeg(LON_LOC_AVANS));    // Distance from current position to next location (meters)
+            dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(LAT_LOC_AVANS), nanoDegToLdDeg(LON_LOC_AVANS));					                        // Angle between current location and next location
 
             LOG_INF("Sending players to end location: %d meters at %d degrees\n", distMeters, dir);
             set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
