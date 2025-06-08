@@ -20,7 +20,7 @@ static const char *type_file[] = { // File paths for different types of location
 	"/SD:/poko.txt", // pokemon locations
 	"/SD:/loc.txt", // general locations
 	"/SD:/trlo.txt", // trivia locations
-	"/SD:/trivia.txt" // trivia locations
+	"/SD:/trivia.txt" // trivia questions
 };
 
 static FATFS fat_fs;

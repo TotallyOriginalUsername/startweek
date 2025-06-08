@@ -19,9 +19,9 @@ void getMg4Threads(char ***names, unsigned *amount) {
 
 #define MG4_ONELINERS 3
 char oneLinersMG4[MG4_ONELINERS][32] = {
-	"lokale Trivia!",
-	"Zephyr 3.6",
-	"Z3.6 SDK 0.16.9"
+	"Trivia!",
+	"Vragen over     Den Bosch",
+	"& Vragen over   Avans"
 };
 
 int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t maxQuestions)
@@ -29,6 +29,7 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     char json_buf[BUFFER_SIZE];
     size_t len = 0;
+	size_t i = 0;
     int ret = sd_get_trivia(type, json_buf, &len, BUFFER_SIZE);
     if (ret != 0){
         return ret;
@@ -64,7 +65,7 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
         return ret;
     }
 
-    size_t i = 0;
+    
     for (; i < maxQuestions; ++i) {
         memset(&quizArray[i], 0, sizeof(struct Quiz));
         ret = json_arr_separate_parse_object(&json_arr, quiz_descr, ARRAY_SIZE(quiz_descr), &quizArray[i]);
@@ -76,12 +77,12 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
             return ret;
         }
     }
-	LOG_WRN("%s", quizArray[1].question);
+	//LOG_WRN("%s", quizArray[1].question);
     *count = i;
     *questions = quizArray;
 #endif
-	lcdStringWrite("Loaded Quiz");
-	k_msleep(3000);
+	//lcdStringWrite("Loaded Quiz");
+	//k_msleep(3000);
     return 0;
 }
 
@@ -144,11 +145,11 @@ int playMg4() {
 					locs[questionIndex].answerC
 				};
 
-				for (uint8_t answersIndex = 0; answersIndex < AMOUNT_ANSWERS; answersIndex++) // i am sure there is a better way, i am sorry for destroying
+				for (uint8_t answersIndex = 0; answersIndex < AMOUNT_ANSWERS; answersIndex++)
 				{
 					//sprintf(buf, "%s ",answers[answersIndex]);
 					lcdStringWrite(answers[answersIndex]);
-					k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
+					k_timer_start(&secTimerMg4, K_MSEC(2000), K_NO_WAIT);
 					while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}
 				}
 				
