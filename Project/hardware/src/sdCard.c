@@ -294,5 +294,5 @@ int16_t sd_get_start_time()
  */
 int16_t sd_get_end_time()
 {
-	return get_time(START_TIME);
+	return get_time(END_TIME);
 }

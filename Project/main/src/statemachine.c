@@ -64,13 +64,16 @@ void init_state(struct state *state) {
 	// check if current time is the same as the start time
 	int16_t start_time = 0;
 	int16_t current_time = 0;
-	while (current_time != start_time || current_time == 0)
+	while (current_time < start_time || current_time == 0)
 	{
 		start_time = sd_get_start_time();
 		int16_t hour = getHour();
 		int16_t minute = getMinute();
 		current_time = (int16_t)((hour * 60) + minute);
 		// LOG_INF("Start time: %d, Current time: %d", start_time, current_time);
+		char buffer[16];
+		sprintf(buffer, "Spel start in %d min", minute);
+		lcdStringWrite(buffer);
 	}
 
 	end_time = sd_get_end_time();
@@ -312,6 +315,6 @@ void startStatemachine() {
 	{
 		state.next(&state);
 		if (check_end_time_reached())
-			state.next = exit_state; // Transition to exit state if end time is reached
+			state.next = end_game_state;
 	}
 }
