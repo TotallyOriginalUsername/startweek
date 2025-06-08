@@ -64,8 +64,10 @@ void playEndGame()
             distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(LON_LOC_AVANS), nanoDegToLdDeg(LON_LOC_AVANS));    // Distance from current position to next location (meters)
             dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(LON_LOC_AVANS), nanoDegToLdDeg(LON_LOC_AVANS));					                        // Angle between current location and next location
 
+            LOG_INF("Sending players to end location: %d meters at %d degrees\n", distMeters, dir);
             set_led_circle_dir_dist(dir, distMeters);	// Set the led circle direction and distance
         }
     }
+    LOG_INF("Arrived at end location!\n");
     lcdStringWrite(score_string);
 }
