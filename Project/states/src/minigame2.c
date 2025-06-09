@@ -97,7 +97,7 @@ bool get_input(uint8_t* sequence, uint8_t level){
 }
 
 int playMg2() {
-	uint8_t level = -1; // Start at level -1, so the first increment will be to level 0
+	int8_t level = -1; // Start at level -1, so the first increment will be to level 0
 	uint32_t score = 0;
 	uint8_t sequence[levels] = {0};
 	bool correct = true;
