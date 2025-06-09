@@ -12,7 +12,7 @@ void getMg8Threads(char ***names, unsigned *amount) {
 
 #define MG8_ONELINERS 3
 char oneLinersMG8[MG8_ONELINERS][32] = {
-	"10 seconden:   druk op een ",
+	"10 seconden: druk op een ",
 	"lichtgevende knop als    ",
 	"10 seconden voorbij zijn"
 };
@@ -26,6 +26,24 @@ uint8_t get_any_btnmatrix(){
 		}
 	}
 	return 1;
+}
+
+uint32_t calculate_score_mg8(uint32_t remaining_time){
+	uint32_t score = 1000;
+
+	if(remaining_time == 0){
+		score = 0;
+	}
+	else if(remaining_time == 10000){
+		score = 1000;
+	}
+	else if(remaining_time > 10000){
+		score = score - (remaining_time - 10000)/10;
+	}
+	else{
+		score = score - (10000 - remaining_time)/10;
+	}
+	return score;
 }
 
 static void wait_till_game_start(){
@@ -63,19 +81,7 @@ int playMg8() {
 		}
 	}
 
-	if(remaining_time == 0){
-		score = 0;
-	}
-	else if(remaining_time == 10000){
-		score = 1000;
-	}
-	else if(remaining_time > 10000){
-		score = score - (remaining_time - 10000)/10;
-	}
-	else{
-		score = score - (10000 - remaining_time)/10;
-	}
-	LOG_INF("Score: %d\n", score);
+	score = calculate_score_mg8(remaining_time);
 
 	btnmatrix_outSetMutexValue(btnmatrix_off);
 	k_msleep(100);

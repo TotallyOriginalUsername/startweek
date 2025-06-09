@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_LED_MATRIX
+
 #include <zephyr/ztest.h>
 #include "ledMatrix.h"
 
@@ -24,3 +26,4 @@ ZTEST(testLedMatrix, test_Set_one)
 	int8_t a = ledMatrixSet(data);
 	zassert_equal(a,0);
 }
+#endif

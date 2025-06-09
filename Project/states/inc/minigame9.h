@@ -12,6 +12,8 @@
 
 void getMg9Threads(char ***, unsigned *);
 
+bool check_input_mg9(uint8_t generated_number, uint8_t next_generated_number, uint8_t user_input);
+uint8_t get_input_mg9();
 int playMg9();
 
 #endif // MINIGAME9_H

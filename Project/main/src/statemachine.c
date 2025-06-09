@@ -16,6 +16,7 @@
 #include "minigame8.h"
 #include "minigame9.h"
 #include "minigame10.h"
+#include "catchThePokemon.h"
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
@@ -36,11 +37,13 @@ struct state {
 	int i;
 };
 
-state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, end_game_state, exit_state;
+state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, ctp_state, end_game_state, exit_state;
+
 // Array of state functions
 state_fn* minigame_states[] = {
     mg1_state, mg2_state, mg3_state, mg4_state, mg5_state,
-    mg6_state, mg7_state, mg8_state, mg9_state, mg10_state
+    mg6_state, mg7_state, mg8_state, mg9_state, mg10_state,
+	ctp_state
 };
 
 static int16_t end_time;
@@ -272,6 +275,27 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 	state->next = idle_state;
 }
 
+void ctp_state(struct state *state) // Catch the Pokemon minigame
+{
+	char **names;
+	unsigned amount;
+	getCatchThePokemonThreads(&names, &amount);
+	enableThreads(names, amount);
+
+	int ret = playCatchThePokemon();
+
+	if ( ret < 0 )
+	{
+		LOG_ERR("Error in catch the pokemon state\n");
+		state->next = exit_state;
+		return;
+	}
+
+	disableThreads(names, amount);
+	sd_set_score(ret);
+
+	state->next = idle_state;
+}
 
 void end_game_state(struct state *state)
 {
@@ -308,7 +332,6 @@ bool check_end_time_reached() {
 	}
 	return false;
 }
-
 
 void startStatemachine() {
 	struct state state = {init_state, 0};

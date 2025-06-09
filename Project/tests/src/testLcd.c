@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_LCD
+
 #include <zephyr/ztest.h>
 #include "lcd.h"
 
@@ -28,3 +30,4 @@ ZTEST(testLcd, test_Set_one)
 	zassert_equal(a,0);
 
 }
+#endif

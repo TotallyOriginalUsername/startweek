@@ -3,6 +3,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <zephyr/logging/log.h>
+#include <stdlib.h>
+#include <zephyr/data/json.h>
+#include "sdCard.h"
+
+// The following defines should be removed when the locations are known.
 // Example of how to define locatoins (use latitude and longitude in units of nanodegrees)
 #define NR_OF_LOCS 10
 #define LAT_LOC_A 51689023000	// De markt
@@ -36,6 +41,8 @@
 struct Location {
     int64_t x;
     int64_t y;
+    int x_from_sd;
+    int y_from_sd;
 };
 
 int locations_load(uint16_t type, struct Location **locations, size_t *count, size_t maxLocations);

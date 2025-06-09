@@ -24,5 +24,7 @@ uint8_t initialize()
 	ret += magnetometer_init();
 	ret += gyroscope_init();
 	ret += sd_card_init();
+
+	srand(k_uptime_get()); // Seed random number generator. Do this after all hardware is initialized to ensure atleast some randomness based on time
 	return ret;
 }
