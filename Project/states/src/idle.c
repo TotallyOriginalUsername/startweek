@@ -40,7 +40,6 @@ static struct locations {
 
 static size_t locations_count = 0;
 
-// TODO: Add minigame ID's to the locations struct
 void initLocations()
 {
 	struct Location *locArray = NULL;
