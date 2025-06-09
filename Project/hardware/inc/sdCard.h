@@ -17,6 +17,8 @@ void sd_card_unmount();
 uint8_t sd_clear_score();
 int sd_get_score();
 uint8_t sd_set_score(int score);
+int sd_get_progress();
+uint8_t sd_set_progress(int progress);
 
 uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len);
 
