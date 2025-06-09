@@ -21,8 +21,18 @@ char oneLinersMG9[MG9_ONELINERS][32] = {
 	"abc links: lager,  rechts: hoger"
 };
 
+bool check_input_mg9(uint8_t generated_number, uint8_t next_generated_number, uint8_t user_input){
+	if((next_generated_number < generated_number) && (user_input == 1)){
+		return 1;
+	}
+	else if((next_generated_number > generated_number) && (user_input == 2)){
+		return 1;
+	}
+	return 0;
+}
+
 //return 0 if improper input, 1 if lower and 2 if higher
-static uint8_t get_input(){
+uint8_t get_input_mg9(){
 	uint16_t input_time = 5000;
 	uint8_t abcbtns[3] = {1};
 
@@ -32,7 +42,7 @@ static uint8_t get_input(){
 
 	get_abc_input(input_time, abcbtns, sizeof(abcbtns));
 
-	if(abcbtns[0] && abcbtns[2] == 0){
+	if((abcbtns[0] == 0) && abcbtns[2] == 0){
 		return 0;
 	}
 
@@ -70,30 +80,24 @@ int playMg9() {
 		sprintf(lcd_msg, "Getal: %d Volgende getal is", generated_number);
 		lcdStringWrite(lcd_msg);
 
-		user_input = get_input();
+		user_input = get_input_mg9();
 		abcledsSet('a', 0);
 		abcledsSet('c', 0);
-
-		if(user_input == 0){
-			lcdStringWrite("Druk a.u.b. een knop in");
-			LOG_INF("Druk a.u.b. een knop in\n");
-		}
-
-		if((next_generated_number < generated_number) && (user_input == 1)){
+		
+		if(check_input_mg9(generated_number, next_generated_number, user_input)){
 			score = score + 200;
 			lcdStringWrite("Correct!");
 			LOG_INF("Correct!\n");
 			k_msleep(5000);
-		}
-		else if((next_generated_number > generated_number) && (user_input == 2)){
-			lcdStringWrite("Correct!");
-			LOG_INF("Correct!\n");
-			k_msleep(5000);
-		}
-		else{
+		}else{
 			lcdStringWrite("Incorrect!");
 			LOG_INF("Incorrect!\n");
 			k_msleep(5000);
+		}
+		if(user_input == 0){
+			lcdStringWrite("Druk a.u.b. een knop in");
+			LOG_INF("Druk a.u.b. een knop in\n");
+			k_msleep(2000);
 		}
 
 		round++;
@@ -103,6 +107,7 @@ int playMg9() {
 		}
 	}
 
+	LOG_INF("Score: %d\n", score);
 	lcdClear();
 	lcdDisable();
 	k_msleep(100);

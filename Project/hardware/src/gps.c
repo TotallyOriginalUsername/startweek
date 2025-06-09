@@ -1,6 +1,8 @@
 #include "gps.h"
 #include "lcd.h"
 #include <zephyr/device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/drivers/gnss.h>
 #include <math.h>
 #include <stdio.h>
@@ -8,15 +10,22 @@
 
 # define M_PI		3.14159265358979323846	/* pi */
 
+LOG_MODULE_REGISTER(gps, LOG_LEVEL_INF);
+
 struct gnss_data gpsData;
 
-// static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
-// {
-// 	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
-// 		gpsData = *data;
-// 	}
-// }
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 
+#if CONFIG_GNSS_SATELLITES
+static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
+{
+	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
+		gpsData = *data;
+	}
+}
+#endif
+
+#endif
 struct gnss_data getGnssData() {
 	return gpsData;
 }
@@ -29,27 +38,33 @@ int64_t getLongitude() {
 	return gpsData.nav_data.longitude;
 }
 
-// GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+struct gnss_time getGnssTime() {
+	return gpsData.utc;
+}
 
+uint8_t getHour() {
+	return gpsData.utc.hour;
+}
+
+uint8_t getMinute() {
+	return gpsData.utc.minute;
+}
+
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 #if CONFIG_GNSS_SATELLITES
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+
 static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites,
 			       uint16_t size)
 {
-	//LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
-	//lcdClear();
-	//char words[27];
-	//char value[3];
-	//sprintf(value, "%d", size);
-	////value[0] = (char)(size + '0');
-	//strcpy(words,"Nr. of satellites:");
-	//strcat(words, value);
-	//lcdStringWrite(words);
-	//k_busy_wait(3000000);	
+	// LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
 }
-#endif
+
 
 GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_satellites_cb);
+#endif
 
+#endif
 // Utility function for 
 // converting degrees to radians
 long double toRadians(const long double degree)
@@ -69,7 +84,15 @@ long double toDegrees(const long double radians)
     long double one_rad = 180 / (M_PI);
     return (one_rad * radians);
 }
- 
+
+/**
+ * @brief Get the distance between two coordinates in meters
+ *
+ * Calculate the distance between two coordinates in meters using the Haversine formula.
+ * Takes a latitude and longitude (twice) for two coordinates.
+ *
+ * @return Distance between the coordinate arguments in meters
+ */
 long double getDistanceMeters(long double lat1, long double long1, 
                      long double lat2, long double long2)
 {
