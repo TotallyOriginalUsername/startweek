@@ -28,7 +28,7 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     char json_buf[BUFFER_SIZE];
     size_t len = 0;
-    int ret = sd_get_locations(type, json_buf, &len, BUFFER_SIZE);
+    int ret = sd_get_buffer(type, json_buf, &len, BUFFER_SIZE);
     if (ret != 0)
         return ret;
 

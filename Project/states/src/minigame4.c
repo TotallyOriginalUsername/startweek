@@ -30,7 +30,7 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
     char json_buf[BUFFER_SIZE];
     size_t len = 0;
 	size_t i = 0;
-    int ret = sd_get_trivia(type, json_buf, &len, BUFFER_SIZE);
+    int ret = sd_get_buffer(type, json_buf, &len, BUFFER_SIZE);
     if (ret != 0){
         return ret;
 	}
