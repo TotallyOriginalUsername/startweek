@@ -16,8 +16,7 @@ void getMg4Threads(char ***, unsigned *);
 int playMg4();
 #define AMOUNT_QUESTIONS 4
 #define AMOUNT_ANSWERS 3
-#define MAX_SIZE 32
-#define BUFFER_SIZE 1024 // dirty to have this here.
+#define BUFFER_SIZE 2048 // dirty to have this here.
 
 	struct Quiz {  //this is dangerous
 		char* question;

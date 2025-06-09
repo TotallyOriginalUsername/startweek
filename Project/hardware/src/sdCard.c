@@ -13,7 +13,7 @@ LOG_MODULE_REGISTER(sdCard);
  */
 #define DISK_DRIVE_NAME "SD"
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
-#define MAX_LEN 512// ugly
+#define MAX_LEN 2048// ugly
 
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)

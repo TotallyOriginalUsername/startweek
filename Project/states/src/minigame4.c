@@ -97,12 +97,12 @@ int playMg4() {
 	bool buttonReleased = true;
 	static uint8_t questionIndex = 0;
 
-	struct Quiz *locs = NULL;
+	struct Quiz *quizzes = NULL;
 	size_t count = 0;
 	size_t maxQuestions = 32;
 	char buf[64];
 	lcdEnable();
-	int res = trivia_load(3, &locs, &count, maxQuestions);
+	int res = trivia_load(3, &quizzes, &count, maxQuestions);
 	if (res < 0) {
 		sprintf(buf, "failed to load trivia: %d", res);
 		lcdStringWrite(buf);
@@ -133,16 +133,16 @@ int playMg4() {
 			if (showQuestion)
 			{
 				showQuestion = false;
-				sprintf(buf, "%s ", locs[questionIndex].question);
+				sprintf(buf, "%s ", quizzes[questionIndex].question);
 		
 				lcdStringWrite(buf);
 				k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 				while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}
 
 				char *answers[AMOUNT_ANSWERS] = { 
-					locs[questionIndex].answerA, 
-					locs[questionIndex].answerB, 
-					locs[questionIndex].answerC
+					quizzes[questionIndex].answerA, 
+					quizzes[questionIndex].answerB, 
+					quizzes[questionIndex].answerC
 				};
 
 				for (uint8_t answersIndex = 0; answersIndex < AMOUNT_ANSWERS; answersIndex++)
@@ -167,7 +167,7 @@ int playMg4() {
 			{
 				buttonReleased = false;
 			
-				if (!abcBtn[locs[questionIndex].correct])
+				if (!abcBtn[quizzes[questionIndex].correct])
 				{
 					lcdStringWrite("Correct!");
 					correct = true;

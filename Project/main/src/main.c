@@ -14,7 +14,7 @@ LOG_MODULE_REGISTER(main);
 #define STACKSIZE 1024
 
 // Give the main thread enough stack size to handle the sd card
-#define STACKSIZE_MAIN 4096
+#define STACKSIZE_MAIN 8192 * 2
 
 // Thread priority values (lower value is higher priority)
 #define TMAIN_PRIORITY 8
