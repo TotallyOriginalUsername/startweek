@@ -1,6 +1,5 @@
 #include "minigame4.h"
-#include "sdCard.h"
-#include <zephyr/data/json.h>
+
 
 #ifdef CONFIG_ARCH_POSIX
 #define native_loop() k_sleep(K_MSEC(1))
@@ -105,7 +104,7 @@ int playMg4() {
 	int res = trivia_load(3, &quizzes, &count, maxQuestions);
 	if (res < 0) {
 		sprintf(buf, "failed to load trivia: %d", res);
-		lcdStringWrite(buf);
+		LOG_INF("%s", buf);
 		k_msleep(3000);
 		return res;
 	}
