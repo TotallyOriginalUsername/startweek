@@ -177,6 +177,56 @@ uint8_t sd_set_score(int score){
 	return 0;
 }
 
+// Set the progress in the file on the SD card. Honestly is just a copy of sd_get_score with a different file name.
+int sd_get_progress()
+{
+	int progress = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[20];
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	ret = fs_open(&data_filp, "/SD:/progress.txt",  FS_O_READ);
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		//LOG_ERR("%s - successfully opened file\n", __func__);
+	}
+
+	ret = fs_read(&data_filp, file_data_buffer, 200);
+	fs_close(&data_filp);
+
+	sscanf(file_data_buffer, "%d", &progress);
+#endif
+	return progress;
+}
+
+uint8_t sd_set_progress(int progress)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret;
+	char file_data_buffer[20];
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	ret = fs_open(&data_filp, "/SD:/progress.txt", FS_O_CREATE | FS_O_WRITE);
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return -2;
+	} else {
+		//LOG_ERR("%s - successfully opened file\n", __func__);
+	}
+
+	sprintf(file_data_buffer, "%d\n", progress);
+	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	fs_close(&data_filp);
+#endif
+	return 0;
+}
 
 uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 {

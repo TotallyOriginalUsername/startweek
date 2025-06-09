@@ -1,4 +1,7 @@
 #include "idle.h"
+
+#include <sdCard.h>
+
 #include "gps.h"
 #include "gyroCompass.h"
 #include "lcd.h"
@@ -37,7 +40,6 @@ static struct locations {
 
 static size_t locations_count = 0;
 
-// TODO: Add minigame ID's to the locations struct
 void initLocations()
 {
 	struct Location *locArray = NULL;
@@ -116,35 +118,42 @@ int playIdle() {
 
 	return testIndex;
 #endif
-
+	static int locIndex = 0;
+	static int lastReturned = -2; // -2 if never returned, -1 if all locations visited >= 0 is the last mg_id
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	static bool firstTimeIdle = true; // i know should be in init but this is easier for now.
 	if (firstTimeIdle) // Check if locations are initialized
 	{
 		firstTimeIdle = false;
 		initLocations();
-	}
-#endif
-	static int locIndex = 0;
-	static bool completedGames[GAMES_AMOUNT] = {false, false, false, false, false, false, false, false, false, false};
-
-	// Check if all games have been completed
-	bool allGamesFinished = true;
-	for (int i = 0; i < GAMES_AMOUNT; i++) {
-		if (completedGames[i] == false) {
-			allGamesFinished = false;
-			break;
+		locIndex = sd_get_progress(); // Get the current location index from the SD card in the event that the device was turned off.
+		if (locIndex == -ENOENT) // If the file doesn't exist set locIndex to 0 and create the file.
+		{
+			lcdEnable();
+			lcdStringWrite("Geen voortgang gevonden");
+			k_msleep(1000);
+			locIndex = 0;
+			sd_set_progress(locIndex); // If no progress file exists, set it to 0
+			lcdStringWrite("Voortgang gereset");
+			k_msleep(1000);
+		}
+		else if (locIndex < 0)
+		{
+			return locIndex; // If the progress is negative there has been a reading error.
 		}
 	}
-	if (allGamesFinished) {
-		LOG_INF("All games completed\n");
-		return -1;
+#endif
+
+	// If returning from a minigame, increment and save progress
+	if (lastReturned >= 0) {
+		locIndex++;
+		sd_set_progress(locIndex);
 	}
 
-	if (locIndex >= locations_count)
-	{
+	if (locIndex >= locations_count) {
 		LOG_INF("All locations have been visited.");
-		return -1;
+		lastReturned = -1;
+		return lastReturned;
 	}
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
@@ -178,7 +187,6 @@ int playIdle() {
 #endif
 	lcdStringWrite("Gearriveerd!!");
 	k_msleep(4000);
-	completedGames[locIndex] = true;
-	locIndex++; // Increment the index to the  next location.
-	return locations[locIndex--].mg_id; // Return the index of the game that has to be played.
+	lastReturned = locations[locIndex].mg_id;
+	return lastReturned; // Return the index of the game that has to be played.
 }
