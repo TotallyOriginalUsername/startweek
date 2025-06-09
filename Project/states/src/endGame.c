@@ -44,7 +44,7 @@ void playEndGame()
     int dir = 0;			// Direction the user must head in
 
     score = sd_get_score();
-    snprintf(score_string, sizeof(score_string), "Score: %25d", score);
+    snprintf(score_string, sizeof(score_string), "Score: %d", score);
 
     while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
         show_oneliners(oneLinersEndGame, End_Game_ONELINERS);
