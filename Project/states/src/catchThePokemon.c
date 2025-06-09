@@ -676,6 +676,7 @@ int8_t set_Pokemon_Hint(int pokemonIndex)
     dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
 
     set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
+    return 0; // Successfully set the hint
 }
 
 /**
