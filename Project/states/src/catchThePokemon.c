@@ -792,6 +792,8 @@ int calculateScore(int totalAttempts)
  */
 int playCatchThePokemon()
 {
+    int totalAttepts = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int err;
     err = initMg();
     if (err)
@@ -824,12 +826,12 @@ int playCatchThePokemon()
         // delay
     }
 
-    int totalAttepts = 0;
     for (int i = 0; i < POKEMON; i++)
     {
         totalAttepts += score[i];
     }
 
     lcdClear();
+#endif
     return calculateScore(totalAttepts);
 }
