@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_GENERIC_GPIO
+
 #include <zephyr/ztest.h>
 #include "genericGpio.h"
 
@@ -86,3 +88,4 @@ ZTEST(testGenericGpio, test_start_GetSet_one)
 	a = startledSet(0);
 	zassert_equal(a,0);
 }
+#endif

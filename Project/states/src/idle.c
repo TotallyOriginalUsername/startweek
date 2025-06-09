@@ -15,8 +15,13 @@ LOG_MODULE_REGISTER(idle);
 #define REQUIRED_DIST_METERS 20
 #define GAMES_AMOUNT 10
 
+#if defined(CONFIG_TESTMODE)
+unsigned idleThreadCount = 2;
+char *idleThreads[2] = {"ledcircle", "abcbtn"};
+#else
 unsigned idleThreadCount = 1;
 char *idleThreads[1] = {"ledcircle"};
+#endif
 
 void getIdleThreads(char ***names, unsigned *amount) {
 	*names = idleThreads;
@@ -24,6 +29,60 @@ void getIdleThreads(char ***names, unsigned *amount) {
 }
 
 int playIdle() {
+#if defined(CONFIG_TESTMODE)
+	static int testIndex = 1;
+	char lcd_msg[32];
+
+	lcdEnable();
+	lcdStringWrite("Selecteer een spel met A en C");
+	k_msleep(3000);
+	lcdStringWrite("Bevestig met de startknop!");
+	k_msleep(3000);
+
+	abcledsSet('a', 1);
+	abcledsSet('c', 1);
+	startledSet(1);
+	sprintf(lcd_msg, "Minigame: %d", testIndex);
+	lcdStringWrite(lcd_msg);
+
+	while(startbuttonGet()){
+		native_loop();
+		wait_till_abc_depressed();
+
+		if(abcbuttonsGet('a') == 0){
+			if(testIndex == 1){
+				testIndex = 10;
+			}
+			else{
+				testIndex--;
+			}
+			sprintf(lcd_msg, "Minigame: %d", testIndex);
+			lcdStringWrite(lcd_msg);
+		} 
+		else if(abcbuttonsGet('c') == 0){
+			if(testIndex == 10){
+				testIndex = 1;
+			}
+			else{
+				testIndex++;
+			}
+			sprintf(lcd_msg, "Minigame: %d", testIndex);
+			lcdStringWrite(lcd_msg);
+		}
+	}
+
+	startledSet(0);
+	abcledsSet('a', 0);
+	abcledsSet('c', 0);
+	lcdClear();
+	lcdDisable();
+	k_msleep(100);
+	//convert the testIndex from human 1-10 back to code's 0-9
+	testIndex--;
+
+	return testIndex;
+#endif
+
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	// Create and randomize array of coordinates
 	int64_t lats[NR_OF_LOCS] = {LAT_LOC_A, LAT_LOC_B, LAT_LOC_C, LAT_LOC_D, LAT_LOC_E, LAT_LOC_F, LAT_LOC_G, LAT_LOC_H, LAT_LOC_I, LAT_LOC_J};

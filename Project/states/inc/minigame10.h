@@ -11,6 +11,9 @@
 
 void getMg10Threads(char ***, unsigned *);
 
+uint8_t generate_mole();
+bool check_input_mg10(uint8_t* btnmatrix_in, uint8_t mole_position);
+
 int playMg10();
 
 #endif // MINIGAME10_H
