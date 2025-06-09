@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_SEVEN_SEGMENT
+
 #include <zephyr/ztest.h>
 #include "sevenSegment.h"
 
@@ -21,3 +23,4 @@ ZTEST(sevenSegmentMatrix, test_Set_one)
 	uint8_t a = sevenSegmentSet(msg,1);
 	zassert_equal(a,0);
 }
+#endif

@@ -10,7 +10,7 @@
 LOG_MODULE_REGISTER(locations);
 
 #define MAX_TYPES (1 << (sizeof(uint16_t) * 8))
-#define BUFFER_SIZE 512 // dirty to have this here.
+#define BUFFER_SIZE 8192 // dirty to have this here.
 
 /**
  * @brief Load locations from a file based on the type.
@@ -43,8 +43,8 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
         JSON_OBJ_DESCR_PRIM(struct Location, mg_id, JSON_TOK_NUMBER),
     };
     struct json_obj_descr loc_descr_type0[] = {
-        JSON_OBJ_DESCR_PRIM(struct Location, x, JSON_TOK_NUMBER),
-        JSON_OBJ_DESCR_PRIM(struct Location, y, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_from_sd, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_from_sd, JSON_TOK_NUMBER),
     };
 
     const struct json_obj_descr *loc_descr;
@@ -67,16 +67,23 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     }
 
     size_t i = 0;
-    for (; i < maxLocations; ++i) {
+    while (i < maxLocations) {
         memset(&locArray[i], 0, sizeof(struct Location));
         ret = json_arr_separate_parse_object(&json_arr, loc_descr, loc_descr_len, &locArray[i]);
-        if (ret == 0) break; // End of array
+        if (ret == 0)
+        {
+            LOG_INF("End of array reached at index %zu", i);
+            break; // End of array
+        }
         if (ret < 0) {
             LOG_ERR("Parse error at index %zu: %d", i, ret);
             // Free allocated locations before returning
             free(locArray);
             return ret;
         }
+        i++;
+        locArray[i].x = (int64_t)locArray[i].x_from_sd * 1000; // convert back to nanodegrees
+        locArray[i].y = (int64_t)locArray[i].y_from_sd * 1000;
     }
 
     *count = i;

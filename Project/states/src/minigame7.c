@@ -9,10 +9,7 @@ K_TIMER_DEFINE(mg7Timer, NULL, NULL);
 #define fruit_timer_duration 150
 #define plate_timer_duration 45
 #define mg7_duration 15000
-
-uint16_t fruit_masks[16] = {0};
 uint8_t plate_position = 8;
-bool first_fruit = 1;
 
 char *mg7Threads[mg7ThreadCount] = {"startbtn", "ledmatrix", "abcbtn"};
 
@@ -29,43 +26,37 @@ char oneLinersMG7[MG7_ONELINERS][32] = {
 };
 
 // Generates a new fruit and prevents the generated fruit from going outside bounds.
-void generate_fruit(){
+uint16_t generate_fruit_mg7(uint16_t previous_fruit){
 
 	if (sys_rand32_get() % 2 == 0) {
 		//create a fruit to the right of previous fruit
-		if( fruit_masks[0] != 0b0000000000000001){
-			fruit_masks[0] >>= 1;
+		if( previous_fruit != 0b0000000000000001){
+			return previous_fruit >>= 1;
 		}
 		else{
-			fruit_masks[0] = 0b0000000000000001;
+			return 0b0000000000000001;
 		}
 	}
 	else {
 		//create a fruit to the left of previous fruit
-		if( fruit_masks[0] != 0b1000000000000000){
-			fruit_masks[0] <<= 1;
+		if( previous_fruit != 0b1000000000000000){
+			return previous_fruit <<= 1;
 		}
 		else{
-			fruit_masks[0] = 0b1000000000000000;
+			return 0b1000000000000000;
 		}
 	}
 }
 
-void update_fruit(){
-
-	if(first_fruit){
-		fruit_masks[0] = 0b0000000100000000;
-		first_fruit = 0;
-	}
-
+uint8_t update_fruit_mg7(uint16_t fruit_masks[16]){
 	for(int i = 15; i > 0; i--){
 		fruit_masks[i] = fruit_masks[i-1];
 	}
-
+	return 0;
 }
 
 // Draws the game
-void draw_game(uint16_t plate_mask){
+void draw_game_mg7(uint16_t plate_mask, uint16_t fruit_masks[16]){
 	uint16_t game_frame[16] = {0};
 
 	memcpy(game_frame, fruit_masks, sizeof(game_frame));
@@ -75,7 +66,7 @@ void draw_game(uint16_t plate_mask){
 }
 
 // Detects if a fruit properly hit the plate.
-static bool hit_detection(uint16_t plate_mask){
+bool hit_detection_mg7(uint16_t plate_mask, uint16_t fruit_masks[16]){
 
 	if (fruit_masks[15] != 0)
 	{
@@ -157,11 +148,12 @@ int playMg7() {
 	uint16_t empty_frame[16] = {0};
 	uint16_t plate_mask = {0};
 	uint8_t fruit_delay = 0;
+	uint16_t fruit_masks[16] = {0};
 	char lcd_msg[32];
+	plate_position = 8;
 
 	memset(fruit_masks, 0, sizeof(fruit_masks));
-	plate_position = 8;
-	first_fruit = 1;
+	fruit_masks[0] = 0b0000000100000000;
 
 	show_oneliners(oneLinersMG7, MG7_ONELINERS);
 	lcdEnable();
@@ -178,7 +170,7 @@ int playMg7() {
 		native_loop();
 		// Handle fruit related logic at a slower speed then the microcontroller
 		if(k_timer_remaining_get(&fruitTimer) == 0){
-			if(hit_detection(plate_mask)){
+			if(hit_detection_mg7(plate_mask, fruit_masks)){
 				score = score - 20;
 				sprintf(lcd_msg, "Score: %d", score);
 				lcdStringWrite(lcd_msg);
@@ -186,15 +178,15 @@ int playMg7() {
 			fruit_delay++;
 			if(fruit_delay >= 2){
 				fruit_delay = 0;
-				generate_fruit();
+				fruit_masks[0] = generate_fruit_mg7(fruit_masks[0]);
 			}
-			update_fruit();
+			update_fruit_mg7(fruit_masks);
 			k_timer_start(&fruitTimer, K_MSEC(fruit_timer_duration), K_NO_WAIT);
 		}
 
 		get_catch_input();
 		plate_mask = (1 << plate_position) | (1 << (plate_position - 1)) | (1 << (plate_position + 1));
-		draw_game(plate_mask);
+		draw_game_mg7(plate_mask, fruit_masks);
 	}
 
 	if(score <= 0){

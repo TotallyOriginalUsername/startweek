@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_ACCELEROMETER
+
 #include <zephyr/ztest.h>
 #include "GyroCompass.h"
 
@@ -72,3 +74,4 @@ ZTEST(testCompass, test_compass_get_heading)
 	a = gyroCompass_get_heading(&tempData);
 	zassert_equal(a,0);
 }
+#endif

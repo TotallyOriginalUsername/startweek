@@ -5,6 +5,9 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
 #include "threads.h"
+#if defined(CONFIG_TEST_RNG_INPUT)
+#include <zephyr/random/random.h>
+#endif
 
 #ifdef CONFIG_ARCH_POSIX
 #define native_loop() k_sleep(K_MSEC(1))
@@ -28,4 +31,5 @@ uint8_t get_btnmatrix_input_number_untimed();
 void set_btnmatrix_led(uint8_t position);
 
 void set_led_circle_dir_dist(int dir, int distance);
+int get_relative_dir(int dir);
 #endif //HELPERFUNCTIONS_H

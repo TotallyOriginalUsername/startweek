@@ -21,7 +21,7 @@ extern uint32_t Startupdelay;
 #define THREAD_AMOUNT 10
 
 // The stack size of all threads
-#define STACKSIZE 1024
+#define STACKSIZE 2048
 
 // Thread priority values (lower value is higher priority)
 #define TSTARTBUTTON_PRIORITY 7
