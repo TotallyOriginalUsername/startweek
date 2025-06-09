@@ -701,10 +701,10 @@ bool pokemonNearby()
         if (currLat == 0 && currLon == 0) // GPS doesn't have lock
         {
             LOG_ERR("GPS does not have a lock!\n");
-            lcdStringWrite("GPS heeft geen  fix..");
-            k_msleep(1000);
-            lcdStringWrite("GPS heeft geen  fix..");
-            k_msleep(1000);
+            // lcdStringWrite("GPS heeft geen  fix..");
+            // k_msleep(1000);
+            // lcdStringWrite("GPS heeft geen  fix..");
+            // k_msleep(1000);
             return false; // No pokemon nearby if GPS is not locked
         }
 
