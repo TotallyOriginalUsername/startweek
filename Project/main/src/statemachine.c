@@ -253,8 +253,6 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 
 void ctp_state(struct state *state) // Catch the Pokemon minigame
 {
-	printf("Catch the Pokemon\n");
-
 	char **names;
 	unsigned amount;
 	getCatchThePokemonThreads(&names, &amount);
@@ -265,7 +263,7 @@ void ctp_state(struct state *state) // Catch the Pokemon minigame
 	if ( ret < 0 )
 	{
 		LOG_ERR("Error in catch the pokemon state\n");
-		state->next = 0; // Exit state
+		state->next = exit_state;
 		return;
 	}
 

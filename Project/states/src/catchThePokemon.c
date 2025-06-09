@@ -661,24 +661,21 @@ int catchingMg()
 }
 
 // !NOTE this is basically just the function idle also uses thus it should be moved to a common place instead.
-void set_Pokemon_Hint(int pokemonIndex)
+int8_t set_Pokemon_Hint(int pokemonIndex)
 {
     const int64_t currLat = getLatitude();		// Get the current latitude
     const int64_t currLon = getLongitude();		// Get the current longitude
     if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
         LOG_ERR("GPS does not have a lock!\n");
-        lcdStringWrite("GPS heeft geen  fix..");
-        k_msleep(1000);
-    } else
-    {
-        int dir = 0;
-        int distMeters = 0;
-        lcdStringWrite("Volg het licht!");
-        distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
-        dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
-
-        set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
+        return -1; // Could not set hint if GPS is not locked
     }
+    int dir = 0;
+    int distMeters = 0;
+    lcdStringWrite("Volg het licht!");
+    distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
+    dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
+
+    set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
 }
 
 /**
@@ -762,6 +759,7 @@ int pokemonGame()
             if (!pokemonLocation[index].caught && !pokemonLocation[index].fled && pokemonCaught < POKEMON) // check if the pokemon was not caught and didn't flee. Also double check that the player hasn't caught all pokemon yet
             {
                 set_Pokemon_Hint(index);
+
                 existingPokemon = true; // pokemon exists
             }
         }
@@ -836,5 +834,6 @@ int playCatchThePokemon()
         totalAttepts += score[i];
     }
 
+    lcdClear();
     return calculateScore(totalAttepts);
 }
