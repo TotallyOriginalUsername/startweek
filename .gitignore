@@ -7,6 +7,7 @@ Project/build/*
 build/*
 Project/.idea/*
 Project/cmake-build-debug-zephyr/*
+Project/cmake-build-debug/*
 
 # Ignore specfic files:
 Zephyr.code-workspace
@@ -15,3 +16,7 @@ h7ConfigScriptOzone.jdebug.user
 Project/h7ConfigScriptOzone.jdebug.user
 .idea/workspace.xml
 native_sim/.idea/workspace.xml
+.idea/editor.xml
+.idea/misc.xml
+.idea/vcs.xml
+/Project/diagrams/
