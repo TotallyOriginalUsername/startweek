@@ -30,7 +30,7 @@ static struct fs_mount_t mp = {
 static const char *disk_mount_pt = DISK_MOUNT_PT;
 #endif
 
-uint8_t sd_card_init(){
+int sd_card_init(){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     static const char *disk_pdrv = DISK_DRIVE_NAME;
 	uint64_t memory_size_mb;
@@ -67,6 +67,7 @@ uint8_t sd_card_init(){
     }
     else {
         LOG_ERR("Error mounting disk\n");
+    	return res;
     }
 #endif
     return 0;
@@ -79,7 +80,7 @@ void sd_card_unmount(){
 }
 
 // Clear the score from the SD card
-uint8_t sd_clear_score(){
+int sd_clear_score(){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
 	int score = 0;
@@ -149,7 +150,7 @@ int sd_get_score(){
 }
 
 // Set the score in the file on the SD card
-uint8_t sd_set_score(int score){
+int sd_set_score(int score){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
 	int current_score;
@@ -165,7 +166,7 @@ uint8_t sd_set_score(int score){
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_WRITE);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
-		return -2;
+		return ret;
 	} else {
 		//LOG_ERR("%s - successfully opened file\n", __func__);
 	}
@@ -204,7 +205,7 @@ int sd_get_progress()
 	return progress;
 }
 
-uint8_t sd_set_progress(int progress)
+int sd_set_progress(int progress)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int ret;
@@ -216,19 +217,24 @@ uint8_t sd_set_progress(int progress)
 	ret = fs_open(&data_filp, "/SD:/progress.txt", FS_O_CREATE | FS_O_WRITE);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
-		return -2;
+		return ret;
 	} else {
 		//LOG_ERR("%s - successfully opened file\n", __func__);
 	}
 
 	sprintf(file_data_buffer, "%d\n", progress);
 	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	if (ret)
+	{
+		LOG_ERR("%s -- failed to write to file (err = %d)\n", __func__, ret);
+		return ret;
+	}
 	fs_close(&data_filp);
 #endif
 	return 0;
 }
 
-uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
+int sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int ret = 0;
@@ -245,7 +251,7 @@ uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 	ret = fs_open(&data_filp, type_file[type], FS_O_READ);
 	if (ret) {
 		LOG_ERR("Failed to open file: %s (err = %d)", type_file[type], ret);
-		return -2;
+		return ret;
 	} else {
 		LOG_MSG_DBG("Opened file: %s", type_file[type]);
 	}
