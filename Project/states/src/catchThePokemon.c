@@ -796,6 +796,7 @@ int playCatchThePokemon()
     if (err)
     {
         LOG_ERR("Init error: %d", err);
+        return err;
     }
 
     int score[POKEMON] = {0};
