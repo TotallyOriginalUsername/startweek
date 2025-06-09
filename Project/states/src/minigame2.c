@@ -97,7 +97,7 @@ bool get_input(uint8_t* sequence, uint8_t level){
 }
 
 int playMg2() {
-	int8_t level = -1; // Start at level -1, so the first increment will be to level 0
+	uint8_t level = 0;
 	uint32_t score = 0;
 	uint8_t sequence[levels] = {0};
 	bool correct = true;
@@ -110,15 +110,6 @@ int playMg2() {
 	
 	while (game_ongoing_mg2)
 	{
-		if(level < levels - 1){ // Check if the level is less than the maximum level first for less indents.
-			level++;
-			score = score + 100;
-		}
-		else{
-			lcdStringWrite("gewonnen!");
-			game_ongoing_mg2 = false;
-			k_msleep(400);
-		}
 
 		native_loop();
 		show_sequence(sequence, level);
@@ -132,12 +123,26 @@ int playMg2() {
 			show_correct();
 			buzzerTurnOff(0);
 			lcdClear();
+
+			if(level < levels - 1){
+				level++;
+				score = score + 100;
+			}
+			else{
+				lcdStringWrite("gewonnen!");
+				game_ongoing_mg2 = false;
+				k_msleep(400);
+			}
+
 		} else {
 			lcdStringWrite("Incorrect!");
 			buzzerSetPwm(0, 82); // Play a sound for incorrect input
 			show_incorrect();
 			buzzerTurnOff(0);
 			attempt++;
+			level = 0; // Reset level on incorrect input
+			score = 0; // Reset score on incorrect input
+			generate_sequence(sequence); // Generate a new sequence for the next attempt
 		}
 
 		if (attempt > maxAttempts)
