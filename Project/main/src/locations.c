@@ -1,11 +1,8 @@
 //
 // Created by Kasper Janssen on 04/06/25.
 //
-#include "locations.h"
 
-#include <stdlib.h>
-#include <zephyr/data/json.h>
-#include "sdCard.h"
+#include "locations.h"
 
 LOG_MODULE_REGISTER(locations);
 
