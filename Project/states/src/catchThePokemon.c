@@ -796,12 +796,6 @@ int playCatchThePokemon()
     if (err)
     {
         LOG_ERR("Init error: %d", err);
-
-        char tmp[32];
-        snprintf(tmp, sizeof(tmp), "Pokemon init error: %d", err);
-        lcdStringWrite(tmp);
-        k_msleep(10000);
-        return err; // Return error if initialization fails
     }
 
     int score[POKEMON] = {0};
