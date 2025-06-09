@@ -3,10 +3,11 @@
 
 #include <vector>
 
-// Verplaats de struct hierheen zodat andere bestanden hem kunnen gebruiken
 struct Point {
     float x, y;
     float cost = 1.0f;
+
+    Point(float x, float y, float cost = 1.0f) : x(x), y(y), cost(cost) {}
 
     bool operator==(const Point& other) const {
         return x == other.x && y == other.y;
@@ -18,4 +19,7 @@ std::vector<std::vector<Point>> getGeneratedRoutes();
 std::vector<std::vector<int>> getGeneratedIndices();
 std::vector<Point> getAllPoints();
 
+extern std::vector<std::vector<int>> routeIndices;
+extern std::vector<std::vector<Point>> selectedPoints;
+extern std::vector<Point> allPoints;
 #endif // ROUTEGENERATOR_H

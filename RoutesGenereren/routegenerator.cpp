@@ -16,6 +16,10 @@ const int NUM_ROUTES = 10;
 const float MAX_DISTANCE_RATIO = 1.15f;
 const float WALKING_SPEED_PX_PER_MIN = 84.0f; // 1.4 m/s → 84 px/min
 
+std::vector<std::vector<int>> routeIndices;
+std::vector<std::vector<Point>> selectedPoints;
+std::vector<Point> allPoints;
+
 struct Edge {
     int u, v;
     float weight;
@@ -76,9 +80,9 @@ void optimizeRoute(vector<int>& route, vector<Point>& points) {
         for (size_t i = 1; i < route.size() - 2; ++i) {
             for (size_t j = i + 1; j < route.size() - 1; ++j) {
                 float d1 = distance(points[route[i - 1]], points[route[i]]) +
-                    distance(points[route[j]], points[route[j + 1]]);
+                           distance(points[route[j]], points[route[j + 1]]);
                 float d2 = distance(points[route[i - 1]], points[route[j]]) +
-                    distance(points[route[i]], points[route[j + 1]]);
+                           distance(points[route[i]], points[route[j + 1]]);
                 if (d2 < d1) {
                     reverse(route.begin() + i, route.begin() + j + 1);
                     improved = true;
@@ -155,13 +159,8 @@ void saveRoutesToFiles(const vector<vector<int>>& routes, const vector<vector<Po
     }
 }
 
-// Global variables for GUI access
-vector<vector<int>> routeIndices;
-vector<vector<Point>> selectedPoints;
-vector<Point> allPoints;
-
 void generate_routes() {
-    allPoints = {
+    vector<Point> allPoints = {
         {100, 100, 2.0}, {300, 200, 1.5}, {500, 400, 3.5}, {200, 500, 2.5}, {600, 100, 4.0},
         {150, 300, 1.0}, {400, 350, 1.0}, {250, 50, 3.0}, {550, 250, 2.0}, {700, 150, 2.0},
         {120, 500, 1.5}, {320, 270, 1.0}, {530, 420, 2.5}, {260, 430, 2.0}, {580, 130, 3.0},
