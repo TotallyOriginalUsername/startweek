@@ -15,12 +15,16 @@ LOG_MODULE_REGISTER(gps, LOG_LEVEL_INF);
 struct gnss_data gpsData;
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+
+#if CONFIG_GNSS_SATELLITES
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 {
 	if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
 		gpsData = *data;
 	}
 }
+#endif
+
 #endif
 struct gnss_data getGnssData() {
 	return gpsData;
