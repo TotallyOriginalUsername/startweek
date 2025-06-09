@@ -8,7 +8,7 @@ LOG_MODULE_REGISTER(catchThePokemon);
 #define MAX_ATTEMPTS 8
 #define POKEMON_DISTANCE 10 // meters
 
-#define HINT_COOLDOWN 3 // in minutes
+#define HINT_COOLDOWN 1 // in minutes
 
 #define TIME_MAX 10
 #define TIME_MIN 0
@@ -687,8 +687,14 @@ void set_Pokemon_Hint(int pokemonIndex)
  */
 bool pokemonNearby()
 {
+    // Normally this should be done in one-liners but that is also blocking. For now we do it here for clarity.
     lcdStringWrite("Vind en vang de Pokemon!");
     k_msleep(1000); // Wait for a second to show the message
+    lcdStringWrite("Door in het park");
+    k_msleep(1000);
+    lcdStringWrite("te lopen..");
+    k_msleep(1000);
+
     for (int i = 0; i < (POKEMON); i++)
     {
         // check if the pokemon is within the distance
@@ -741,8 +747,12 @@ int pokemonGame()
         playSound(3, NULL); // play pokemon appeared sound
         catchEvent = true;
     }
-    else if ((currentTime - lastEventTime) > HINT_COOLDOWN)
+    else if ((currentTime - lastEventTime) > HINT_COOLDOWN) // if no pokemon is found in the last HINT COOLDOWN give a hint
     {
+        // sound to alert the player that a hint is given
+        int noteDelayMs = 50; // delay in milliseconds for the sound
+        playSound(3, &noteDelayMs); // play pokemon appeared sound really quickly to alert the player
+
         lastEventTime = currentTime; // update the last event time
         bool existingPokemon = false;
         // hint to the player where a pokemon could be
@@ -766,7 +776,7 @@ int calculateScore(int totalAttempts)
     int score = 0;
 
     // formula used:
-    // Score = ((Caught / totalPokemon) * 400) / (sqrt((0.3*attempts)/(caught/totalpokemon) * ((timeTaken+ 3 * minute)/minute) * 10 - 150
+    // Score = ((Caught / totalPokemon) * 400) / (sqrt((0.3*attempts)/(caught/totalpokemon) * ((timeTaken+ 3 * minute)/minute) * 10 - 150 * scoreScaler
     score = ((pokemonCaught / (double)POKEMON) * 400) / (sqrt(0.3 * (totalAttempts / ((double)pokemonCaught / (double)POKEMON))) * ((totalTime + 180000) / 60000) * 10 - 150) * (MAX_SCORE / 1000);
 
     if (score < 0)
