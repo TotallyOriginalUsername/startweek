@@ -107,7 +107,7 @@ int playMg4() {
 		sprintf(buf, "failed to load trivia: %d", res);
 		lcdStringWrite(buf);
 		k_msleep(3000);
-		return -1;
+		return res;
 	}
 
 	
@@ -166,47 +166,18 @@ int playMg4() {
 			if ((!abcBtn[2] || !abcBtn[1] || !abcBtn[0]) && buttonReleased)
 			{
 				buttonReleased = false;
-				switch (locs[questionIndex].correct)
+			
+				if (!abcBtn[locs[questionIndex].correct])
 				{
-				case 0:
-					if (!abcBtn[0])
-					{
-						lcdStringWrite("Correct!");
-						correct = true;
-					}
-					else
-					{
-						lcdStringWrite("Incorrect!");
-						score -= 400;
-					}
-					break;
-				case 1:
-					if (!abcBtn[1])
-					{
-						lcdStringWrite("Correct!");
-						correct = true;
-					}
-					else
-					{
-						lcdStringWrite("Incorrect!");
-						score -= 400;
-					}
-					break;
-				case 2:
-					if (!abcBtn[2])
-					{
-						lcdStringWrite("Correct!");
-						correct = true;
-					}
-					else
-					{
-						lcdStringWrite("Incorrect!");
-						score -= 400;
-					}
-					break;
-				default:
-					break;
+					lcdStringWrite("Correct!");
+					correct = true;
 				}
+				else
+				{
+					lcdStringWrite("Incorrect!");
+					score -= 400;
+				}
+				
 				k_timer_start(&secTimerMg4, K_MSEC(1000), K_NO_WAIT);
 				while (!(k_timer_status_get(&secTimerMg4) > 0)){native_loop();}	
 				showQuestion = true;
