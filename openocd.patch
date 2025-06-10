@@ -1,0 +1,27 @@
+diff --git a/boards/arm/nucleo_h743zi/support/openocd.cfg b/boards/arm/nucleo_h743zi/support/openocd.cfg
+index 89d4f7ab594..64fc943dcb3 100644
+--- a/boards/arm/nucleo_h743zi/support/openocd.cfg
++++ b/boards/arm/nucleo_h743zi/support/openocd.cfg
+@@ -1,6 +1,13 @@
+-source [find board/st_nucleo_h743zi.cfg]
++adapter driver hla
++hla_layout stlink
++hla_device_desc "ST-LINK"
++hla_vid_pid 0x0483 0x3744 0x0483 0x3748 0x0483 0x374b 0x0483 0x374d 0x0483 0x374e 0x0483 0x374f 0x0483 0x3752 0x0483 0x3753 0x0483 0x3754 0x0483 0x3755 0x0483 0x3757
+ 
+-reset_config srst_only srst_nogate connect_assert_srst
++transport select hla_swd
++
++source [find target/stm32h7x_dual_bank.cfg]
++
++#reset_config srst_only srst_nogate connect_assert_srst
+ 
+ $_CHIPNAME.cpu0 configure -event gdb-attach {
+         echo "Debugger attaching: halting execution"
+@@ -17,5 +24,5 @@ $_CHIPNAME.cpu0 configure -event gdb-detach {
+ rename init old_init
+ proc init {} {
+         old_init
+-       reset halt
++        halt
+ }
