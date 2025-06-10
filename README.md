@@ -1,1 +1,105 @@
 # StartWeekAvans25
+
+The StartWeekAvans25 project is made to provide a playable game for the firstyears during the startweek. It is a continuation from [previous year's project](https://github.com/JaroWMR/Startweek.git).
+
+# Getting Started
+There are two parts to this project, the Zephyr project and Qt project.
+The Zephyr project is the code which will run on the hardware and the Qt project is the code which will run on the user's PC to provide an easy way to configure and communicate with the hardware.
+
+## Zephyr
+This project has been made with Zephyr 3.6 and SDK version 16.5.
+
+To get started you can follow the [getting started](https://docs.zephyrproject.org/3.6.0/develop/getting_started/index.html) from Zephyr, which guides you to the install process and how you can build a project.
+
+### Digital twin
+A digital twin of the hardware has been created which simulates large parts of the hardware, to allow coding and testing without the hardware. 
+
+#### Digital twin limitations and bugs
+There are some limitations on what can and cannot be done. Those can be found [here](https://docs.zephyrproject.org/latest/boards/native/doc/arch_soc.html#important-limitations).
+
+It's very likely that a busy wait loop exists in the code if the simulator hangs. This can be prevented by a adding a 'k_sleep(K_MSEC(1));' or 'k_cpu_idle();' in the loop, or using native_loop() in the code which handles adding that for the hardware only.
+
+Currently there is also a bug with timers, meaning that the digital twin goes through a timer faster or slower. This prevents some minigames from being played properly.
+
+## Qt
+[//]: # (Never)
+The Qt application has been made with Qt 5.12. This can be installed and has been confirmed to build on both Windows and Linux.
+
+# Building
+The Zephyr project can be either build for the hardware board or for the simulator.
+You can build for the hardware as follows:
+```
+west build -b nucleo_h743zi [whereYouveClonedTheGitRepo]\StartWeekAvans25\Project
+```
+You can also do a pristine build, which clears the build folder first before building everything from 0 again:
+```
+west build -p -b nucleo_h743zi [whereYouveClonedTheGitRepo]\StartWeekAvans25\Project
+```
+
+You can build the project the same way for the digital twin, by just replacing the board with the digital twin's board name:
+```
+west build -b native_sim [whereYouveClonedTheGitRepo]\StartWeekAvans25\Project
+```
+
+# Flashing and running
+[//]: # (Gonna)
+## Hardware
+### Prerequisites
+Flashing the hardware with "west flash" requires an additional step first. You need to apply the git patch called "openocd.patch" to your Zephyr install. This can be done by following these steps:
+- Download openocd.patch
+- Place it in your zephyr folder
+- Open the terminal, go to your zephyr folder and apply the patch with
+```
+git apply openocd.patch
+```
+
+After this you can program the hardware aslong as it's in bootloader mode. You can turn the hardware into bootloader mode with the following steps:
+
+- Turn off the hardware (disconnect the battery and usb)
+- Connect the debugger
+- Press the Boot0 button
+- Turn on the hardware 
+Now the hardware is in bootloader mode and can be programmed with "west flash". 
+
+## Digital twin
+[//]: # (Give)
+The digital twin can be ran on Linux machines. It has been tested and confirmed to work on Ubuntu 20.04, and also confirmed to display nothing on Arch and WSL2.
+You can start it up simply by using this command from the same folder you've used "west build" in:
+```
+west build -t run
+```
+
+# Debugging
+Both the hardware and digital twin can be debugged with GDB.
+## Hardware
+The nucleo board requires the STM32 gdb server and command-line toolset, which can be downloaded [from here](https://www.st.com/en/development-tools/stm32cubeclt.html?ecmp=tt9470_gl_link_feb2019&rt=um&id=UM3088). After installing the tools you can use them to set up the server and client like this:
+```
+Client:
+arm-none-eabi-gdb.exe
+
+Server:
+ST-LINK_gdbserver.exe -d -v -t -g -cp C:\ST\STM32CubeCLT_1.18.0\STM32CubeProgrammer\bin
+
+```
+
+Extra documentation about the command-line tools can be found on [st's website](https://www.st.com/en/development-tools/stm32cubeclt.html?ecmp=tt9470_gl_link_feb2019&rt=um&id=UM3088#documentation).
+
+## Digital twin
+[//]: # (You)
+```
+gdb ./build/zephyr/zephyr.exe
+```
+
+# Testing
+[//]: # (Up)
+There are two ways to test this project, manual for games and automatic for all other parts of the code.
+Manual testing can be enabled by setting "CONFIG_TESTMODE" to "y" in the prj.conf. After building and flashing the project as usual you'll get to see a minigame selector on the LCD. You can use the ABC buttons to navigate between minigames and use the start button to confirm the game to test.
+
+Automatic testing is done with the help of ztests. You can build them with:
+```
+west build -b nucleo_h743zi [whereYouveClonedTheGitRepo]\StartWeekAvans25\Project\tests
+```
+Upon flashing the software on the hardware it'll start to do every selected test in a random order.
+Currently the test's prj.conf is configured to test everything aside from the minigame.
+
+You can also use Twister, Zephyr's Test Runner, to run the tests with.
