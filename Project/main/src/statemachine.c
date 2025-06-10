@@ -63,7 +63,7 @@ void init_state(struct state *state) {
 	}
 	initialize();
 	Startupdelay = 0;
-
+#ifndef CONFIG_TESTMODE
 	// check if current time is the same as the start time
 	int16_t start_time = 0;
 	int16_t current_time = 0;
@@ -87,7 +87,7 @@ void init_state(struct state *state) {
 	}
 
 	end_time = sd_get_end_time();
-
+#endif
 	state->next = idle_state;
 }
 
@@ -355,7 +355,9 @@ void startStatemachine() {
 	while (state.next)
 	{
 		state.next(&state);
+#ifndef CONFIG_TESTMODE
 		if (check_end_time_reached())
 			state.next = end_game_state;
+#endif
 	}
 }
