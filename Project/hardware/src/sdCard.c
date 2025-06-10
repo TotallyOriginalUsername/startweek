@@ -15,12 +15,15 @@ LOG_MODULE_REGISTER(sdCard);
 #define DISK_DRIVE_NAME "SD"
 #define DISK_MOUNT_PT "/"DISK_DRIVE_NAME":"
 
+
+
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 
 static const char *type_file[] = { // File paths for different types of locations. Dirty fix to have this here.
 	"/SD:/poko.txt", // pokemon locations
 	"/SD:/loc.txt", // general locations
-	"/SD:/trlo.txt" // trivia locations
+	"/SD:/trlo.txt", // trivia locations
+	"/SD:/trivia.txt" // trivia questions
 };
 
 static FATFS fat_fs;
@@ -181,7 +184,7 @@ uint8_t sd_set_score(int score){
 }
 
 
-uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
+uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_len)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int ret = 0;
@@ -190,24 +193,24 @@ uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 
 	fs_file_t_init(&data_filp);
 
-	if (type >= sizeof(type_file) / sizeof(type_file[0])) {
-		LOG_ERR("No such file type known: %d", type);
+	if (select_file >= sizeof(type_file) / sizeof(type_file[0])) {
+		LOG_ERR("No such file type known: %d", select_file);
 		return -1;
 	}
 
-	ret = fs_open(&data_filp, type_file[type], FS_O_READ);
+	ret = fs_open(&data_filp, type_file[select_file], FS_O_READ);
 	if (ret) {
-		LOG_ERR("Failed to open file: %s (err = %d)", type_file[type], ret);
+		LOG_ERR("Failed to open file: %s (err = %d)", type_file[select_file], ret);
 		return -2;
 	} else {
-		LOG_MSG_DBG("Opened file: %s", type_file[type]);
+		LOG_MSG_DBG("Opened file: %s", type_file[select_file]);
 	}
 
 	*len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
 	fs_close(&data_filp);
 
 	if (len < 0) {
-		LOG_ERR("Failed to read file: %s", type_file[type]);
+		LOG_ERR("Failed to read file: %s", type_file[select_file]);
 		return -2;
 	}
 
