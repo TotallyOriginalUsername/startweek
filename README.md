@@ -61,6 +61,24 @@ After this you can program the hardware aslong as it's in bootloader mode. You c
 - Turn on the hardware 
 Now the hardware is in bootloader mode and can be programmed with "west flash". 
 
+#### Prequisites SD 
+The SD should contain the following files:
+
+| filename      | note/discription                                          | stored on this repo|
+| ------------- | --------------------------------------------------------- | ----------------- |
+| end.txt       | End time in minutes*                                      | x                 |
+| start.txt     | Start time in minutes*                                    | x                 |
+| poko.txt      | Locations for the catch the pokemon game                  | x                 |
+| loc.txt       | Locations for the game uniquly genenerated by the QT app  |                   |
+| trivia.txt    | Quiz questions                                            | x                 |
+| score.txt     | who has the most is the winner**                          | x                 |
+| PROGRESS.txt  | auto generated**                                          |                   |
+- \* Calculate with `[time_in_file] = [24-hour_time_in_hours] * 60 - 120 + minutes` 
+  - Current preset (`420 & 960` is `9:00 to 18:00`)
+- ** This needs to be reset manualy after each playthrough
+  
+
+
 ## Digital twin
 [//]: # (Give)
 The digital twin can be ran on Linux machines. It has been tested and confirmed to work on Ubuntu 20.04, and also confirmed to display nothing on Arch and WSL2.

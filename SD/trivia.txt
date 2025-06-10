@@ -1,0 +1,87 @@
+[
+{
+"question": "hoe heet denbosch met carnaval?",
+"answerA": "A: Kielegat",
+"answerB": "B: Oeteldonk",
+"answerC": "C: Lampegat",
+"correct": 1
+},
+{
+"question": "Wie bedacht de bossche bol?",
+"answerA": "A: Een duitser",
+"answerB": "B: De burgermeester van Breda",
+"answerC": "C: Een hagenees",
+"correct": 2
+},
+{
+"question": "hoe lang was de binnendieze?",
+"answerA": "A: 19km",
+"answerB": "B: 12km",
+"answerC": "C: 37m",
+"correct": 1
+},
+{
+"question": "Hoeveel studenten telt Avans?",
+"answerA": "A: Ongeveer 35 duizend",
+"answerB": "B: Ongeveer 5000 ",
+"answerC": "C: Ongeveer 50 duizend",
+"correct": 0
+},
+{
+"question": "welk antwoord is goed",
+"answerA": "A: B",
+"answerB": "B: A",
+"answerC": "C: C",
+"correct": 2
+},
+{
+"question": "Hoeveel mensen maakte dit spel?",
+"answerA": "A: 8 verschillende",
+"answerB": "B: 3",
+"answerC": "C: 1 hele slimme",
+"correct": 0
+},
+{
+"question": "Wat is het dier op DE fontijn?",
+"answerA": "A: een adelaar",
+"answerB": "B: een draak",
+"answerC": "C: een student",
+"correct": 1
+},
+{
+"question": "wat is waar?",
+"answerA": "A: R is I keer U",
+"answerB": "B: U is I keer R",
+"answerC": "C: I is R keer U",
+"correct": 1
+},
+{
+"question": "waar kan je geen drank kopen?",
+"answerA": "A: Kees",
+"answerB": "B: Roels",
+"answerC": "C: De druif",
+"correct": 2
+},
+{
+"question": "wat is de Moriaan?",
+"answerA": "A: Een bekende schilder",
+"answerB": "B: Een oud lokaal lekkernij",
+"answerC": "C: Een oud gebouw",
+"correct": 2
+},
+{
+"question": "Waarom was er daksubsidie?",
+"answerA": "A: De stadsbrand van 1463",
+"answerB": "B: Voordelig voor de rijken",
+"answerC": "C: De 80 jarige oorlog",
+"correct": 0
+},
+
+{
+"question": "Hoe oud is de stads muur?",
+"answerA": "A: 13e eeuw",
+"answerB": "B: 12e eeuw",
+"answerC": "C: 9e eeuw",
+"correct": 0
+}
+]
