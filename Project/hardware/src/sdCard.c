@@ -3,6 +3,9 @@
 #include <stdlib.h>
 LOG_MODULE_REGISTER(sdCard);
 
+#define START_TIME 0
+#define END_TIME 1
+
 #define MAX_PATH 128
 
 /*
@@ -219,4 +222,77 @@ uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len)
 
 #endif
 	return 0;
+}
+
+/**
+ * @brief Get the start or end time from the SD card.
+ *
+ * @param type 0 for start time, 1 for end time.
+ * @return int16_t >= 0 The time of the day in minutes
+ * @return int16_t < 0 On error
+ */
+int16_t get_time(uint8_t type)
+{
+	int16_t time = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[20];
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	switch (type) {
+		case 0: // Start time
+			ret = fs_open(&data_filp, "/SD:/start.txt", FS_O_READ);
+			break;
+		case 1: // End time
+			ret = fs_open(&data_filp, "/SD:/end.txt", FS_O_READ);
+			break;
+		default:
+			LOG_ERR("Invalid type for get_time: %d", type);
+			return -1;
+	}
+
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return ret; // narrowing conversion from 'int' to 'int16_t' may lose data
+	} else {
+		//LOG_ERR("%s - successfully opened file\n", __func__);
+	}
+
+	ret = fs_read(&data_filp, file_data_buffer, 200);
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to read file (err = %d)\n", __func__, ret);
+		fs_close(&data_filp);
+		return ret; // narrowing conversion from 'int' to 'int16_t' may lose data
+	} else {
+		// LOG_MSG_DBG("%s - successfully read file\n", __func__);
+	}
+	fs_close(&data_filp);
+
+	sscanf(file_data_buffer, "%hd", &time);
+#endif
+	return time;
+}
+
+/**
+ * @brief Get the start time from the SD card.
+ *
+ * @return int16_t >= 0 The start time of the day in minutes
+ * @return int16_t < 0 On error
+ */
+int16_t sd_get_start_time()
+{
+	return get_time(START_TIME);
+}
+
+/**
+ * @brief Get the end time from the SD card.
+ *
+ * @return int16_t >= 0 The end time of the day in minutes
+ * @return int16_t < 0 On error
+ */
+int16_t sd_get_end_time()
+{
+	return get_time(END_TIME);
 }

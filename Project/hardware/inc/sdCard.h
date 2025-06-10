@@ -20,4 +20,7 @@ uint8_t sd_set_score(int score);
 
 uint8_t sd_get_locations(uint16_t type, char *buf, size_t *len, size_t max_len);
 
+int16_t sd_get_start_time();
+int16_t sd_get_end_time();
+
 #endif // SDCARD_H
