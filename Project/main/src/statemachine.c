@@ -124,6 +124,7 @@ void mg1_state(struct state *state) { // Makes use of button and led
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -141,6 +142,7 @@ void mg2_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -158,6 +160,7 @@ void mg3_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -175,6 +178,7 @@ void mg4_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -192,6 +196,7 @@ void mg5_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -209,6 +214,7 @@ void mg6_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -226,6 +232,7 @@ void mg7_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -243,6 +250,7 @@ void mg8_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -260,6 +268,7 @@ void mg9_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -277,6 +286,7 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -299,6 +309,7 @@ void ctp_state(struct state *state) // Catch the Pokemon minigame
 
 	disableThreads(names, amount);
 	sd_set_score(ret);
+	show_mg_score(ret);
 
 	state->next = idle_state;
 }
