@@ -35,8 +35,8 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
 
 
     struct json_obj_descr loc_descr_type1[] = {
-        JSON_OBJ_DESCR_PRIM(struct Location, x, JSON_TOK_NUMBER),
-        JSON_OBJ_DESCR_PRIM(struct Location, y, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_from_sd, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_from_sd, JSON_TOK_NUMBER),
         JSON_OBJ_DESCR_PRIM(struct Location, mg_id, JSON_TOK_NUMBER),
     };
     struct json_obj_descr loc_descr_type0[] = {
@@ -78,9 +78,9 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
             free(locArray);
             return ret;
         }
-        i++;
         locArray[i].x = (int64_t)locArray[i].x_from_sd * 1000; // convert back to nanodegrees
         locArray[i].y = (int64_t)locArray[i].y_from_sd * 1000;
+        i++;
     }
 
     *count = i;

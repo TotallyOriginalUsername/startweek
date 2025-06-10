@@ -672,8 +672,8 @@ int8_t set_Pokemon_Hint(int pokemonIndex)
     int dir = 0;
     int distMeters = 0;
     lcdStringWrite("Volg het licht!");
-    distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
-    dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat));
+    distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi));
+    dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(pokemonLocation[pokemonIndex].lat), nanoDegToLdDeg(pokemonLocation[pokemonIndex].longi));
 
     set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
     return 0; // Successfully set the hint
