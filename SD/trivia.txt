@@ -7,7 +7,7 @@
 "correct": 1
 },
 {
-"question": "Wie bedacht de bossche bol?",
+"question": "Wie bedacht de Bossche Bol?",
 "answerA": "A: Een Duitser",
 "answerB": "B: De burgermeester van Breda",
 "answerC": "C: Een Hagenees",
