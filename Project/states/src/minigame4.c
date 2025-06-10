@@ -41,7 +41,7 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
 	json_buf[len] = '\0';  // Ensure null-termination
 
 	LOG_WRN("%s",json_buf);
-    struct Quiz *quizArray = calloc(maxQuestions,sizeof(struct Quiz));
+    struct Quiz *quizArray = malloc(maxQuestions * sizeof(struct Quiz));
     if (!quizArray){
 		free(quizArray);
         return -2;
