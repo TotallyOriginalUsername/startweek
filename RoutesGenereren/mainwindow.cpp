@@ -13,9 +13,10 @@
 #include <QTimer>
 #include <QtConcurrent>
 #include <QFuture>
-#include <QGraphicsScene>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
+#include <QPainter>
+#include <limits>
 #include <QPen>
 #include <QBrush>
 
@@ -32,11 +33,14 @@ MainWindow::MainWindow(QWidget *parent) :
     m_serial(new QSerialPort(this))
 {
     m_ui->setupUi(this);
-    m_console->setEnabled(false);
-    //setCentralWidget(m_console);
+
+    // Initialiseer QGraphicsScene
     scene = new QGraphicsScene(this);
     m_ui->graphicsView->setScene(scene);
+    m_ui->graphicsView->setRenderHint(QPainter::Antialiasing, true);
 
+    // SerialPort + console instellingen
+    m_console->setEnabled(false);
     QWidget* tab1 = m_console;
     m_ui->tabWidget->addTab(tab1, "Developer mode");
 
@@ -66,6 +70,30 @@ void MainWindow::drawRoutes()
 {
     scene->clear();
 
+    // 1) Bepaal min/max van alle getoonde punten
+    int64_t minX = std::numeric_limits<int64_t>::max(), maxX = std::numeric_limits<int64_t>::lowest();
+    int64_t minY = std::numeric_limits<int64_t>::max(), maxY = std::numeric_limits<int64_t>::lowest();
+    for (auto& pts : selectedPoints)
+        for (auto& p : pts) {
+            minX = std::min(minX, p.x);
+            maxX = std::max(maxX, p.x);
+            minY = std::min(minY, p.y);
+            maxY = std::max(maxY, p.y);
+        }
+
+    // 2) Bereken schaal (+ marge)
+    QSizeF viewSz = m_ui->graphicsView->viewport()->size();
+    constexpr qreal M = 20.0;  // marge in pixels
+    qreal scaleX = (viewSz.width()  - 2*M) / qreal(maxX - minX);
+    qreal scaleY = (viewSz.height() - 2*M) / qreal(maxY - minY);
+    qreal scale = std::min(scaleX, scaleY);
+
+    auto mapPt = [&](const Point& p) {
+        qreal x = (p.x - minX)*scale + M;
+        qreal y = (p.y - minY)*scale + M;
+        return QPointF(x,y);
+    };
+
     const int radius = 4;
     const QColor colors[] = {
         Qt::red, Qt::blue, Qt::green, Qt::darkYellow,
@@ -73,42 +101,54 @@ void MainWindow::drawRoutes()
         Qt::gray, Qt::black
     };
 
+    // 3) Teken elke route in een andere kleur
     for (int r = 0; r < routeIndices.size(); ++r) {
-        QPen pen(colors[r % 10]);
-        pen.setWidth(2);
-        const auto& route = routeIndices[r];
-        const auto& points = selectedPoints[r];
+        QPen pen(colors[r%10]);
+        pen.setCosmetic(true);
+        pen.setWidth(0);
+        const auto& route  = routeIndices[r];
+        const auto& pts    = selectedPoints[r];
 
-        // Teken lijnen tussen punten
-        for (size_t i = 0; i < route.size() - 1; ++i) {
-            const Point& p1 = points[route[i]];
-            const Point& p2 = points[route[i + 1]];
-            scene->addLine(p1.x, p1.y, p2.x, p2.y, pen);
+        // lijnen
+        for (int i = 0; i + 1 < route.size(); ++i) {
+            QPointF p1 = mapPt(pts[ route[i]   ]);
+            QPointF p2 = mapPt(pts[ route[i+1] ]);
+            scene->addLine(p1.x(), p1.y(), p2.x(), p2.y(), pen);
         }
-
-        // Teken de punten
-        for (const auto& pt : points) {
-            scene->addEllipse(pt.x - radius, pt.y - radius,
-                              radius * 2, radius * 2,
-                              QPen(Qt::black), QBrush(colors[r % 10]));
+        // punten
+        for (auto& p : pts) {
+            QPointF c = mapPt(p);
+            scene->addEllipse(c.x()-radius, c.y()-radius,
+                              radius*2, radius*2,
+                              QPen(Qt::black),
+                              QBrush(colors[r%10]));
         }
     }
 
-    scene->setSceneRect(scene->itemsBoundingRect());
+    // 4) Scene instellen en fitten
+    scene->setSceneRect(0, 0, viewSz.width(), viewSz.height());
+    m_ui->graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    QMainWindow::resizeEvent(event);
+    if (scene && !scene->items().isEmpty()) {
+        m_ui->graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+    }
 }
 
 void MainWindow::on_pushButton_clicked()
 {
     m_ui->statusLabel->setText("Bezig met genereren...");
-    QApplication::processEvents(); // direct UI updaten
+    QApplication::processEvents();
 
     QFuture<void> future = QtConcurrent::run([this]() {
-        generate_routes();  // Genereer de routes
-
+        generate_routes();
         QMetaObject::invokeMethod(this, [this]() {
-                m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
-                drawRoutes();  // Visualiseer routes
-            }, Qt::QueuedConnection);
+            m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
+            drawRoutes();
+        }, Qt::QueuedConnection);
     });
 }
 
@@ -138,7 +178,6 @@ void MainWindow::openSerialPort()
                                    p.stringParity, p.stringStopBits, p.stringFlowControl));
     } else {
         QMessageBox::critical(this, tr("Error"), m_serial->errorString());
-
         showStatusMessage(tr("Open error"));
     }
 }
