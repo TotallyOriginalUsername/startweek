@@ -77,7 +77,9 @@ The SD card should contain the following files:
   - Current preset (`420 & 960` is `9:00 to 18:00`)
 - ** This needs to be reset manualy after each playthrough
   
-__note: increases in file size may require buffer and stack increases. Failure to comply will result in crashes__
+__note: An increase in file size may require buffer and stack increases. Failure to comply will result in crashes__
+- The `STACKSIZE_MAIN` in `main.c` (line 17) (At least twice as big as any files interacted with)
+  - The `BUFFER_SIZE` in `minigame4.h` (line 24) (At least the size of `trivia.txt`)
 
 ## Digital twin
 [//]: # (Give)
