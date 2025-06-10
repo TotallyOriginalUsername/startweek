@@ -76,9 +76,9 @@ void idle_state(struct state *state) {
 	} else if (ret == -1) {
 		LOG_INF("Going to exit state\n");
 		state->next = exit_state;
-	}else if(ret >= 100){
-		trivia_ID = ret - 100;
-		state->next = mg4_state;
+	}else if(ret >= 100){   		// if a minigame ID above 100 is assigned, it is a triva question, 
+		trivia_ID = ret - 100;		// internaly to the trivia game questions are labeled 0 to [however many are on the SD]
+		state->next = mg4_state;	// keep in mind that increasing the amount of questions will influence required buffersizes, as well as the main stack
 	} else {
 		state->next = minigame_states[ret];
 	}
