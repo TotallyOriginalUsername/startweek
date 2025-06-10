@@ -140,17 +140,34 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_pushButton_clicked()
 {
-    m_ui->statusLabel->setText("Bezig met genereren...");
+    ui->statusLabel->setText("Bezig met genereren...");
     QApplication::processEvents();
 
     QFuture<void> future = QtConcurrent::run([this]() {
-        generate_routes();
-        QMetaObject::invokeMethod(this, [this]() {
-            m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
-            drawRoutes();
-        }, Qt::QueuedConnection);
+        try {
+            generate_routes();
+
+            QMetaObject::invokeMethod(this, [this]() {
+                ui->statusLabel->setText("Routes succesvol gegenereerd!");
+                drawRoutes();
+            }, Qt::QueuedConnection);
+
+        } catch (const std::exception& ex) {
+            QString errorMsg = QString("Fout bij genereren van routes: %1").arg(ex.what());
+            QMetaObject::invokeMethod(this, [this, errorMsg]() {
+                QMessageBox::critical(this, "Fout", errorMsg);
+                ui->statusLabel->setText("Fout bij genereren van routes!");
+            }, Qt::QueuedConnection);
+
+        } catch (...) {
+            QMetaObject::invokeMethod(this, [this]() {
+                QMessageBox::critical(this, "Fout", "Onbekende fout bij genereren van routes!");
+                ui->statusLabel->setText("Fout bij genereren van routes!");
+            }, Qt::QueuedConnection);
+        }
     });
 }
+
 
 void MainWindow::pushButton_2_clicked()
 {
