@@ -88,14 +88,17 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
 
 
 
-int playMg4() {
+int playMg4(int question_nr) {
 	uint32_t score = 1000;
 	uint8_t *abcBtn;
 	bool showQuestion = true;
 	bool correct = false;
 	bool buttonReleased = true;
 	static uint8_t questionIndex = 0;
-
+	if(question_nr != 0){
+		questionIndex = question_nr;
+	}
+	
 	struct Quiz *quizzes = NULL;
 	size_t count = 0;
 	size_t maxQuestions = 32;
@@ -183,7 +186,11 @@ int playMg4() {
 			}
 		}
 	} 
-	questionIndex++;
+	if (question_nr > 0 ){
+	questionIndex = 0;
+	}else{
+		questionIndex++;
+	}
 	abcledsSet('a',false);
 	abcledsSet('b',false);
 	abcledsSet('c',false);

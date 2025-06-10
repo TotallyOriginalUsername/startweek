@@ -29,6 +29,7 @@ LOG_MODULE_REGISTER(statemachine);
 // Setup state machine
 struct state;
 typedef void state_fn(struct state *);
+uint8_t trivia_ID;
 
 struct state {
 	state_fn *next;
@@ -69,12 +70,15 @@ void idle_state(struct state *state) {
 	int ret = playIdle();
 	disableThreads(names, amount);
 
-	if (ret < -1 || ret > 9) {
+	if (ret < -1) {
 		LOG_ERR("Error in idle state\n");
 		state->next = 0;
 	} else if (ret == -1) {
 		LOG_INF("Going to exit state\n");
 		state->next = exit_state;
+	}else if(ret >= 100){
+		trivia_ID = ret - 100;
+		state->next = mg4_state;
 	} else {
 		state->next = minigame_states[ret];
 	}
@@ -141,7 +145,7 @@ void mg4_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg4Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	score = playMg4();
+	score = playMg4(trivia_ID);
 
 	disableThreads(names, amount);
 	sd_set_score(score);

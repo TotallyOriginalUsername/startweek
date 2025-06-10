@@ -15,7 +15,7 @@
 
 void getMg4Threads(char ***, unsigned *);
 
-int playMg4();
+int playMg4(int question_nr);
 #define AMOUNT_QUESTIONS 4
 #define AMOUNT_ANSWERS 3
 // TShis buffer is related to the size of the trivia folder so this might need to be increased 
