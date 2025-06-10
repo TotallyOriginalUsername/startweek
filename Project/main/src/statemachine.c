@@ -71,6 +71,12 @@ void init_state(struct state *state) {
 	while (current_time < start_time || current_time == 0)
 	{
 		start_time = sd_get_start_time();
+		if (start_time < 0) {
+			LOG_ERR("Start time not set, exiting state machine");
+			state->next = exit_state;
+			return;
+		}
+
 		int16_t hour = getHour();
 		int16_t minute = getMinute();
 		current_time = (int16_t)((hour * 60) + minute);
