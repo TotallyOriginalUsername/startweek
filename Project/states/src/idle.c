@@ -1,4 +1,7 @@
 #include "idle.h"
+
+#include <sdCard.h>
+
 #include "gps.h"
 #include "gyroCompass.h"
 #include "lcd.h"
@@ -14,6 +17,7 @@ LOG_MODULE_REGISTER(idle);
 
 #define REQUIRED_DIST_METERS 20
 #define GAMES_AMOUNT 10
+#define NR_OF_LOCS 64
 
 #if defined(CONFIG_TESTMODE)
 unsigned idleThreadCount = 2;
@@ -26,6 +30,38 @@ char *idleThreads[1] = {"ledcircle"};
 void getIdleThreads(char ***names, unsigned *amount) {
 	*names = idleThreads;
 	*amount = idleThreadCount;
+}
+
+static struct locations {
+	int64_t lat;
+	int64_t lon;
+	uint8_t mg_id;
+} locations[NR_OF_LOCS] = {0};
+
+static size_t locations_count = 0;
+
+void initLocations()
+{
+	struct Location *locArray = NULL;
+	char lcd_msg[32];
+	int ret = locations_load(1, &locArray, &locations_count, NR_OF_LOCS);
+	if (ret != 0)
+	{
+		snprintf(lcd_msg, sizeof(lcd_msg), "Init loc err: %d", ret);
+		lcdEnable();
+		lcdStringWrite(lcd_msg);
+		k_msleep(2000);
+		LOG_ERR("Failed to load locations from disk");
+		return;
+	}
+
+	for (int i = 0; i < locations_count; i++)
+	{
+		locations[i].lat = locArray[i].x;
+		locations[i].lon = locArray[i].y;
+		locations[i].mg_id = locArray[i].mg_id < GAMES_AMOUNT ? locArray[i].mg_id : -2; // -2 if no minigame is assigned or out of range
+		LOG_INF("Location %d: lat=%lld, lon=%lld, mg_id=%d", i, locations[i].lat, locations[i].lon, locations[i].mg_id);
+	}
 }
 
 int playIdle() {
@@ -82,31 +118,44 @@ int playIdle() {
 
 	return testIndex;
 #endif
-
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	// Create and randomize array of coordinates
-	int64_t lats[NR_OF_LOCS] = {LAT_LOC_A, LAT_LOC_B, LAT_LOC_C, LAT_LOC_D, LAT_LOC_E, LAT_LOC_F, LAT_LOC_G, LAT_LOC_H, LAT_LOC_I, LAT_LOC_J};
-	int64_t lons[NR_OF_LOCS] = {LON_LOC_A, LON_LOC_B, LON_LOC_C, LON_LOC_D, LON_LOC_E, LON_LOC_F, LON_LOC_G, LON_LOC_H, LON_LOC_I, LON_LOC_J};
-#endif
 	static int locIndex = 0;
-	static bool completedGames[GAMES_AMOUNT] = {false, false, false, false, false, false, false, false, false, false};
-
-	// Check if all games have been completed
-	bool allGamesFinished = true;
-	for (int i = 0; i < GAMES_AMOUNT; i++) {
-		if (completedGames[i] == false) {
-			allGamesFinished = false;
-			break;
+	static int lastReturned = -2; // -2 if never returned, -1 if all locations visited >= 0 is the last mg_id
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	static bool firstTimeIdle = true; // i know should be in init but this is easier for now.
+	if (firstTimeIdle) // Check if locations are initialized
+	{
+		firstTimeIdle = false;
+		initLocations();
+		locIndex = sd_get_progress(); // Get the current location index from the SD card in the event that the device was turned off.
+		if (locIndex == -ENOENT) // If the file doesn't exist set locIndex to 0 and create the file.
+		{
+			lcdEnable();
+			lcdStringWrite("Geen voortgang gevonden");
+			k_msleep(1000);
+			locIndex = 0;
+			sd_set_progress(locIndex); // If no progress file exists, set it to 0
+			lcdStringWrite("Voortgang gereset");
+			k_msleep(1000);
+		}
+		else if (locIndex < 0)
+		{
+			return locIndex; // If the progress is negative there has been a reading error.
 		}
 	}
-	if (allGamesFinished) {
-		LOG_INF("All games completed\n");
-		return -1;
+#endif
+
+	// If returning from a minigame, increment and save progress
+	if (lastReturned >= 0) {
+		locIndex++;
+		sd_set_progress(locIndex);
 	}
 
-	while (completedGames[locIndex] == true) {
-		locIndex = rand() % 10;	// Keep getting random index until a game which has not been done yet is found
+	if (locIndex >= locations_count) {
+		LOG_INF("All locations have been visited.");
+		lastReturned = -1;
+		return lastReturned;
 	}
+
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
@@ -129,8 +178,8 @@ int playIdle() {
 				lcdSet = true;
 			}
 
-			distMeters = getDistanceMeters(nanoDegToLdDeg(currLon), nanoDegToLdDeg(currLat), nanoDegToLdDeg(lons[locIndex]), nanoDegToLdDeg(lats[locIndex])); // Distance from current position to next location (meters)
-			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(lats[locIndex]), nanoDegToLdDeg(lons[locIndex]));					// Angle between current location and next location
+			distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon)); // Distance from current position to next location (meters)
+			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon));					// Angle between current location and next location
 
 			set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
 		}
@@ -138,6 +187,6 @@ int playIdle() {
 #endif
 	lcdStringWrite("Gearriveerd!!");
 	k_msleep(4000);
-	completedGames[locIndex] = true;
-	return locIndex;
+	lastReturned = locations[locIndex].mg_id;
+	return lastReturned; // Return the index of the game that has to be played.
 }

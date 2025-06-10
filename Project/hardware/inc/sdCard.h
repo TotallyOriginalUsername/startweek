@@ -11,15 +11,17 @@
 #endif
 #include <string.h>
 
-uint8_t sd_card_init();
+int sd_card_init();
 void sd_card_unmount();
 
-uint8_t sd_clear_score();
+int sd_clear_score();
 int sd_get_score();
-uint8_t sd_set_score(int score);
-//file_type select the file path from the file type array. 
-uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_len);
+int sd_set_score(int score);
 
+int sd_get_progress();
+int sd_set_progress(int progress);
+
+uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_len);
 
 int16_t sd_get_start_time();
 int16_t sd_get_end_time();
