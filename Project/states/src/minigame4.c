@@ -76,19 +76,17 @@ int trivia_load(uint16_t type, struct Quiz **questions, size_t *count, size_t ma
             return ret;
         }
     }
-	//LOG_WRN("%s", quizArray[1].question);
+	//LOG_INF("%s", quizArray[1].question);
     *count = i;
     *questions = quizArray;
 #endif
-	//lcdStringWrite("Loaded Quiz");
-	//k_msleep(3000);
     return 0;
 }
 
 
 
 
-int playMg4(int question_nr) {
+int playMg4(uint8_t question_nr) {
 	uint32_t score = 1000;
 	uint8_t *abcBtn;
 	bool showQuestion = true;
@@ -187,9 +185,9 @@ int playMg4(int question_nr) {
 		}
 	} 
 	if (question_nr > 0 ){
-	questionIndex = 0;
+	questionIndex = 0;  		// resets this after use this allows question 0 to be triggered
 	}else{
-		questionIndex++;
+		questionIndex++; // in case question_nr is not used the program this is the backup
 	}
 	abcledsSet('a',false);
 	abcledsSet('b',false);
