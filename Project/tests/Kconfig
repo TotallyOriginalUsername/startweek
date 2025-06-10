@@ -1,0 +1,51 @@
+mainmenu "Startweek options"
+
+menu ":D"
+
+config TEST_RNG_INPUT
+    bool "Use RNG input instead of human input"
+    default y
+
+config TEST_ACCELEROMETER
+    bool "Test the accelerometer"
+    default n
+
+config TEST_BUTTONMATRIX
+    bool "Test the buttonmatrix"
+    default n
+
+config TEST_CIRCLE_MATRIX
+    bool "Test the circle matrix"
+    default n
+
+config TEST_GENERIC_GPIO
+    bool "Test the generic GPIO"
+    default n
+
+config TEST_HELPER_FUNCTIONS
+    bool "Test helper functions"
+    default n
+
+config TEST_INTEGRATION
+    bool "Test integration"
+    default n
+
+config TEST_LCD
+    bool "Test the LCD"
+    default n
+
+config TEST_LED_MATRIX
+    bool "Test the LED matrix"
+    default n
+
+config TEST_SEVEN_SEGMENT
+    bool "Test the seven-segment display"
+    default n
+
+config TEST_MINIGAME_FUNCTIONS
+    bool "Test minigame functions"
+    default n
+
+endmenu
+
+source "Kconfig.zephyr"

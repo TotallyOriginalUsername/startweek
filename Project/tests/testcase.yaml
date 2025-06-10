@@ -1,0 +1,37 @@
+tests:
+  testing.framework_tests:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testAccelerometer:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testMagnetometer:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testCompass:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testCircleMatrix:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testGenericGpio:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testLcd:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testLedMatrix:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.sevenSegmentMatrix:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testHelperFunctions:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testMg10:
+    build_only: false
+    platform_allow: nucleo_h743zi
+  testing.testAll:
+    build_only: false
+    platform_allow: nucleo_h743zi
