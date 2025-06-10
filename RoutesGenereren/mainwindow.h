@@ -5,8 +5,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QGraphicsScene>
 #include <QMainWindow>
+#include <QGraphicsScene>
+#include <QResizeEvent>
 #include <QSerialPort>
 
 QT_BEGIN_NAMESPACE
@@ -47,12 +48,15 @@ private slots:
 
 private:
     void initActionsConnections();
-
-private:
     void showStatusMessage(const QString &message);
     void showWriteError(const QString &message);
     void drawRoutes();
 
+protected:
+    // Elke keer bij resize opnieuw fitten
+    void resizeEvent(QResizeEvent* event) override;
+
+private:
     Ui::MainWindow *m_ui = nullptr;
     QLabel *m_status = nullptr;
     Console *m_console = nullptr;
@@ -62,7 +66,7 @@ private:
     QSerialPort *m_serial = nullptr;
     QString dataRead;
     QString selectedNode;
-    QGraphicsScene *scene= nullptr;
+    QGraphicsScene *scene = nullptr;
 };
 
 #endif // MAINWINDOW_H
