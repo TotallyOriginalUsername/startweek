@@ -21,6 +21,7 @@ void clear_btnmatrix_leds();
 void show_correct();
 void show_incorrect();
 void show_oneliners(char input_array[][32], int lines);
+void show_mg_score(int score);
 void wait_till_abc_depressed();
 void wait_till_btnmatrix_depressed();
 void wait_till_switches_rest();
