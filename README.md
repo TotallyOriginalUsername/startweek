@@ -61,18 +61,18 @@ After this you can program the hardware aslong as it's in bootloader mode. You c
 - Turn on the hardware 
 Now the hardware is in bootloader mode and can be programmed with "west flash". 
 
-#### Prequisites SD 
-The SD should contain the following files:
+#### Prequisites SD card
+The SD card should contain the following files:
 
 | filename      | note/discription                                          | stored on this repo|
 | ------------- | --------------------------------------------------------- | ----------------- |
 | end.txt       | End time in minutes*                                      | x                 |
 | start.txt     | Start time in minutes*                                    | x                 |
 | poko.txt      | Locations for the catch the pokemon game                  | x                 |
-| loc.txt       | Locations for the game uniquly genenerated by the QT app  |                   |
+| loc.txt       | Locations for the game uniquely genenerated by the QT app |                   |
 | trivia.txt    | Quiz questions                                            | x                 |
-| score.txt     | who has the most is the winner**                          | x                 |
-| PROGRESS.txt  | auto generated**                                          |                   |
+| score.txt     | Who has the most is the winner**                          | x                 |
+| PROGRESS.txt  | Auto-generated**                                          |                   |
 - \* Calculate with `[time_in_file] = [24-hour_time_in_hours] * 60 - 120 + minutes` 
   - Current preset (`420 & 960` is `9:00 to 18:00`)
 - ** This needs to be reset manualy after each playthrough

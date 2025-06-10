@@ -1,6 +1,6 @@
 [
 {
-"question": "hoe heet denbosch met carnaval?",
+"question": "Hoe heet DenBosch met carnaval?",
 "answerA": "A: Kielegat",
 "answerB": "B: Oeteldonk",
 "answerC": "C: Lampegat",
@@ -8,13 +8,13 @@
 },
 {
 "question": "Wie bedacht de bossche bol?",
-"answerA": "A: Een duitser",
+"answerA": "A: Een Duitser",
 "answerB": "B: De burgermeester van Breda",
-"answerC": "C: Een hagenees",
+"answerC": "C: Een Hagenees",
 "correct": 2
 },
 {
-"question": "hoe lang was de binnendieze?",
+"question": "Hoe lang was de Binnendieze?",
 "answerA": "A: 19km",
 "answerB": "B: 12km",
 "answerC": "C: 37m",
@@ -28,7 +28,7 @@
 "correct": 0
 },
 {
-"question": "welk antwoord is goed",
+"question": "Welk antwoord is goed?",
 "answerA": "A: B",
 "answerB": "B: A",
 "answerC": "C: C",
@@ -42,28 +42,28 @@
 "correct": 0
 },
 {
-"question": "Wat is het dier op DE fontijn?",
+"question": "Wat is het dier op DE fontein?",
 "answerA": "A: een adelaar",
 "answerB": "B: een draak",
 "answerC": "C: een student",
 "correct": 1
 },
 {
-"question": "wat is waar?",
+"question": "Wat is waar?",
 "answerA": "A: R is I keer U",
 "answerB": "B: U is I keer R",
 "answerC": "C: I is R keer U",
 "correct": 1
 },
 {
-"question": "waar kan je geen drank kopen?",
+"question": "Waar kan je geen drank kopen?",
 "answerA": "A: Kees",
 "answerB": "B: Roels",
 "answerC": "C: De druif",
 "correct": 2
 },
 {
-"question": "wat is de Moriaan?",
+"question": "Wat is de Moriaan?",
 "answerA": "A: Een bekende schilder",
 "answerB": "B: Een oud lokaal lekkernij",
 "answerC": "C: Een oud gebouw",
@@ -72,16 +72,16 @@
 {
 "question": "Waarom was er daksubsidie?",
 "answerA": "A: De stadsbrand van 1463",
-"answerB": "B: Voordelig voor de rijken",
+"answerB": "B: Voordelig voor de rijke",
 "answerC": "C: De 80 jarige oorlog",
 "correct": 0
 },
 
 {
-"question": "Hoe oud is de stads muur?",
-"answerA": "A: 13e eeuw",
-"answerB": "B: 12e eeuw",
-"answerC": "C: 9e eeuw",
+"question": "Hoe oud is de stadsmuur?",
+"answerA": "A: Uit de 13e eeuw",
+"answerB": "B: Uit de 12e eeuw",
+"answerC": "C: Uit de 9e eeuw",
 "correct": 0
 }
 ]
