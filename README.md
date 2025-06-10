@@ -77,7 +77,7 @@ The SD should contain the following files:
   - Current preset (`420 & 960` is `9:00 to 18:00`)
 - ** This needs to be reset manualy after each playthrough
   
-
+__note: increases in file size may require buffer and stack increases. Failure to comply will result in crashes__
 
 ## Digital twin
 [//]: # (Give)
