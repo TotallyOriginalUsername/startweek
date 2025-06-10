@@ -537,7 +537,7 @@
 &usart2 {
 		pinctrl-0 = < &usart2_tx_pa2 &usart2_rx_pa3 >;
 		pinctrl-names = "default";
-        current-speed = <9600>;
+        current-speed = <115200>;
         status = "okay";
 };
 
@@ -650,4 +650,24 @@
 
 &red_pwm_led{
 	status = "disabled";
+};
+
+&spi4 {
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi4_sck_pe12 &spi4_miso_pe13 &spi4_mosi_pe14>;
+		cs-gpios = <&gpioe 11 GPIO_ACTIVE_LOW>;
+
+        sdhc0: sdhc@0 {
+                compatible = "zephyr,sdhc-spi-slot";
+                reg = <0>;
+                status = "okay";
+                mmc {
+                    compatible = "zephyr,sdmmc-disk";
+                    status = "okay";
+                };
+                spi-max-frequency = <25000000>;
+                //spi-clock-mode-cpol;
+                //spi-clock-mode-cpha;
+        };
 };

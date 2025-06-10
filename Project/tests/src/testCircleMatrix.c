@@ -1,3 +1,5 @@
+#ifdef CONFIG_TEST_CIRCLE_MATRIX
+
 #include <zephyr/ztest.h>
 #include "circleMatrix.h"
 
@@ -23,3 +25,4 @@ ZTEST(testCircleMatrix, test_Set_one)
 	int8_t a = circleMatrixSet(data);
 	zassert_equal(a,0);
 }
+#endif

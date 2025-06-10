@@ -6,9 +6,9 @@
 LOG_MODULE_REGISTER(buzzers);
 
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+static struct pwm_dt_spec buzzer0 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer0));
 static struct pwm_dt_spec buzzer1 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer1));
 static struct pwm_dt_spec buzzer2 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer2));
-static struct pwm_dt_spec buzzer3 = PWM_DT_SPEC_GET(DT_ALIAS(buzzer3));
 #endif
 
 static bool isInit = false;
@@ -28,6 +28,11 @@ static bool isInit = false;
 uint8_t buzzersInit()
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    if (!pwm_is_ready_dt(&buzzer0))
+    {
+        LOG_ERR("Error: PWM device %s is not ready\n", buzzer0.dev->name);
+        return 1;
+    }
     if (!pwm_is_ready_dt(&buzzer1))
     {
         LOG_ERR("Error: PWM device %s is not ready\n", buzzer1.dev->name);
@@ -36,11 +41,6 @@ uint8_t buzzersInit()
     if (!pwm_is_ready_dt(&buzzer2))
     {
         LOG_ERR("Error: PWM device %s is not ready\n", buzzer2.dev->name);
-        return 1;
-    }
-    if (!pwm_is_ready_dt(&buzzer3))
-    {
-        LOG_ERR("Error: PWM device %s is not ready\n", buzzer3.dev->name);
         return 1;
     }
 #endif
@@ -55,7 +55,7 @@ uint8_t buzzersInit()
  * This function sets the PWM frequency for the specified buzzer.
  * The accepted frequency range is 20Hz to 20kHz.
  *
- * @param[in] aBuzzerNum The number of the buzzer (1, 2, or 3).
+ * @param[in] aBuzzerNum The number of the buzzer (0, 1, or 2).
  * @param[in] aFreq The frequency to set (between 20 and 20000 Hz).
  *
  * @return uint8_t 0 on success, 1 if buzzers are not initialized, 2 if the buzzer number is incorrect, 3 if the frequency is out of range.
@@ -63,6 +63,7 @@ uint8_t buzzersInit()
 uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+
     uint32_t period = 0;
 
     if (!isInit)
@@ -71,7 +72,7 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
         return 1;
     }
 
-    if (aBuzzerNum < 1 || aBuzzerNum > 3)
+    if (aBuzzerNum < 0 || aBuzzerNum > 2)
     {
         LOG_ERR("Incorrect buzzer number\n");
         return 2;
@@ -85,16 +86,16 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
 
     switch (aBuzzerNum)
     {
+    case 0:
+        pwm_set_dt(&buzzer0, period, period * 0.5);
+        break;
+
     case 1:
         pwm_set_dt(&buzzer1, period, period * 0.5);
         break;
 
     case 2:
         pwm_set_dt(&buzzer2, period, period * 0.5);
-        break;
-
-    case 3:
-        pwm_set_dt(&buzzer3, period, period * 0.5);
         break;
     }
 #endif
@@ -106,13 +107,14 @@ uint8_t buzzerSetPwm(int aBuzzerNum, int aFreq)
  *
  * This function turns off the specified buzzer by setting its PWM period to 0.
  *
- * @param[in] aBuzzerNum The number of the buzzer (1, 2, or 3).
+ * @param[in] aBuzzerNum The number of the buzzer (0, 1, or 2).
  *
  * @return uint8_t 0 on success, 1 if buzzers are not initialized, 2 if the buzzer number is incorrect.
  */
 uint8_t buzzerTurnOff(int aBuzzerNum)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+
     uint32_t period = 0;
 
     if (!isInit)
@@ -121,7 +123,7 @@ uint8_t buzzerTurnOff(int aBuzzerNum)
         return 1;
     }
 
-    if (aBuzzerNum < 1 || aBuzzerNum > 3)
+    if (aBuzzerNum < 0 || aBuzzerNum > 2)
     {
         LOG_ERR("Incorrect buzzer number\n");
         return 2;
@@ -129,16 +131,16 @@ uint8_t buzzerTurnOff(int aBuzzerNum)
 
     switch (aBuzzerNum)
     {
+    case 0:
+        pwm_set_dt(&buzzer0, period, period * 0.5);
+        break;
+
     case 1:
         pwm_set_dt(&buzzer1, period, period * 0.5);
         break;
 
     case 2:
         pwm_set_dt(&buzzer2, period, period * 0.5);
-        break;
-
-    case 3:
-        pwm_set_dt(&buzzer3, period, period * 0.5);
         break;
     }
 #endif
@@ -155,9 +157,9 @@ uint8_t buzzerTurnOff(int aBuzzerNum)
 uint8_t buzzersExit()
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    buzzerTurnOff(0);
     buzzerTurnOff(1);
     buzzerTurnOff(2);
-    buzzerTurnOff(3);
 #endif
 	return 0;
 }

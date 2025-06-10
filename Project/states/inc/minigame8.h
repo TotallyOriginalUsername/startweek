@@ -9,6 +9,8 @@
 
 #define mg8ThreadCount 3
 
+uint8_t get_any_btnmatrix();
+uint32_t calculate_score_mg8(uint32_t remaining_time);
 void getMg8Threads(char ***, unsigned *);
 
 int playMg8();
