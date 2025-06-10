@@ -84,6 +84,16 @@ void show_oneliners(char input_array[][32], int lines)
 	lcdDisable();
 }
 
+void show_mg_score(int score){
+	char lcd_msg[32];
+
+	lcdEnable();
+	sprintf(lcd_msg, "Minigame score: %d", score);
+
+	lcdStringWrite(lcd_msg);
+	k_msleep(3000);
+}
+
 //Function to wait untill every abc button has been released
 void wait_till_abc_depressed(){
 #if defined(CONFIG_TEST_RNG_INPUT)

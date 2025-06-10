@@ -2,7 +2,9 @@
 #include "statemachine.h"
 #include "threads.h"
 #include "sdCard.h"
+#include "gps.h"
 
+#include "endGame.h"
 #include "idle.h"
 #include "minigame1.h"
 #include "minigame2.h"
@@ -29,19 +31,23 @@ LOG_MODULE_REGISTER(statemachine);
 // Setup state machine
 struct state;
 typedef void state_fn(struct state *);
+uint8_t trivia_ID;
 
 struct state {
 	state_fn *next;
 	int i;
 };
 
-state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, ctp_state, exit_state;
+state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, ctp_state, end_game_state, exit_state;
+
 // Array of state functions
 state_fn* minigame_states[] = {
     mg1_state, mg2_state, mg3_state, mg4_state, mg5_state,
     mg6_state, mg7_state, mg8_state, mg9_state, mg10_state,
 	ctp_state
 };
+
+static int16_t end_time;
 
 // State functions
 void init_state(struct state *state) {
@@ -58,6 +64,31 @@ void init_state(struct state *state) {
 	}
 	initialize();
 	Startupdelay = 0;
+#ifndef CONFIG_TESTMODE
+	// check if current time is the same as the start time
+	int16_t start_time = 0;
+	int16_t current_time = 0;
+	lcdEnable();
+	while (current_time < start_time || current_time == 0)
+	{
+		start_time = sd_get_start_time();
+		if (start_time < 0) {
+			LOG_ERR("Start time not set, exiting state machine");
+			state->next = exit_state;
+			return;
+		}
+
+		int16_t hour = getHour();
+		int16_t minute = getMinute();
+		current_time = (int16_t)((hour * 60) + minute);
+		// LOG_INF("Start time: %d, Current time: %d", start_time, current_time);
+		char buffer[32];
+		sprintf(buffer, "Spel start in %d min", start_time > current_time ? start_time - current_time : start_time + (1440 - current_time));
+		lcdStringWrite(buffer);
+	}
+
+	end_time = sd_get_end_time();
+#endif
 	state->next = idle_state;
 }
 
@@ -69,12 +100,15 @@ void idle_state(struct state *state) {
 	int ret = playIdle();
 	disableThreads(names, amount);
 
-	if (ret < -1 || ret > 9) {
+	if (ret < -1) {
 		LOG_ERR("Error in idle state\n");
 		state->next = 0;
 	} else if (ret == -1) {
 		LOG_INF("Going to exit state\n");
 		state->next = exit_state;
+	}else if(ret >= 100){   		// if a minigame ID above 100 is assigned, it is a triva question, (change this when more than 100 games are made)
+		trivia_ID = ret - 100;		// internaly to the trivia game questions are labeled 0 to [however many are on the SD]
+		state->next = mg4_state;	// keep in mind that increasing the amount of questions will influence required buffersizes, as well as the main stack
 	} else {
 		state->next = minigame_states[ret];
 	}
@@ -94,6 +128,7 @@ void mg1_state(struct state *state) { // Makes use of button and led
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -111,6 +146,7 @@ void mg2_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -128,6 +164,7 @@ void mg3_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -141,10 +178,11 @@ void mg4_state(struct state *state) { // Makes use of gyro and buzzer
 	getMg4Threads(&names, &amount);
 	enableThreads(names, amount);
 
-	score = playMg4();
+	score = playMg4(trivia_ID);
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -162,6 +200,7 @@ void mg5_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -179,6 +218,7 @@ void mg6_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -196,6 +236,7 @@ void mg7_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -213,6 +254,7 @@ void mg8_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -230,6 +272,7 @@ void mg9_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -247,6 +290,7 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 
 	disableThreads(names, amount);
 	sd_set_score(score);
+	show_mg_score(score);
 
 	state->next = idle_state;
 }
@@ -269,8 +313,25 @@ void ctp_state(struct state *state) // Catch the Pokemon minigame
 
 	disableThreads(names, amount);
 	sd_set_score(ret);
+	show_mg_score(ret);
 
 	state->next = idle_state;
+}
+
+void end_game_state(struct state *state)
+{
+	LOG_INF("End game state");
+
+	char **names;
+	unsigned amount;
+	getMg10Threads(&names, &amount);
+	enableThreads(names, amount);
+
+	playEndGame();
+
+	disableThreads(names, amount);
+
+	// state->next = exit_state;
 }
 
 void exit_state(struct state *state) {
@@ -279,7 +340,28 @@ void exit_state(struct state *state) {
 	state->next = 0;
 }
 
+bool check_end_time_reached() {
+	// Get the current time
+	int16_t hour = getHour();
+	int16_t minute = getMinute();
+	int16_t current_time = (int16_t)((hour * 60) + minute);
+
+	// Check if the end time has been reached
+	if (current_time >= end_time) {
+		LOG_INF("End time reached: %d", current_time);
+		return true;
+	}
+	return false;
+}
+
 void startStatemachine() {
 	struct state state = {init_state, 0};
-	while (state.next) state.next(&state);
+	while (state.next)
+	{
+		state.next(&state);
+#ifndef CONFIG_TESTMODE
+		if (check_end_time_reached())
+			state.next = end_game_state;
+#endif
+	}
 }
