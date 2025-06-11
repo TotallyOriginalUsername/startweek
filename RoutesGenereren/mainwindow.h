@@ -51,6 +51,7 @@ private:
     void showStatusMessage(const QString &message);
     void showWriteError(const QString &message);
     void drawRoutes();
+    void sendJsonFileToDevice(const QString& filePath);
 
 protected:
     // Elke keer bij resize opnieuw fitten
