@@ -171,8 +171,9 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::pushButton_2_clicked()
 {
-    QByteArray dataToSend("help \r\n");
-    writeData(dataToSend);
+    QString filePath = qApp->applicationDirPath() + "/Route_1.json";
+    
+    sendJsonFileToDevice(filepath);
 }
 
 void MainWindow::openSerialPort()
@@ -271,4 +272,36 @@ void MainWindow::showStatusMessage(const QString &message)
 void MainWindow::showWriteError(const QString &message)
 {
     QMessageBox::warning(this, tr("Warning"), message);
+}
+
+void MainWindow::sendJsonFileToDevice(const QString& filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("Error"), tr("Could not open file %1").arg(filePath));
+        return;
+    }
+
+    QByteArray fileData = file.readAll();
+    file.close();
+
+    // Stuur start commando
+    QByteArray header = "SEND_JSON:" + QFileInfo(filePath).fileName().toUtf8() + "\n";
+    m_serial->write(header);
+    m_serial->waitForBytesWritten(100);
+
+    // Stuur de data in stukjes
+    const int chunkSize = 64;
+    for (int pos = 0; pos < fileData.size(); pos += chunkSize) {
+        QByteArray chunk = fileData.mid(pos, chunkSize);
+        m_serial->write(chunk);
+        m_serial->waitForBytesWritten(100);
+    }
+
+    // Stuur einde
+    QByteArray footer = "\nEOF\n";
+    m_serial->write(footer);
+    m_serial->waitForBytesWritten(100);
+
+    QMessageBox::information(this, tr("Success"), tr("File %1 sent to device").arg(filePath));
 }
