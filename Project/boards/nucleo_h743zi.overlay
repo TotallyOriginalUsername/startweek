@@ -546,7 +546,7 @@
 		status = "okay";
 		pinctrl-0 = < &i2c1_scl_pb8 &i2c1_sda_pb9 >;
 
-		magnetometer: lis3mdl-magn@1e {
+		magnetometer: lis3mdl-magn@1c {
 			compatible = "st,lis3mdl-magn";
 			reg = <0x1C>;
 			irq-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
