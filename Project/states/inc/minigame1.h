@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <zephyr/random/random.h>
 #include <string.h>
+#include <zephyr/logging/log.h>
 #include "helperFunctions.h"
 
 #define mg1ThreadCount 3
