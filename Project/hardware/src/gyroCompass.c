@@ -503,7 +503,7 @@ uint8_t magnetometer_set_sampling_freq(int aFreq)
 {
 	int error = 0;
 	struct sensor_value odr_attr;
-
+	//char * errorstr;
 	odr_attr.val1 = aFreq;
 	odr_attr.val2 = 0;
 
@@ -511,8 +511,9 @@ uint8_t magnetometer_set_sampling_freq(int aFreq)
 							SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr);
 	if (error != 0)
 	{
-		LOG_ERR("Cannot set sampling frequency for magnetometer.\n");
-		return 10;
+		//sprintf(errorstr, "Cannot set sampling frequency for magnetometer because: %d", error);
+		LOG_ERR("Cannot set sampling frequency for magnetometer because: %d", error);
+		return error;
 	}
 
 	return 0;
@@ -545,14 +546,16 @@ uint8_t magnetometer_init(void)
 		return 1;
 	}
 
-	// int error = magnetometer_set_sampling_freq(magno_sample_freq);
-	// if (error != 0)
-	// {
-	//  return error;
-	// }
+	int error = magnetometer_set_sampling_freq(magno_sample_freq);
+	if (error != 0)
+	{
+	  LOG_ERR("Magnetometer cant set samplerate \n");
+	  return error;
+	}
 #endif
 
 	magnetometer_is_init = true;
+	LOG_INF("Magnetometer initialized\n");
 	return 0;
 }
 
@@ -571,16 +574,17 @@ uint8_t magnetometer_exit(void)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!magnetometer_is_init)
 	{
+		LOG_ERR("Magnetometer not initialized(e)\n");
 		return 1;
 	}
 
-	// int error = magnetometer_set_sampling_freq(magno_sample_freq_off);
-	// if (error != 0)
-	// {
-	//  return error;
-	// }
+	int error = magnetometer_set_sampling_freq(magno_sample_freq_off);
+	if (error != 0)
+	{
+	  return error;
+	}
 #endif
-
+	LOG_WRN("Magnetometer exit\n");
 	magnetometer_is_init = false;
 	return 0;
 }
@@ -605,7 +609,7 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 
 	if (!magnetometer_is_init)
 	{
-		LOG_ERR("Magnetometer not initialized\n");
+		LOG_ERR("Magnetometer not initialized(g)\n");
 		return 1;
 	}
 
@@ -939,7 +943,7 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	}
 	if (!magnetometer_is_init)
 	{
-		LOG_ERR("Magnetometer not initialized\n");
+		//LOG_ERR("Magnetometer not initialized(H)\n");
 		return 2;
 	}
 	errorCode = magnetometer_get_magneto(MagnetoValue);
