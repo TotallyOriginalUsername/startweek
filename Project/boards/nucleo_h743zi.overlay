@@ -522,6 +522,16 @@
 		status = "disabled";
 };
 
+&pll2 {
+	div-m = <4>;
+	mul-n = <120>;
+	div-p = <2>;
+	div-q = <3>; /* gives 80MHz to the FDCAN */
+	div-r = <2>;
+	clocks = <&clk_hse>;
+	status = "disabled";
+};
+
 //enable used
 
 &usart1 {
