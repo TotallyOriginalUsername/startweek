@@ -546,12 +546,12 @@ uint8_t magnetometer_init(void)
 		return 1;
 	}
 
-	int error = magnetometer_set_sampling_freq(magno_sample_freq);
+	/*int error = magnetometer_set_sampling_freq(magno_sample_freq);
 	if (error != 0)
 	{
 	  LOG_ERR("Magnetometer cant set samplerate \n");
 	  return error;
-	}
+	}*/
 #endif
 
 	magnetometer_is_init = true;
@@ -577,12 +577,12 @@ uint8_t magnetometer_exit(void)
 		LOG_ERR("Magnetometer not initialized(e)\n");
 		return 1;
 	}
-
+	/*
 	int error = magnetometer_set_sampling_freq(magno_sample_freq_off);
 	if (error != 0)
 	{
 	  return error;
-	}
+	}*/
 #endif
 	LOG_WRN("Magnetometer exit\n");
 	magnetometer_is_init = false;
@@ -604,6 +604,7 @@ uint8_t magnetometer_exit(void)
 uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	char * logBuf
 	struct sensor_value magn_xyz[3];
 	double magn_xyz_double[3];
 
@@ -631,6 +632,8 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 	for (int i = 0; i < 3; i++)
 	{
 		aMagneto[i] = (int16_t)(magn_xyz_double[i] * 32767);
+		sprintf(logBuf, "this magnatic angle is: %f ",aMagneto[i]);
+		LOG_INF(logBuf);
 	}
 #endif
 	return 0;
