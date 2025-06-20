@@ -171,9 +171,11 @@ int playMg7() {
 		// Handle fruit related logic at a slower speed then the microcontroller
 		if(k_timer_remaining_get(&fruitTimer) == 0){
 			if(hit_detection_mg7(plate_mask, fruit_masks)){
-				score = score - 20;
-				sprintf(lcd_msg, "Score: %d", score);
-				lcdStringWrite(lcd_msg);
+				if(score >= 20){
+					score = score - 20;
+					sprintf(lcd_msg, "Score: %d", score);
+					lcdStringWrite(lcd_msg);
+				}
 			}
 			fruit_delay++;
 			if(fruit_delay >= 2){
@@ -187,10 +189,6 @@ int playMg7() {
 		get_catch_input();
 		plate_mask = (1 << plate_position) | (1 << (plate_position - 1)) | (1 << (plate_position + 1));
 		draw_game_mg7(plate_mask, fruit_masks);
-	}
-
-	if(score <= 0){
-		score = 0;
 	}
 
 	LOG_INF("Score: %d\n", score);
