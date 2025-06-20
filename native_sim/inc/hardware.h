@@ -69,6 +69,9 @@ uint8_t buttons4x4Init();
 uint8_t switchesInit();
 
 uint8_t lcdStringWrite(char *msg);
+uint8_t lcdEnable();
+uint8_t lcdDisable();
+uint8_t lcdClear();
 
 uint8_t abcbuttonsGet(char selectedbtn);
 uint8_t buttons4x4Get(uint8_t selectedbtn);

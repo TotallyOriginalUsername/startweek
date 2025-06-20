@@ -344,3 +344,15 @@ uint8_t lcdStringWrite(char *msg)
 
 	return 0;
 }
+
+uint8_t lcdEnable(){
+	return 0;
+}
+
+uint8_t lcdDisable(){
+	return 0;
+}
+
+uint8_t lcdClear(){
+	return 0;
+}

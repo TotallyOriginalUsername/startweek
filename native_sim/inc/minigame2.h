@@ -9,13 +9,12 @@
 #endif //DEBUG_MODE
 
 #include <zephyr/kernel.h>
-#include <zephyr/random/random.h>
-#include <lvgl.h>
 #include <stdio.h>
 #include "threads.h"
-#include "hardware.h"
+#include "helperFunctions.h"
+#include <zephyr/random/random.h>
 
-#define mg2ThreadCount 4
+#define mg2ThreadCount 3
 
 void getMg2Threads(char ***, unsigned *);
 

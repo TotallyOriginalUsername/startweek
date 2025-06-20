@@ -1,254 +1,104 @@
 #include "minigame2.h"
+#define levels 5
+bool game_ongoing = 1;
 
 K_TIMER_DEFINE(secTimerMg2, NULL, NULL);
 
-char *mg2Threads[mg2ThreadCount] = {"startbtn", "btnmatrix_in", "btnmatrix_out", "buzzers"};
+char *mg2Threads[mg2ThreadCount] = {"startbtn", "btnmatrix_in", "btnmatrix_out"};
 
 void getMg2Threads(char ***names, unsigned *amount) {
 	*names = mg2Threads;
 	*amount = mg2ThreadCount;
 }
 
-#define MG2_ONELINERS 4
+#define MG2_ONELINERS 3
 char oneLinersMG2[MG2_ONELINERS][32] = {
 	"Simon Says: Drukop de        ",
 	"lichtgevende    knoppen      ",
-	"in de juiste    volgorde     ",
-	"Druk op de      startknop!   "
+	"in de juiste    volgorde     "
 };
 
+//returns 0 if sequence matches, 1 if no match
+uint8_t check_sequence(uint8_t* sequence, uint8_t* input_sequence, uint8_t input){
 
-void generateSequence(uint8_t *sequence,uint8_t size,uint8_t bits) {
-	for (uint8_t i = 0; i < size; i++)	{
-			uint8_t randomValue = 0;
-			sys_rand_get(&randomValue, sizeof(randomValue));
-			randomValue = randomValue & (bits);
-			sequence[i] = randomValue;
-			printk("random = sequence[%d]: %d\n",i,sequence[i]);
-		}
-}
-
-void showButton(uint8_t btn)
-{
-	uint8_t data[4] = {0b00000000,0b00000000,0b00000000,0b00000000};
-	switch (btn)
-	{
-	case 3:
-	data[0] = 0b00001000;
-		break;
-	case 2:
-	data[0] = 0b00000001;
-		break;
-	case 1:
-	data[3] = 0b00001000;
-		break;
-	case 0:
-	data[3] = 0b00000001;
-		break;
-	case 6:
-	data[0] = 0b00001001;
-	data[3] = 0b00001001;
-		break;
-	default:
-		//should not reach
-		break;
-	}	
-	btnmatrix_outSetMutexValue(data);
-}
-
-void showLevel(uint8_t level,uint8_t sequence[8]){
-	for (uint8_t i = 0; i < level+1; i++)
-	{
-		
-		showButton(sequence[i]);
-		printk("sequence[%d]: %d\n",i,sequence[i]);
-		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
-		showButton(5);
-		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
-		
+	if (sequence[input] != input_sequence[input]) {
+		printk("Sequences don't match\n");
+		lcdStringWrite("Inorrect!");
+		return 1;
 	}
-	
-	showButton(6);
-	k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-	while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
-	showButton(5);
-}
 
-uint8_t checkinput(bool* genValue,uint32_t* score, uint8_t level,uint8_t sequence[8])
-{
-	uint8_t *btnValues;
-	uint8_t btnLevel = 0;
-	bool buttonDetected = false;
-
-	while(*genValue == true)
-	{
-		k_cpu_idle();
-		
-		btnValues = btnmatrix_inGetMutexValue();
-		if(btnValues[15] && btnValues[12] && btnValues[3] && btnValues[0])
-		{
-			buttonDetected = false;
-			showButton(5);
-			if(btnLevel == level+1)
-			{
-				return 1;
-				break;
-			}
-		}
-		if((!btnValues[15] || !btnValues[12] || !btnValues[3] || !btnValues[0]) && buttonDetected == false)
-		{
-			buttonDetected = true;
-			printk("sequence before %d \n",sequence[btnLevel]);
-			switch (sequence[btnLevel])
-			{
-			case 3:
-				if(btnValues[15] && btnValues[12] && btnValues[3] && !btnValues[0])
-				{
-					btnLevel++;
-					printk("3 correct \n");
-					showButton(3);
-				}
-				else
-				{
-					*genValue = false;
-					*score -= 100;
-					printk("3 incorrect \n");
-					for (int i = 0; i < 16; i++)
-					{
-						printk("button once %d: %d\n",i,btnValues[i]);
-					}
-				}
-				break;
-			case 2:
-				if(btnValues[15] && btnValues[12] && !btnValues[3] && btnValues[0])
-				{
-					btnLevel++;
-					printk("2 correct \n");
-					showButton(2);
-				}
-				else
-				{
-					*genValue = false;
-					*score -= 100;
-					printk("2 incorrect \n");
-					for (int i = 0; i < 16; i++)
-					{
-						printk("button once %d: %d\n",i,btnValues[i]);
-					}
-				}
-				break;
-			case 1:
-				if(btnValues[15] && !btnValues[12] && btnValues[3] && btnValues[0])
-				{
-					btnLevel++;
-					printk("1 correct \n");
-					showButton(1);
-				}
-				else
-				{
-					*genValue = false;
-					*score -= 100;
-					printk("1 incorrect \n");
-					for (int i = 0; i < 16; i++)
-					{
-						printk("button once %d: %d\n",i,btnValues[i]);
-					}
-				}
-				break;
-			case 0:
-				if(!btnValues[15] && btnValues[12] && btnValues[3] && btnValues[0])
-				{
-					btnLevel++;
-					printk("0 correct \n");
-					showButton(0);
-				}
-				else
-				{
-					*genValue = false;
-					*score -= 100;
-					printk("0 incorrect \n");
-					for (int i = 0; i < 16; i++)
-					{
-						printk("button once %d: %d\n",i,btnValues[i]);
-					}
-				}
-				break;
-			}	
-		}
-	}
 	return 0;
 }
 
-void showOnelinersMG2()
-{
-	bool done = false;
-	//lcdEnable();
-	lcdStringWrite("Druk op start");
-	while (!done)
-	{
-		k_cpu_idle();
-		
-		if(startbuttonGet())
-		{	
-			startledSet(1);
-		}
-		else
-		{
-			startledSet(0);
-			for (uint8_t i = 0; i < MG2_ONELINERS; i++)
-			{
-			lcdStringWrite(oneLinersMG2[i]);
-			k_timer_start(&secTimerMg2, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}	
-			}
-			startledSet(1);
-			while (true)
-			{
-				k_cpu_idle();
-				
-				if(!startbuttonGet())
-				{	
-				done = true;
-				break;
-				}
-			}
-			
-		}
+void generate_sequence(uint8_t* sequence) {
+	printk("Sequence:");
+	for(int i = 0; i < levels; i++){
+		sequence[i] = sys_rand32_get() % 15;
+		printk(" %d", sequence[i]);
 	}
-	startledSet(0);
-	//lcdClear();
-	//lcdDisable();
+	printk("\n");
 }
 
-int playMg2() {
-	uint32_t score = 1000;
-	uint8_t sequence[8] = {0,0,0,0,0,0,0,0};
-	uint8_t level = 0;
-	bool genValue = false;
-	
-	showOnelinersMG2();
-	while (true)
-	{
-		k_cpu_idle();
-		if(genValue == false)
-		{
-			level = 0;
-			generateSequence(sequence,8,0b11);
-			genValue = true;
-		}
-		
-		k_timer_start(&secTimerMg2, K_MSEC(1000), K_NO_WAIT);
-		while (!(k_timer_status_get(&secTimerMg2) > 0)){k_sleep(K_MSEC(1));}
-		
-		showLevel(level,sequence);
-		level += checkinput(&genValue, &score, level, sequence);
-		if(level == 8 || score == 0)
-		{
+void show_sequence(uint8_t* sequence, uint8_t level){
+	for(int i = 0; i <= level; i++){
+		set_btnmatrix_led(sequence[i]);
+		k_msleep(2000);
+		clear_btnmatrix_leds();
+	}
+}
+
+//get input untill the player makes a mistake, or the required input has been reached
+void get_input(uint8_t* sequence, uint8_t level){
+	uint8_t input_sequence[levels] = {0};
+	lcdStringWrite("Voer de juiste volgorde in!");
+
+	for(int i = 0; i <= level; i++){
+		wait_till_btnmatrix_depressed();
+		input_sequence[i] = get_btnmatrix_input_number_untimed();
+		if(check_sequence(sequence, input_sequence, i) == 1){
+			show_incorrect();
+			game_ongoing = 0;
 			break;
 		}
 	}
+	lcdClear();
+}
+
+int playMg2() {
+	uint8_t level = 0;
+	uint32_t score = 0;
+	uint8_t sequence[levels] = {0};
+
+	show_oneliners(oneLinersMG2, MG2_ONELINERS);
+	lcdEnable();
 	
+	generate_sequence(sequence);
+	
+	while (game_ongoing)
+	{
+		native_loop();
+		show_sequence(sequence, level);
+		get_input(sequence, level);
+
+		if(game_ongoing){
+			lcdStringWrite("Correct!");
+			show_correct();
+			lcdClear();
+		}
+
+		if(level < levels - 1){
+			level++;
+		}
+		else{
+			game_ongoing = false;
+		}
+	}
+
+	lcdClear();
+	lcdDisable();
+
+	clear_btnmatrix_leds();
+	k_msleep(100);
+
 	return (int)score;
 }
