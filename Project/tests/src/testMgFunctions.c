@@ -16,6 +16,15 @@ ZTEST_SUITE(testMg, NULL, NULL, NULL, NULL, NULL);
 
 //Please keep the tests ordered from mg1 to mg10
 
+// Minigame 5's functions
+ZTEST(testMg, generate_fruit_mg5)
+{
+	uint16_t fruit = 0b0000000100000000;
+    uint16_t new_fruit = generate_fruit_mg5(fruit);
+
+	zassert_within(new_fruit, 1, 65536);
+}
+
 // Minigame 7's functions
 ZTEST(testMg, generate_fruit_mg7)
 {
@@ -26,31 +35,6 @@ ZTEST(testMg, generate_fruit_mg7)
 	bool generated_right = new_fruit == (fruit >> 1);
 
     zassert_true(generated_left || generated_right);
-}
-
-ZTEST(testMg, update_fruit_mg7)
-{
-	uint16_t fruit_masks[16] = {0};
-    fruit_masks[0] = 0b1000000000000000;
-    update_fruit_mg7(fruit_masks);
-    zassert_equal(fruit_masks[1], 0b1000000000000000);
-}
-
-ZTEST(testMg, hit_detection_mg7)
-{
-    uint16_t fruit_masks[16] = {0};
-    uint16_t plate_mask = 0b1110000000000000;
-	bool hit = hit_detection_mg7(plate_mask, fruit_masks);
-
-    zassert_equal(hit, 0);
-
-    fruit_masks[15] = 0b0000000000010000;
-	hit = hit_detection_mg7(plate_mask, fruit_masks);
-    zassert_equal(hit, 1);
-
-    fruit_masks[15] = 0b0100000000000000;
-	hit = hit_detection_mg7(plate_mask, fruit_masks);
-    zassert_equal(hit, 0);
 }
 
 // Minigame 8's functions

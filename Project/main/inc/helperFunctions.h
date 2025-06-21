@@ -18,6 +18,8 @@
 void btnmatrix_in_to_out(uint8_t* btnmatrix_input, uint8_t* btnmatrix_output);
 void btnmatrix_to_ledmatrix(uint8_t* btnmatrix_shape, uint16_t* ledmatrix_shape);
 void clear_btnmatrix_leds();
+bool led_matrix_hit_detection(uint16_t* led_mask, uint16_t row_mask, uint8_t row_number);
+uint8_t led_matrix_scroll_down(uint16_t* led_mask);
 void show_correct();
 void show_incorrect();
 void show_oneliners(char input_array[][32], int lines);
