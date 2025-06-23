@@ -4,6 +4,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
+#include "hardware.h"
 #include "threads.h"
 #if defined(CONFIG_TEST_RNG_INPUT)
 #include <zephyr/random/random.h>
