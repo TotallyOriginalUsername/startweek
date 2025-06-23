@@ -71,6 +71,7 @@ void init_state(struct state *state) {
 	lcdEnable();
 	while (current_time < start_time || current_time == 0)
 	{
+		native_loop();
 		start_time = sd_get_start_time();
 		if (start_time < 0) {
 			LOG_ERR("Start time not set, exiting state machine");
