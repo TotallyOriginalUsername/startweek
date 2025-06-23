@@ -9,6 +9,18 @@
 #include <QGraphicsScene>
 #include <QResizeEvent>
 #include <QSerialPort>
+#include <QDir>
+#include <QCoreApplication>
+#include <QSerialPortInfo>
+#include <QStringList>
+#include <QStandardPaths>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+
+#include <vector>
+#include "routegenerator.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -46,15 +58,27 @@ private slots:
     void handleBytesWritten(qint64 bytes);
     void handleWriteTimeout();
 
+    void on_btnRefreshRoutes_clicked();
+    void on_btnRefreshPorts_clicked();
+    void on_btnUploadSerial_clicked();
+
+    void on_btnAddLoc_clicked();
+    void on_btnEditLoc_clicked();
+    void on_btnRemoveLoc_clicked();
+
 private:
     void initActionsConnections();
     void showStatusMessage(const QString &message);
     void showWriteError(const QString &message);
     void drawRoutes();
-    void sendJsonFileToDevice(const QString& filePath);
+    void refreshRouteList();
+    void refreshSerialPorts();
+    void loadDefaultPoints();
+    void populateLocationsTable();
+    void loadLocationsFromFile();
+    void saveLocationsToFile();
 
 protected:
-    // Elke keer bij resize opnieuw fitten
     void resizeEvent(QResizeEvent* event) override;
 
 private:
@@ -68,6 +92,7 @@ private:
     QString dataRead;
     QString selectedNode;
     QGraphicsScene *scene = nullptr;
+
 };
 
 #endif // MAINWINDOW_H

@@ -19,6 +19,7 @@
 #include <limits>
 #include <QPen>
 #include <QBrush>
+#include <QInputDialog>
 
 #include <chrono>
 
@@ -34,15 +35,39 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     m_ui->setupUi(this);
 
-    // Initialiseer QGraphicsScene
+    m_ui->tabWidget->setCurrentIndex(0);
+
+    connect(m_ui->btnRefreshRoutes, &QPushButton::clicked,
+            this, &MainWindow::on_btnRefreshRoutes_clicked);
+    connect(m_ui->btnRefreshPorts,  &QPushButton::clicked,
+            this, &MainWindow::on_btnRefreshPorts_clicked);
+    connect(m_ui->btnUploadSerial,  &QPushButton::clicked,
+            this, &MainWindow::on_btnUploadSerial_clicked);
+
+    connect(m_ui->btnAddLoc,    &QPushButton::clicked,
+            this, &MainWindow::on_btnAddLoc_clicked);
+    connect(m_ui->btnEditLoc,   &QPushButton::clicked,
+            this, &MainWindow::on_btnEditLoc_clicked);
+    connect(m_ui->btnRemoveLoc, &QPushButton::clicked,
+            this, &MainWindow::on_btnRemoveLoc_clicked);
+
+    loadLocationsFromFile();
+    // if there was nothing in the file, fall back to defaults
+    if (allPoints.empty())
+        loadDefaultPoints();
+    populateLocationsTable();
+
+    refreshRouteList();
+    refreshSerialPorts();
+
     scene = new QGraphicsScene(this);
     m_ui->graphicsView->setScene(scene);
     m_ui->graphicsView->setRenderHint(QPainter::Antialiasing, true);
 
     // SerialPort + console instellingen
-    m_console->setEnabled(false);
-    QWidget* tab1 = m_console;
-    m_ui->tabWidget->addTab(tab1, "Developer mode");
+    //m_console->setEnabled(false);
+    //QWidget* tab1 = m_console;
+    //m_ui->tabWidget->addTab(tab1, "Developer mode");
 
     m_ui->actionConnect->setEnabled(true);
     m_ui->actionDisconnect->setEnabled(false);
@@ -57,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_serial, &QSerialPort::readyRead, this, &MainWindow::readData);
     connect(m_console, &Console::getData, this, &MainWindow::writeData);
 
-    QObject::connect(m_ui->pushButton_2, SIGNAL(pressed()), this, SLOT(pushButton_2_clicked()));
+    //QObject::connect(m_ui->pushButton_2, SIGNAL(pressed()), this, SLOT(pushButton_2_clicked()));
 }
 
 MainWindow::~MainWindow()
@@ -70,7 +95,6 @@ void MainWindow::drawRoutes()
 {
     scene->clear();
 
-    // 1) Bepaal min/max van alle getoonde punten
     int64_t minX = std::numeric_limits<int64_t>::max(), maxX = std::numeric_limits<int64_t>::lowest();
     int64_t minY = std::numeric_limits<int64_t>::max(), maxY = std::numeric_limits<int64_t>::lowest();
     for (auto& pts : selectedPoints)
@@ -81,7 +105,6 @@ void MainWindow::drawRoutes()
             maxY = std::max(maxY, p.y);
         }
 
-    // 2) Bereken schaal (+ marge)
     QSizeF viewSz = m_ui->graphicsView->viewport()->size();
     constexpr qreal M = 20.0;  // marge in pixels
     qreal scaleX = (viewSz.width()  - 2*M) / qreal(maxX - minX);
@@ -101,7 +124,6 @@ void MainWindow::drawRoutes()
         Qt::gray, Qt::black
     };
 
-    // 3) Teken elke route in een andere kleur
     for (int r = 0; r < routeIndices.size(); ++r) {
         QPen pen(colors[r%10]);
         pen.setCosmetic(true);
@@ -140,40 +162,21 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_pushButton_clicked()
 {
-    ui->statusLabel->setText("Bezig met genereren...");
+    m_ui->statusLabel->setText("Bezig met genereren...");
     QApplication::processEvents();
 
     QFuture<void> future = QtConcurrent::run([this]() {
-        try {
-            generate_routes();
-
-            QMetaObject::invokeMethod(this, [this]() {
-                ui->statusLabel->setText("Routes succesvol gegenereerd!");
-                drawRoutes();
-            }, Qt::QueuedConnection);
-
-        } catch (const std::exception& ex) {
-            QString errorMsg = QString("Fout bij genereren van routes: %1").arg(ex.what());
-            QMetaObject::invokeMethod(this, [this, errorMsg]() {
-                QMessageBox::critical(this, "Fout", errorMsg);
-                ui->statusLabel->setText("Fout bij genereren van routes!");
-            }, Qt::QueuedConnection);
-
-        } catch (...) {
-            QMetaObject::invokeMethod(this, [this]() {
-                QMessageBox::critical(this, "Fout", "Onbekende fout bij genereren van routes!");
-                ui->statusLabel->setText("Fout bij genereren van routes!");
-            }, Qt::QueuedConnection);
-        }
+        generate_routes(allPoints);
+        QMetaObject::invokeMethod(this, [this]() {
+            m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
+            drawRoutes();
+        }, Qt::QueuedConnection);
     });
 }
 
-
 void MainWindow::pushButton_2_clicked()
 {
-    QString filePath = qApp->applicationDirPath() + "/Route_1.json";
-    
-    sendJsonFileToDevice(filepath);
+
 }
 
 void MainWindow::openSerialPort()
@@ -274,34 +277,348 @@ void MainWindow::showWriteError(const QString &message)
     QMessageBox::warning(this, tr("Warning"), message);
 }
 
-void MainWindow::sendJsonFileToDevice(const QString& filePath)
+void MainWindow::refreshRouteList()
 {
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("Error"), tr("Could not open file %1").arg(filePath));
+    QDir buildDir(QCoreApplication::applicationDirPath());
+    buildDir.setNameFilters(QStringList{"*.json"});
+    buildDir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+
+    auto files = buildDir.entryList();
+    m_ui->comboRouteFiles->clear();
+    if (files.isEmpty()) {
+        m_ui->comboRouteFiles->addItem(tr("[geen routes]"));
+    } else {
+        m_ui->comboRouteFiles->addItems(files);
+    }
+}
+
+void MainWindow::refreshSerialPorts()
+{
+    auto ports = QSerialPortInfo::availablePorts();
+    m_ui->comboPorts->clear();
+    for (const auto &info : ports)
+        m_ui->comboPorts->addItem(info.portName());
+    if (ports.isEmpty())
+        m_ui->comboPorts->addItem(tr("[geen poorten]"));
+}
+
+void MainWindow::on_btnRefreshRoutes_clicked()
+{
+    refreshRouteList();
+}
+
+void MainWindow::on_btnRefreshPorts_clicked()
+{
+    refreshSerialPorts();
+}
+
+void MainWindow::on_btnUploadSerial_clicked()
+{
+        // Get json file
+        QString fileName = m_ui->comboRouteFiles->currentText();
+        if (fileName.startsWith("[")) {
+            QMessageBox::warning(this, tr("Geen route"), tr("Genereer eerst routes op tab 1."));
+            return;
+        }
+        QDir buildDir(QCoreApplication::applicationDirPath());
+        QString src = buildDir.filePath(fileName);
+
+        // Get selected port
+        QString portName = m_ui->comboPorts->currentText();
+        if (portName.startsWith("[")) {
+            QMessageBox::warning(this, tr("Geen poort"), tr("Sluit koffer aan en ververs poorten."));
+            return;
+        }
+
+        // Read json
+        QFile f(src);
+        if (!f.open(QIODevice::ReadOnly)) {
+            QMessageBox::critical(this, tr("Fout"), tr("Kan %1 niet openen").arg(src));
+            return;
+        }
+        QByteArray data = f.readAll();
+        f.close();
+
+        // Open and write to serial port
+        QSerialPort port(portName, this);
+        port.setBaudRate(QSerialPort::Baud9600);
+        port.setDataBits(QSerialPort::Data8);
+        port.setParity(QSerialPort::NoParity);
+        port.setStopBits(QSerialPort::OneStop);
+        if (!port.open(QIODevice::WriteOnly)) {
+            QMessageBox::critical(this, tr("Fout"),
+                                  tr("Kan %1 niet openen:\n%2").arg(portName, port.errorString()));
+            return;
+        }
+        qint64 written = port.write(data);
+        if (!port.waitForBytesWritten(5000)) {
+            QMessageBox::critical(this, tr("Fout"),
+                                  tr("Schrijven naar %1 timed-out").arg(portName));
+            port.close();
+            return;
+        }
+        port.close();
+
+        if (written == data.size()) {
+            QMessageBox::information(this, tr("Klaar"),
+                                     tr("Route %1 geüpload via %2").arg(fileName, portName));
+        } else {
+            QMessageBox::critical(this, tr("Fout"),
+                                  tr("Slechts %1 van %2 bytes verzonden")
+                                  .arg(written).arg(data.size()));
+        }
+}
+
+void MainWindow::on_btnAddLoc_clicked()
+{
+    bool ok = false;
+        // 1) Vraag X en Y (int64_t)
+    QString xs = QInputDialog::getText(this, tr("Nieuw punt"), tr("X (microdegrees):"), QLineEdit::Normal,
+                                       QString(), &ok);
+    if (!ok) return;
+    int64_t x = xs.toLongLong(&ok);
+    if (!ok) {
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
         return;
     }
 
-    QByteArray fileData = file.readAll();
-    file.close();
-
-    // Stuur start commando
-    QByteArray header = "SEND_JSON:" + QFileInfo(filePath).fileName().toUtf8() + "\n";
-    m_serial->write(header);
-    m_serial->waitForBytesWritten(100);
-
-    // Stuur de data in stukjes
-    const int chunkSize = 64;
-    for (int pos = 0; pos < fileData.size(); pos += chunkSize) {
-        QByteArray chunk = fileData.mid(pos, chunkSize);
-        m_serial->write(chunk);
-        m_serial->waitForBytesWritten(100);
+    QString ys = QInputDialog::getText(this, tr("Nieuw punt"), tr("Y (microdegrees):"), QLineEdit::Normal,
+                                       QString(), &ok);
+    if (!ok) return;
+    int64_t y = ys.toLongLong(&ok);
+    if (!ok) {
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
+        return;
     }
 
-    // Stuur einde
-    QByteArray footer = "\nEOF\n";
-    m_serial->write(footer);
-    m_serial->waitForBytesWritten(100);
+        // cost (float)
+        double cost = QInputDialog::getDouble(this, tr("Nieuw punt"), tr("Cost:"),
+                                              1.0, 0.0, 1e6, 2, &ok);
+        if (!ok) return;
 
-    QMessageBox::information(this, tr("Success"), tr("File %1 sent to device").arg(filePath));
+        // mg_id (int)
+        int mg = QInputDialog::getInt(this, tr("Nieuw punt"), tr("mg_id:"),
+                                      0, 0, std::numeric_limits<int>::max(), 1, &ok);
+        if (!ok) return;
+
+        allPoints.emplace_back(x, y, static_cast<float>(cost), mg);
+
+        populateLocationsTable();
+        saveLocationsToFile();
 }
+
+void MainWindow::on_btnEditLoc_clicked()
+{
+    auto *tbl = m_ui->tableLocations;
+    int row = tbl->currentRow();
+    if (row < 0 || row >= int(allPoints.size())) {
+        QMessageBox::warning(this, tr("Bewerken"), tr("Selecteer eerst een rij."));
+        return;
+    }
+
+    Point &p = allPoints[row];
+    bool ok = false;
+    int64_t newX = 0, newY = 0;
+    double  newCost = 0.0;
+    int     newMg = 0;
+
+    do {
+        QString xs = QInputDialog::getText(
+            this,
+            tr("Bewerk punt"),
+            tr("X (microdegrees):"),
+            QLineEdit::Normal,
+            QString::number(p.x),
+            &ok
+        );
+        if (!ok) return;
+        newX = xs.toLongLong(&ok);
+        if (!ok) {
+            QMessageBox::warning(this,
+                tr("Ongeldige invoer"),
+                tr("Voer een geldig geheel getal in voor X."));
+        }
+    } while (!ok);
+
+    do {
+        QString ys = QInputDialog::getText(
+            this,
+            tr("Bewerk punt"),
+            tr("Y (microdegrees):"),
+            QLineEdit::Normal,
+            QString::number(p.y),
+            &ok
+        );
+        if (!ok) return;
+        newY = ys.toLongLong(&ok);
+        if (!ok) {
+            QMessageBox::warning(this,
+                tr("Ongeldige invoer"),
+                tr("Voer een geldig geheel getal in voor Y."));
+        }
+    } while (!ok);
+
+    do {
+        double c = QInputDialog::getDouble(
+            this,
+            tr("Bewerk punt"),
+            tr("Cost:"),
+            double(p.cost),
+            0.0, 1e6, 2,
+            &ok
+        );
+        if (!ok) return;
+        newCost = c;
+    } while (!ok);
+
+    do {
+        int m = QInputDialog::getInt(
+            this,
+            tr("Bewerk punt"),
+            tr("mg_id:"),
+            p.mg_id,
+            0, std::numeric_limits<int>::max(),
+            1,
+            &ok
+        );
+        if (!ok) return;
+        newMg = m;
+    } while (!ok);
+
+    p.x     = newX;
+    p.y     = newY;
+    p.cost  = static_cast<float>(newCost);
+    p.mg_id = newMg;
+
+    populateLocationsTable();
+    saveLocationsToFile();
+}
+
+
+void MainWindow::on_btnRemoveLoc_clicked()
+{
+    auto *tbl = m_ui->tableLocations;
+        int row = tbl->currentRow();
+        if (row < 0 || row >= int(allPoints.size())) {
+            QMessageBox::warning(this, tr("Verwijderen"), tr("Selecteer eerst een rij."));
+            return;
+        }
+
+        if (QMessageBox::question(this, tr("Verwijderen"),
+                tr("Weet je zeker dat je punt %1 wilt verwijderen?")
+                 .arg(row+1))
+            != QMessageBox::Yes)
+        {
+            return;
+        }
+
+        allPoints.erase(allPoints.begin() + row);
+        populateLocationsTable();
+        saveLocationsToFile();
+}
+
+void MainWindow::loadDefaultPoints()
+{
+    allPoints = {
+        {51688573, 5287210, 2.0f, 0},  // Avans
+        {51690224, 5296625, 1.5f, 101},  // Jan de Groot
+        {51688460, 5303150, 2.0f, 112},  // Stadhuis
+        {51686200, 5304500, 1.5f, 1},  // Sint Jans Kathedraal
+        {51685051, 5289156, 2.0f, 9},  // Paleisbrug
+        {51684258, 5302611, 1.5f, 111},  // Zuidwal
+        {51691299, 5303950, 2.0f, 5},  // Arena
+        {51689428, 5310484, 1.5f, 100},  // Nationaal Carnavalsmuseum
+        {51695984, 5299074, 2.0f, 113},  // Tramkade
+        {51689124, 5303969, 1.5f, 108},  // De Markt
+        {51689619, 5299065, 2.0f, 114},  // Bolwerk
+        {51693002, 5301264, 1.5f, 115},  // VUE Cinema
+        {51697021, 5299328, 2.0f, 102},  // Bossche Brouwers
+        {51689724, 5300408, 1.5f, 116},  // Café Bar le Duc
+        {51686471, 5304106, 2.0f, 110},  // Museumkwartier
+        {51689471, 5303200, 1.5f, 109},  // Moriaan
+        {51689302, 5303396, 2.0f, 117},  // ’t Opkikkertje
+        {51695457, 5297448, 1.5f, 118},  // Verkadefabriek
+        {51694463, 5302862, 2.0f, 119},  // BHIC
+        {51690467, 5294925, 1.5f, 8},  // Station
+        {51683776, 5317938, 2.0f, 11},  // Zuiderpark
+        {51687561, 5305911, 1.5f, 120},  // Korte Putstraat
+        {51698630, 5292803, 1.5f, 121},  // Brabanthallen
+        {51688691, 5309001, 1.5f, 7},  // Café de Palm
+        {51687344, 5305871, 1.5f, 122},  // Bistro Tante Pietje
+        {51696264, 5307460, 1.5f, 10},  // Taxandriaplein Park
+        {51696501, 5312884, 1.5f, 123},  // IJzeren Vrouw Park
+        {51691911, 5286594, 1.5f, 2},  // Simon Stevinweg
+        {51690402, 5291740, 1.5f, 124},  // Hugo de Grootplein
+        {51685400, 5289354, 1.5f, 3},  // Kinepolis
+        {51690484, 5296206, 1.5f, 106},  // Gouden Draak
+        {51686618, 5308459, 1.5f, 125},  // Theater aan de Parade
+        {51686697, 5303137, 1.5f, 6}   // Gemeentehuis
+    };
+}
+
+void MainWindow::populateLocationsTable()
+{
+    auto *tbl = m_ui->tableLocations;
+    tbl->clearContents();
+    tbl->setRowCount(int(allPoints.size()));
+    for (int i = 0; i < int(allPoints.size()); ++i) {
+        const Point &p = allPoints[i];
+        tbl->setItem(i, 0, new QTableWidgetItem(QString::number(p.x)));
+        tbl->setItem(i, 1, new QTableWidgetItem(QString::number(p.y)));
+        tbl->setItem(i, 2, new QTableWidgetItem(QString::number(p.cost)));
+        tbl->setItem(i, 3, new QTableWidgetItem(QString::number(p.mg_id)));
+    }
+}
+
+void MainWindow::loadLocationsFromFile()
+{
+    QString path = QCoreApplication::applicationDirPath() + "/locations.json";
+
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly))
+        return;
+    auto raw = f.readAll();
+    f.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(raw);
+    if (!doc.isArray())
+        return;
+
+    allPoints.clear();
+    for (auto v : doc.array()) {
+        if (!v.isObject()) continue;
+        auto o = v.toObject();
+        int64_t x    = qint64(o.value("x").toDouble());
+        int64_t y    = qint64(o.value("y").toDouble());
+        float   cost = float(o.value("cost").toDouble());
+        int     mg   = o.value("mg_id").toInt();
+        allPoints.emplace_back(x,y,cost,mg);
+    }
+}
+
+void MainWindow::saveLocationsToFile()
+{
+    QString path = QCoreApplication::applicationDirPath() + "/locations.json";
+
+
+    QJsonArray arr;
+    for (auto &p : allPoints) {
+        QJsonObject o;
+        o["x"]    = double(p.x);
+        o["y"]    = double(p.y);
+        o["cost"] = double(p.cost);
+        o["mg_id"]= p.mg_id;
+        arr.append(o);
+    }
+    QJsonDocument doc(arr);
+
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
+        QMessageBox::warning(this, tr("Error"),
+            tr("Kan locaties niet opslaan in %1").arg(path));
+        return;
+    }
+    f.write(doc.toJson());
+    f.close();
+}
+
