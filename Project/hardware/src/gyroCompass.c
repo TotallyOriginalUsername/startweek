@@ -966,8 +966,8 @@ uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
 		actions++;
 	}
 
-	*NZ = (*NZ - NZ_min)/(NZ_max - NZ_min) * 100;
-	*EW = (*EW - EW_min)/(EW_max - EW_min) * 100;
+	*NZ = (int16_t)((float)(*NZ - NZ_min)/(float)(NZ_max - NZ_min) * (float)100.0);
+	*EW = (int16_t)((float)(*EW - EW_min)/(float)(EW_max - EW_min) * (float)100.0);
 	return actions;
 
 }
@@ -1036,7 +1036,7 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	lcdStringWrite(logBuf);
 	sprintf(logBuf, " %d  %d  %d",MagnetoValue[0],MagnetoValue[1],MagnetoValue[2]);
 	LOG_INF("%s", logBuf);
-		
+	k_msleep(100);	
 	*aHeading = angle;
 #endif
 	return 0;
