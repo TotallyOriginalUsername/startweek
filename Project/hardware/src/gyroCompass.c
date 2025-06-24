@@ -47,7 +47,7 @@ const uint16_t MINDELTADIV = 1;
 static int16_t getMangoAngle(int16_t x, int16_t y)
 {
 	/* Calculate the angle in degrees */
-	int32_t angle = (int32_t)(atan2((double)y, (double)x) * 180.0 / M_PIL);
+	int32_t angle = (int32_t)(atan2((double)y-50, (double)x-50) * 180.0 / M_PIL);
 	if (angle < 0)
 		angle += 360; // Normalize to 0-359 degrees
 	return (int16_t)angle;
