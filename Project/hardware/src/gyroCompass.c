@@ -38,6 +38,22 @@ const int16_t K3 = 446;
 const uint16_t MINDELTADIV = 1;
 
 /**
+ * @brief Calculates the angle in degrees based on x and y.
+ * @param[in] x value of the x-axis
+ * @paramp[in] y value of the y-axis
+ * @return angle in degrees (0-359)
+ * @return < 0 on error
+ */
+static int16_t getMangoAngle(int16_t x, int16_t y)
+{
+	/* Calculate the angle in degrees */
+	int32_t angle = (int32_t)(atan2((double)y, (double)x) * 180.0 / M_PIL);
+	if (angle < 0)
+		angle += 360; // Normalize to 0-359 degrees
+	return (int16_t)angle;
+}
+
+/**
  * @brief Calculates the integer division of iy by ix where iy <= ix.
  *
  * This function performs a binary division to calculate the ratio of two integers iy and ix
