@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include "lcd.h"
 #include <zephyr/kernel.h>
 
 LOG_MODULE_REGISTER(gyroCompass);
@@ -329,7 +330,7 @@ static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
 									  int16_t iGpx, int16_t iGpy, int16_t iGpz, double *angle)
 {
 	int16_t iSin, iCos; /* sine and cosine */
-	int16_t iPhi_16t, iThe; /* roll and pitch angles */
+	int16_t iPhi_16t, iThe; /* roll and pitch angles */ // THESE TWO ARENT USED AT ALL WHY?
 	int iPhi;
 	int16_t iBfy, iBfx, iBfz;
 	uint8_t errorCode;
@@ -604,7 +605,7 @@ uint8_t magnetometer_exit(void)
 uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	char * logBuf
+	char logBuf[32];
 	struct sensor_value magn_xyz[3];
 	double magn_xyz_double[3];
 
@@ -632,9 +633,17 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 	for (int i = 0; i < 3; i++)
 	{
 		aMagneto[i] = (int16_t)(magn_xyz_double[i] * 32767);
-		sprintf(logBuf, "this magnatic angle is: %f ",aMagneto[i]);
-		LOG_INF(logBuf);
+		
+		
+		
+		
 	}
+	sprintf(logBuf, "magnatic angle : %d ",aMagneto[1]);
+	lcdEnable();
+	lcdStringWrite(logBuf);
+	sprintf(logBuf, " %d  %d  %d",aMagneto[0],aMagneto[1],aMagneto[2]);
+	LOG_INF("%s", logBuf);
+		
 #endif
 	return 0;
 }
@@ -966,12 +975,15 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 		return 3;
 	}
 
+	//i do not trust the next function
 	errorCode = gyroCompass_i_ecompass(MagnetoValue[0], MagnetoValue[1], MagnetoValue[2], AccelValue[0], AccelValue[1], AccelValue[2], &angle);
 	if (errorCode)
 	{
 		return 3;
 	}
-
+	//so we gonna do a little dirty and remap orginal sensor data to -180 to 180
+	angle = ((MagnetoValue[1] - -32768) / (float)(32767 - -32768)) * (360) + -180;
+		
 	*aHeading = angle;
 #endif
 	return 0;
