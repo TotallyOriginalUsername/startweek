@@ -21,47 +21,6 @@ char oneLinersMG6[MG6_ONELINERS][32] = {
 	"Het dichtst bij de 0"
 };
 
-void showOnelinersMG6()
-{
-	bool done = false;
-	lcdEnable();
-	lcdStringWrite("Druk op start");
-	while (!done)
-	{
-		native_loop();
-		if(startbuttonGet())
-		{	
-			startledSet(1);
-		}
-		else
-		{
-			startledSet(0);
-			for (uint8_t i = 0; i < MG6_ONELINERS; i++)
-			{
-			lcdStringWrite(oneLinersMG6[i]);
-			k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}	
-			}
-			startledSet(1);
-			while (true)
-			{
-				native_loop();
-				if(!startbuttonGet())
-				{	
-				done = true;
-				break;
-				}
-			}
-			
-		}
-	}
-	startledSet(0);
-	lcdClear();
-	lcdDisable();
-}
-
-
-
 int playMg6() {
 	uint32_t score = 1000;
 	uint8_t *abcBtn;
@@ -71,7 +30,10 @@ int playMg6() {
 	uint8_t value001 = 0;
 	char input[4] = {"1000"};
 
-	showOnelinersMG6();
+	show_oneliners(oneLinersMG6, MG6_ONELINERS);
+	lcdEnable();
+	wait_till_game_start();
+
 	abcledsSet('a', true);
 	while(true)
 	{

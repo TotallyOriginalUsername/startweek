@@ -67,6 +67,7 @@ int playMg9() {
 
 	show_oneliners(oneLinersMG9, MG9_ONELINERS);
 	lcdEnable();
+	wait_till_game_start();
 
 	//generate number, press lower(a) or higher(c), generate second number
 	while (game_ongoing_mg9)

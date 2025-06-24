@@ -131,18 +131,6 @@ void get_catch_input(){
 	}
 }
 
-// Wait till the user presses the button to start the game
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-	lcdClear();
-}
-
 int playMg7() {
 	uint32_t score = 1000;
 	uint16_t empty_frame[16] = {0};

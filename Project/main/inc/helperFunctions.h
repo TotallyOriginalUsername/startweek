@@ -24,6 +24,7 @@ void show_oneliners(char input_array[][32], int lines);
 void show_mg_score(int score);
 void wait_till_abc_depressed();
 void wait_till_btnmatrix_depressed();
+void wait_till_game_start();
 void wait_till_switches_rest();
 void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size);
 void get_btnmatrix_input(uint16_t input_time, uint8_t* input_array, size_t size);

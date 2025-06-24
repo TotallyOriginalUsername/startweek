@@ -22,16 +22,6 @@ void generate_shape(uint8_t random_shape[4]){
 	}
 }
 
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-}
-
 int playMg3() {
 	uint8_t btnmatrix_off[4] = {0};
 	uint8_t random_shape[4] = {0};

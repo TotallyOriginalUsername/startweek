@@ -7,6 +7,7 @@
 #include "threads.h"
 #include "lcd.h"
 #include "genericGpio.h"
+#include "helperFunctions.h"
 #include "sevenSegment.h"
 
 #define mg6ThreadCount 2
