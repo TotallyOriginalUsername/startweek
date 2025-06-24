@@ -346,7 +346,7 @@ static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
 									  int16_t iGpx, int16_t iGpy, int16_t iGpz, double *angle)
 {
 	int16_t iSin, iCos; /* sine and cosine */
-	int16_t iPhi_16t, iThe; /* roll and pitch angles */ // these two ARENT USED AT ALL why?
+	int16_t iPhi_16t, iThe; /* roll and pitch angles */ 
 	int iPhi;
 	int16_t iBfy, iBfx, iBfz;
 	uint8_t errorCode;
