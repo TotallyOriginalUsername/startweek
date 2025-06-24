@@ -40,7 +40,7 @@ const uint16_t MINDELTADIV = 1;
 /**
  * @brief Calculates the angle in degrees based on x and y.
  * @param[in] x value of the x-axis
- * @paramp[in] y value of the y-axis
+ * @param[in] y value of the y-axis
  * @return angle in degrees (0-359)
  * @return < 0 on error
  */
@@ -1031,13 +1031,14 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	//angle = ((MagnetoValue[1] - -32768) / (float)(32767 - -32768)) * (360) + -180;
 	
 	magnetometer_calibrate(&MagnetoValue[0],&MagnetoValue[1]);
-	sprintf(logBuf, "magnatic angle : %d ",MagnetoValue[1]);
-	lcdEnable();
-	lcdStringWrite(logBuf);
+	
 	sprintf(logBuf, " %d  %d  %d",MagnetoValue[0],MagnetoValue[1],MagnetoValue[2]);
 	LOG_INF("%s", logBuf);
 	k_msleep(100);	
-	*aHeading = angle;
+	*aHeading = getMangoAngle(MagnetoValue[0],MagnetoValue[1]);
+	sprintf(logBuf, "magnatic angle : %d ", *aHeading);
+	lcdEnable();
+	lcdStringWrite(logBuf);
 #endif
 	return 0;
 }
