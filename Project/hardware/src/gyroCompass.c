@@ -640,11 +640,11 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 		magn_xyz_double[i] = sensor_value_to_double(&magn_xyz[i]);
 	}
 
-	// Subtract the hard iron offset
+	/* //Subtract the hard iron offset
 	magn_xyz_double[0] -= X_OFFSET;
 	magn_xyz_double[1] -= Y_OFFSET;
 	magn_xyz_double[2] -= Z_OFFSET;
-
+	*/
 	// Scale value over max range of int. Value is max 1 or -1
 	for (int i = 0; i < 3; i++)
 	{
@@ -968,6 +968,7 @@ uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
 
 	*NZ = (int16_t)((float)(*NZ - NZ_min)/(float)(NZ_max - NZ_min) * (float)100.0);
 	*EW = (int16_t)((float)(*EW - EW_min)/(float)(EW_max - EW_min) * (float)100.0);
+	*NZ = 100 - *NZ;// flip ost west since hard iron offset is not used
 	return actions;
 
 }
