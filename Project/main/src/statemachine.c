@@ -64,21 +64,11 @@ void init_state(struct state *state) {
 	}
 	initialize();
 	Startupdelay = 0;
-
-	set_led_circle_dir_dist(get_relative_dir(0), 200);
-
-	lcdEnable();
-	while (true){
-		set_led_circle_dir_dist(get_relative_dir(0), 100);
-		k_msleep(100);
-	}
-
 #ifndef CONFIG_TESTMODE
 	// check if current time is the same as the start time
 	int16_t start_time = 0;
 	int16_t current_time = 0;
 	lcdEnable();
-	
 	while (current_time < start_time || current_time == 0)
 	{
 		start_time = sd_get_start_time();

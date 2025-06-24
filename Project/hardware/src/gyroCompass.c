@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
-#include "lcd.h"
 #include <zephyr/kernel.h>
 
 LOG_MODULE_REGISTER(gyroCompass);
@@ -346,7 +345,7 @@ static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
 									  int16_t iGpx, int16_t iGpy, int16_t iGpz, double *angle)
 {
 	int16_t iSin, iCos; /* sine and cosine */
-	int16_t iPhi_16t, iThe; /* roll and pitch angles */ 
+	int16_t iPhi_16t, iThe; /* roll and pitch angles */
 	int iPhi;
 	int16_t iBfy, iBfx, iBfz;
 	uint8_t errorCode;
@@ -621,7 +620,6 @@ uint8_t magnetometer_exit(void)
 uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	
 	struct sensor_value magn_xyz[3];
 	double magn_xyz_double[3];
 
@@ -649,11 +647,7 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 	for (int i = 0; i < 3; i++)
 	{
 		aMagneto[i] = (int16_t)(magn_xyz_double[i] * 32767);
-		
-		
-	}
-	
-		
+	}	
 #endif
 	return 0;
 }
@@ -1023,7 +1017,7 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 		return 3;
 	}
 
-	//i do not trust the next function
+	//i do not trust the next function, it might not be needed anyway
 	errorCode = gyroCompass_i_ecompass(MagnetoValue[0], MagnetoValue[1], MagnetoValue[2], AccelValue[0], AccelValue[1], AccelValue[2], &angle);
 	if (errorCode)
 	{
