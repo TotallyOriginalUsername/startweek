@@ -605,7 +605,7 @@ uint8_t magnetometer_exit(void)
 uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	char logBuf[32];
+	
 	struct sensor_value magn_xyz[3];
 	double magn_xyz_double[3];
 
@@ -635,14 +635,8 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 		aMagneto[i] = (int16_t)(magn_xyz_double[i] * 32767);
 		
 		
-		
-		
 	}
-	sprintf(logBuf, "magnatic angle : %d ",aMagneto[1]);
-	lcdEnable();
-	lcdStringWrite(logBuf);
-	sprintf(logBuf, " %d  %d  %d",aMagneto[0],aMagneto[1],aMagneto[2]);
-	LOG_INF("%s", logBuf);
+	
 		
 #endif
 	return 0;
@@ -930,6 +924,41 @@ uint8_t gyroscope_get_pitch(int *aPitch)
 	return 0;
 }
 
+
+/*
+	call this often to ensure the compass functions well,
+	if it returns >0 it is changing stuff
+*/
+uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
+	static int NZ_min, NZ_max; //north south axis calibration
+	static int EW_min, EW_max; //east west axis calibration
+	uint8_t actions = 0;
+
+	if (*EW > EW_max){
+		EW_max = *EW;
+		actions++;
+	}else if(*EW < EW_min){
+		EW_min = *EW;
+		actions++;
+	}
+
+	if (*NZ > NZ_max){
+		NZ_max = *NZ;
+		actions++;
+	}else if(*NZ < NZ_min){
+		NZ_min = *NZ;
+		actions++;
+	}
+
+	*NZ = (*NZ - NZ_min)/(NZ_max - NZ_min) * 100;
+	*EW = (*EW - EW_min)/(EW_max - EW_min) * 100;
+	return actions;
+
+}
+
+
+
+
 /**
  * @brief Retrieves the heading from the gyroscope and magnetometer sensors.
  *
@@ -947,6 +976,7 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t MagnetoValue[3], AccelValue[3];
 	double angle;
+	char logBuf[32];
 	int errorCode = 0;
 	if (!gyroscope_is_init)
 	{
@@ -982,7 +1012,14 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 		return 3;
 	}
 	//so we gonna do a little dirty and remap orginal sensor data to -180 to 180
-	angle = ((MagnetoValue[1] - -32768) / (float)(32767 - -32768)) * (360) + -180;
+	//angle = ((MagnetoValue[1] - -32768) / (float)(32767 - -32768)) * (360) + -180;
+	
+	magnetometer_calibrate(&MagnetoValue[0],&MagnetoValue[1]);
+	sprintf(logBuf, "magnatic angle : %d ",MagnetoValue[1]);
+	lcdEnable();
+	lcdStringWrite(logBuf);
+	sprintf(logBuf, " %d  %d  %d",MagnetoValue[0],MagnetoValue[1],MagnetoValue[2]);
+	LOG_INF("%s", logBuf);
 		
 	*aHeading = angle;
 #endif
