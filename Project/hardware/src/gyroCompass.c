@@ -346,7 +346,7 @@ static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
 									  int16_t iGpx, int16_t iGpy, int16_t iGpz, double *angle)
 {
 	int16_t iSin, iCos; /* sine and cosine */
-	int16_t iPhi_16t, iThe; /* roll and pitch angles */ // THESE TWO ARENT USED AT ALL WHY?
+	int16_t iPhi_16t, iThe; /* roll and pitch angles */ // these two ARENT USED AT ALL why?
 	int iPhi;
 	int16_t iBfy, iBfx, iBfz;
 	uint8_t errorCode;
@@ -941,9 +941,12 @@ uint8_t gyroscope_get_pitch(int *aPitch)
 }
 
 
-/*
-	call this often to ensure the compass functions well,
-	if it returns >0 it is changing stuff
+/**
+ *	@brief calibrates the compas then makes it percentile
+ *	call this often to ensure the compass functions well,
+ *	this function recalibrates the compass and percentile direction
+ *	in 2D
+ *  @return if it returns >0 it is changing stuff
 */
 uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
 	static int NZ_min, NZ_max; //north south axis calibration
@@ -972,8 +975,6 @@ uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
 	return actions;
 
 }
-
-
 
 
 /**
@@ -1028,18 +1029,10 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	{
 		return 3;
 	}
-	//so we gonna do a little dirty and remap orginal sensor data to -180 to 180
-	//angle = ((MagnetoValue[1] - -32768) / (float)(32767 - -32768)) * (360) + -180;
-	
+	//this function recalibrates and returns percentile
 	magnetometer_calibrate(&MagnetoValue[0],&MagnetoValue[1]);
-	
-	//sprintf(logBuf, " %d  %d  %d",MagnetoValue[0],MagnetoValue[1],MagnetoValue[2]);
-	//LOG_INF("%s", logBuf);
-	//k_msleep(100);	
 	*aHeading = getMangoAngle(MagnetoValue[0],MagnetoValue[1]);
-	//sprintf(logBuf, "magnatic angle : %d ", *aHeading);
-	//lcdEnable();
-	//lcdStringWrite(logBuf);
+
 #endif
 	return 0;
 }
