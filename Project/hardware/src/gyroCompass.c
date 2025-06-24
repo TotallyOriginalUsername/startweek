@@ -993,7 +993,7 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t MagnetoValue[3], AccelValue[3];
 	double angle;
-	char logBuf[32];
+	//char logBuf[32];
 	int errorCode = 0;
 	if (!gyroscope_is_init)
 	{
@@ -1033,13 +1033,13 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 	
 	magnetometer_calibrate(&MagnetoValue[0],&MagnetoValue[1]);
 	
-	sprintf(logBuf, " %d  %d  %d",MagnetoValue[0],MagnetoValue[1],MagnetoValue[2]);
-	LOG_INF("%s", logBuf);
-	k_msleep(100);	
+	//sprintf(logBuf, " %d  %d  %d",MagnetoValue[0],MagnetoValue[1],MagnetoValue[2]);
+	//LOG_INF("%s", logBuf);
+	//k_msleep(100);	
 	*aHeading = getMangoAngle(MagnetoValue[0],MagnetoValue[1]);
-	sprintf(logBuf, "magnatic angle : %d ", *aHeading);
-	lcdEnable();
-	lcdStringWrite(logBuf);
+	//sprintf(logBuf, "magnatic angle : %d ", *aHeading);
+	//lcdEnable();
+	//lcdStringWrite(logBuf);
 #endif
 	return 0;
 }

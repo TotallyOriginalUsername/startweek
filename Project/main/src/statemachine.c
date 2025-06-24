@@ -70,6 +70,7 @@ void init_state(struct state *state) {
 	lcdEnable();
 	while (true){
 		set_led_circle_dir_dist(get_relative_dir(0), 100);
+		k_msleep(100);
 	}
 
 #ifndef CONFIG_TESTMODE
