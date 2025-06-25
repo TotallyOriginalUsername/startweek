@@ -65,10 +65,9 @@ void initLocations()
 }
 
 int playIdle() {
-	char lcd_msg[32];
 #if defined(CONFIG_TESTMODE)
 	static int testIndex = 1;
-
+	char lcd_msg[32];
 	lcdEnable();
 	lcdStringWrite("Selecteer een spel met A en C");
 	k_msleep(3000);
@@ -159,6 +158,7 @@ int playIdle() {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
+	char lcd_msg[32];
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
