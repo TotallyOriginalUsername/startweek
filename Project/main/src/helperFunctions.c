@@ -165,6 +165,18 @@ void wait_till_btnmatrix_depressed(){
     LOG_WRN("Done waiting\n");
 }
 
+// Wait till the user presses the start button to start the game
+void wait_till_game_start(){
+	lcdStringWrite("Druk op start");
+	startledSet(1);
+
+	while(startbuttonGet()){
+		native_loop();
+	}
+	startledSet(0);
+	lcdClear();
+}
+
 //Function to wait untill every switch is at rest
 void wait_till_switches_rest(){
     uint8_t input_count = 1;
