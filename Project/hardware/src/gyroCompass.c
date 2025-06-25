@@ -942,10 +942,12 @@ uint8_t gyroscope_get_pitch(int *aPitch)
  *	in 2D
  *  @return if it returns >0 it is changing stuff
 */
-uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
-	static int NZ_min, NZ_max; //north south axis calibration
+uint8_t magnetometer_calibrate(int16_t* NS, int16_t* EW){
+	static int NS_min, NS_max; //north south axis calibration
 	static int EW_min, EW_max; //east west axis calibration
 	uint8_t actions = 0;
+	static int64_t lastUpdate = 0;
+	
 
 	if (*EW > EW_max){
 		EW_max = *EW;
@@ -955,17 +957,26 @@ uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW){
 		actions++;
 	}
 
-	if (*NZ > NZ_max){
-		NZ_max = *NZ;
+	if (*NS > NS_max){
+		NS_max = *NS;
 		actions++;
-	}else if(*NZ < NZ_min){
-		NZ_min = *NZ;
+	}else if(*NS < NS_min){
+		NS_min = *NS;
 		actions++;
 	}
 
-	*NZ = (int16_t)((float)(*NZ - NZ_min)/(float)(NZ_max - NZ_min) * (float)100.0);
+	if (actions > 0){
+		lastUpdate = k_uptime_get(); // Get the current time in milliseconds
+	}else if (lastUpdate + 1000 < k_uptime_get()){
+		EW_max--;
+		EW_min++;
+		NS_max--;
+		NS_min++;
+	}
+
+	*NS = (int16_t)((float)(*NS - NS_min)/(float)(NS_max - NS_min) * (float)100.0);
 	*EW = (int16_t)((float)(*EW - EW_min)/(float)(EW_max - EW_min) * (float)100.0);
-	*NZ = 100 - *NZ;// flip ost west since hard iron offset is not used
+	*NS = 100 - *NS;// flip north south since hard iron offset is not used
 	return actions;
 
 }
