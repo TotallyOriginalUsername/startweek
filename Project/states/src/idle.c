@@ -173,7 +173,7 @@ int playIdle() {
 		} else
 		{
 			
-			sprintf(lcd_msg, "Volg de LEDs! %d", distMeters);
+			sprintf(lcd_msg, "Volg de LEDs!   %d meter", distMeters);
 			lcdStringWrite(lcd_msg);
 			k_msleep(50);
 			lcdSet = true;
