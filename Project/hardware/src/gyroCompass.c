@@ -392,15 +392,10 @@ uint8_t magnetometer_exit(void)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!magnetometer_is_init)
 	{
-		LOG_ERR("Magnetometer not initialized(e)\n");
+		LOG_ERR("Magnetometer not initialized\n");
 		return 1;
 	}
-	/*
-	int error = magnetometer_set_sampling_freq(magno_sample_freq_off);
-	if (error != 0)
-	{
-	  return error;
-	}*/
+
 #endif
 	LOG_INF("Magnetometer exit\n");
 	magnetometer_is_init = false;
@@ -427,7 +422,7 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 
 	if (!magnetometer_is_init)
 	{
-		LOG_ERR("Magnetometer not initialized(g)\n");
+		LOG_ERR("Magnetometer not initialized\n");
 		return 1;
 	}
 
@@ -449,7 +444,7 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 	for (int i = 0; i < 3; i++)
 	{
 		aMagneto[i] = (int16_t)(magn_xyz_double[i] * 32767);
-	}	
+	}
 #endif
 	return 0;
 }
@@ -742,7 +737,8 @@ uint8_t gyroscope_get_pitch(int *aPitch)
  *	call this often to ensure the compass functions well,
  *	this function recalibrates the compass and percentile direction
  *	in 2D
- *  @return if it returns >0 it is changing stuff
+ *  @return if it returns >0 it is widening the calibration 
+ * 	if this number is high constantly it is a sign of high magnatic interference
 */
 uint8_t magnetometer_calibrate(int16_t* NS, int16_t* EW){
 	static int NS_min, NS_max; //north south axis calibration
@@ -829,12 +825,6 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 		return 3;
 	}
 
-	/*//i do not understand the next function, it might not be needed anyway. but it is 
-	errorCode = gyroCompass_i_ecompass(MagnetoValue[0], MagnetoValue[1], MagnetoValue[2], AccelValue[0], AccelValue[1], AccelValue[2], &angle);
-	if (errorCode)
-	{
-		return 3;
-	}*/
 	magnetometer_calibrate(&MagnetoValue[0],&MagnetoValue[1]);
 	*aHeading = getMangoAngle(MagnetoValue[0],MagnetoValue[1]);
 
