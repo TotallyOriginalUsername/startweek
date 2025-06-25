@@ -65,9 +65,9 @@ void initLocations()
 }
 
 int playIdle() {
+	char lcd_msg[32];
 #if defined(CONFIG_TESTMODE)
 	static int testIndex = 1;
-	char lcd_msg[32];
 
 	lcdEnable();
 	lcdStringWrite("Selecteer een spel met A en C");
@@ -172,11 +172,11 @@ int playIdle() {
 			k_msleep(500);
 		} else
 		{
-			if (!lcdSet)
-			{
-				lcdStringWrite("Volg de LEDs!");
-				lcdSet = true;
-			}
+			
+			sprintf(lcd_msg, "Volg de LEDs! %d", distMeters);
+			lcdStringWrite(lcd_msg);
+			k_msleep(50);
+			lcdSet = true;
 
 			distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon)); // Distance from current position to next location (meters)
 			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon));					// Angle between current location and next location
@@ -186,7 +186,7 @@ int playIdle() {
 	}
 #endif
 	lcdStringWrite("Gearriveerd!!");
-	k_msleep(4000);
+	k_msleep(5000);
 	lastReturned = locations[locIndex].mg_id;
 	return lastReturned; // Return the index of the game that has to be played.
 }
