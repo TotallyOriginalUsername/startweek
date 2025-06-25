@@ -370,12 +370,10 @@ void MainWindow::on_btnUploadSerial_clicked()
         port.write(header);
         port.waitForBytesWritten(100);
 
-        // De werkelijke inhoud
         QByteArray prog = "0";
         port.write(prog);
         port.waitForBytesWritten(100);
 
-        // EOF-markering
         QByteArray footer = "\nEOF\n";
         port.write(footer);
         port.waitForBytesWritten(100);
