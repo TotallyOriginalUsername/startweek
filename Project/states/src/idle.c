@@ -65,6 +65,8 @@ void initLocations()
 }
 
 int playIdle() {
+	uint8_t ledcircleOff[8] = {0};
+
 #if defined(CONFIG_TESTMODE)
 	static int testIndex = 1;
 	char lcd_msg[32];
@@ -186,6 +188,7 @@ int playIdle() {
 	}
 #endif
 	lcdStringWrite("Gearriveerd!!");
+	ledcircleSetMutexValue(ledcircleOff);
 	k_msleep(4000);
 	lastReturned = locations[locIndex].mg_id;
 	return lastReturned; // Return the index of the game that has to be played.
