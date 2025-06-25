@@ -1,7 +1,7 @@
 #ifdef CONFIG_TEST_ACCELEROMETER
 
 #include <zephyr/ztest.h>
-#include "GyroCompass.h"
+#include "gyroCompass.h"
 
 
 ZTEST_SUITE(testAccelerometer, NULL, NULL, NULL, NULL, NULL);
