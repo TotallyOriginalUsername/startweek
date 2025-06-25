@@ -7,7 +7,7 @@
 K_TIMER_DEFINE(secTimerMg6, NULL, NULL);
 LOG_MODULE_REGISTER(mg_6);
 
-char *mg6Threads[mg6ThreadCount] = {"startbtn", "sevenseg", "abcbtn"};
+char *mg6Threads[mg6ThreadCount] = {"startbtn", "abcbtn"};
 
 void getMg6Threads(char ***names, unsigned *amount) {
 	*names = mg6Threads;
@@ -21,47 +21,6 @@ char oneLinersMG6[MG6_ONELINERS][32] = {
 	"Het dichtst bij de 0"
 };
 
-void showOnelinersMG6()
-{
-	bool done = false;
-	lcdEnable();
-	lcdStringWrite("Druk op start");
-	while (!done)
-	{
-		native_loop();
-		if(startbuttonGet())
-		{	
-			startledSet(1);
-		}
-		else
-		{
-			startledSet(0);
-			for (uint8_t i = 0; i < MG6_ONELINERS; i++)
-			{
-			lcdStringWrite(oneLinersMG6[i]);
-			k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
-			while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}	
-			}
-			startledSet(1);
-			while (true)
-			{
-				native_loop();
-				if(!startbuttonGet())
-				{	
-				done = true;
-				break;
-				}
-			}
-			
-		}
-	}
-	startledSet(0);
-	lcdClear();
-	lcdDisable();
-}
-
-
-
 int playMg6() {
 	uint32_t score = 1000;
 	uint8_t *abcBtn;
@@ -70,9 +29,11 @@ int playMg6() {
 	uint8_t value01 = 0;
 	uint8_t value001 = 0;
 	char input[4] = {"1000"};
-	char clear[4] = {"0000"};
 
-	showOnelinersMG6();
+	show_oneliners(oneLinersMG6, MG6_ONELINERS);
+	lcdEnable();
+	wait_till_game_start();
+
 	abcledsSet('a', true);
 	while(true)
 	{
@@ -86,7 +47,7 @@ int playMg6() {
 		input[1] = value1 + 48;
 		input[2] = value01 + 48;
 		input[3] = value001 + 48;
-		sevensegSetMutexValue(input,1);
+		sevenSegmentSet(input,1);
 		k_timer_start(&secTimerMg6, K_MSEC(10), K_NO_WAIT);
 		while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
 		if(value001 == 0 && value01 == 0 && value1 == 0 && value10 == 0)
@@ -119,7 +80,7 @@ int playMg6() {
 	score = 1000 - ((value10 * 1000)+(value1 * 100)+(value01 * 10)+(value001 * 1));
 	k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
 	while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
-	sevensegSetMutexValue(clear,0);
+
 	k_msleep(100);
 
 	return score;

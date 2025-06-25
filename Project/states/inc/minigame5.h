@@ -12,6 +12,7 @@
 
 void getMg5Threads(char ***, unsigned *);
 
+uint16_t generate_fruit_mg5();
 int playMg5();
 
 #endif // MINIGAME5_H

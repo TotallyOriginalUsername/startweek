@@ -1,6 +1,9 @@
 #include "minigame1.h"
 
 K_TIMER_DEFINE(mg1Timer, NULL, NULL);
+
+LOG_MODULE_REGISTER(mg_1);
+
 #define mg1Timer_duration 200
 #define snake_max_length 15
 
@@ -159,16 +162,6 @@ void update_snake(){
 	}
 }
 
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-}
-
 int playMg1() {
 	uint8_t btnmatrix_off[4] = {0};
 	uint8_t apples_caught = 0;
@@ -224,7 +217,7 @@ int playMg1() {
 		}
 	};
 
-	printk("Score: %d\n", score);
+	LOG_INF("Score: %d", score);
 	abcledsSet('a', 0);
 	abcledsSet('c', 0);
 	lcdDisable();

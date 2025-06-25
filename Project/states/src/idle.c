@@ -66,8 +66,11 @@ void initLocations()
 
 int playIdle() {
 #if defined(CONFIG_TESTMODE)
-	static int testIndex = 1;
+	static int testIndex = 0;
 	char lcd_msg[32];
+
+	//convert the testIndex from code's 0-9 back to human 1-10
+	testIndex++;
 	lcdEnable();
 	lcdStringWrite("Selecteer een spel met A en C");
 	k_msleep(3000);

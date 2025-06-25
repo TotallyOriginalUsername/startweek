@@ -55,6 +55,32 @@ void clear_btnmatrix_leds(){
 	btnmatrix_outSetMutexValue(data_button_matrix);
 }
 
+// Detects if a given row mask has a bit overlapping with the given led mask
+bool led_matrix_hit_detection(uint16_t* led_mask, uint16_t row_mask, uint8_t row_number){
+
+	if (led_mask[row_number] != 0)
+	{
+		if ((led_mask[row_number] & ~row_mask) != 0)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	return 0;
+}
+
+// Scrolls every row one downwards
+uint8_t led_matrix_scroll_down(uint16_t* led_mask){
+	for(int i = 15; i > 0; i--){
+		led_mask[i] = led_mask[i-1];
+	}
+
+	return 0;
+}
+
 //function to show a circle on the button matrix for 2 seconds
 void show_correct(){
 	uint8_t data_button_matrix[4] = {0b00000110, 0b00001001, 0b00001001, 0b00000110};
@@ -137,6 +163,18 @@ void wait_till_btnmatrix_depressed(){
     }
 
     LOG_WRN("Done waiting\n");
+}
+
+// Wait till the user presses the start button to start the game
+void wait_till_game_start(){
+	lcdStringWrite("Druk op start");
+	startledSet(1);
+
+	while(startbuttonGet()){
+		native_loop();
+	}
+	startledSet(0);
+	lcdClear();
 }
 
 //Function to wait untill every switch is at rest
