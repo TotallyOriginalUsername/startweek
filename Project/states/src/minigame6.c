@@ -77,7 +77,11 @@ int playMg6() {
 		}
 	}
 	abcledsSet('a', false);
-	score = 1000 - ((value10 * 1000)+(value1 * 100)+(value01 * 10)+(value001 * 1));
+	if (strcmp(input, "0000") == 0){
+		score = 0;
+	} else{
+		score = 1000 - ((value10 * 1000)+(value1 * 100)+(value01 * 10)+(value001 * 1));
+	}
 	k_timer_start(&secTimerMg6, K_MSEC(3000), K_NO_WAIT);
 	while (!(k_timer_status_get(&secTimerMg6) > 0)){native_loop();}
 
