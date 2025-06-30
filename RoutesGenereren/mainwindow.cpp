@@ -37,20 +37,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_ui->tabWidget->setCurrentIndex(0);
 
-    connect(m_ui->btnRefreshRoutes, &QPushButton::clicked,
-            this, &MainWindow::on_btnRefreshRoutes_clicked);
-    connect(m_ui->btnRefreshPorts,  &QPushButton::clicked,
-            this, &MainWindow::on_btnRefreshPorts_clicked);
-    connect(m_ui->btnUploadSerial,  &QPushButton::clicked,
-            this, &MainWindow::on_btnUploadSerial_clicked);
-
-    connect(m_ui->btnAddLoc,    &QPushButton::clicked,
-            this, &MainWindow::on_btnAddLoc_clicked);
-    connect(m_ui->btnEditLoc,   &QPushButton::clicked,
-            this, &MainWindow::on_btnEditLoc_clicked);
-    connect(m_ui->btnRemoveLoc, &QPushButton::clicked,
-            this, &MainWindow::on_btnRemoveLoc_clicked);
-
     loadLocationsFromFile();
     // if there was nothing in the file, fall back to defaults
     if (allPoints.empty())
@@ -314,7 +300,7 @@ void MainWindow::on_btnRefreshPorts_clicked()
 
 void MainWindow::on_btnUploadSerial_clicked()
 {
-    // Get JSON file
+    // Read json file
     QString fileName = m_ui->comboRouteFiles->currentText();
     if (fileName.startsWith("[")) {
         QMessageBox::warning(this, tr("Geen route"),
@@ -323,67 +309,128 @@ void MainWindow::on_btnUploadSerial_clicked()
     }
     QDir buildDir(QCoreApplication::applicationDirPath());
     QString src = buildDir.filePath(fileName);
-
-    // Get selected port
-    QString portName = m_ui->comboPorts->currentText();
-    if (portName.startsWith("[")) {
-        QMessageBox::warning(this, tr("Geen poort"),
-                             tr("Sluit koffer aan en ververs poorten."));
-        return;
-    }
-
-    // Read JSON
     QFile f(src);
     if (!f.open(QIODevice::ReadOnly)) {
         QMessageBox::critical(this, tr("Fout"),
                               tr("Kan %1 niet openen").arg(src));
         return;
     }
-    QByteArray jsonData = f.readAll();
+    const QByteArray jsonData = f.readAll();
     f.close();
 
     // Open serial port
+    QString portName = m_ui->comboPorts->currentText();
+    if (portName.startsWith("[")) {
+        QMessageBox::warning(this, tr("Geen poort"),
+                             tr("Sluit koffer aan en ververs poorten."));
+        return;
+    }
     QSerialPort port(portName, this);
-    port.setBaudRate(QSerialPort::Baud9600);
+    port.setBaudRate(QSerialPort::Baud115200);
     port.setDataBits(QSerialPort::Data8);
     port.setParity(QSerialPort::NoParity);
     port.setStopBits(QSerialPort::OneStop);
-    if (!port.open(QIODevice::WriteOnly)) {
+    port.setFlowControl(QSerialPort::NoFlowControl);
+    if (!port.open(QIODevice::ReadWrite)) {
         QMessageBox::critical(this, tr("Fout"),
-                              tr("Kan %1 niet openen:\n%2")
-                                .arg(portName, port.errorString()));
+            tr("Kan poort %1 niet openen:\n%2")
+            .arg(portName, port.errorString()));
         return;
     }
 
-    // Send JSON-route
-    port.write(jsonData);
-    if (!port.waitForBytesWritten(5000)) {
-        QMessageBox::critical(this, tr("Fout"),
-                              tr("Schrijven naar %1 timed-out").arg(portName));
-        port.close();
-        return;
+
+    // Delete loc.txt, progress.txt and score.txt
+    QByteArray resetCmd = "fs rm /SD:/loc.txt\r\n";
+    port.write(resetCmd);
+    port.waitForBytesWritten(1000);
+
+    QThread::msleep(300);
+
+    resetCmd = "fs rm /SD:/progress.txt\r\n";
+    port.write(resetCmd);
+    port.waitForBytesWritten(1000);
+
+    QThread::msleep(300);
+
+    resetCmd = "fs rm /SD:/score.txt\r\n";
+    port.write(resetCmd);
+    port.waitForBytesWritten(1000);
+
+    QThread::msleep(300);
+
+    // upload to /SD:/loc.txt
+    const qint64 CHUNK_SIZE = 16;
+    const qint64 totalLen   = jsonData.size();
+    qint64       offset     = 0;
+    const QByteArray remotePath("/SD:/loc.txt");
+
+    while (offset < totalLen) {
+        qint64 chunkLen = qMin(CHUNK_SIZE, totalLen - offset);
+        QByteArray chunk = jsonData.mid(offset, chunkLen);
+
+        QString offsetHex = QString("%1")
+            .arg(offset, 2, 16, QChar('0'));
+
+        // build hex-strings
+        QStringList hexBytes;
+        hexBytes.reserve(chunkLen);
+        for (uchar b : chunk) {
+            hexBytes << QString("%1")
+                .arg(b, 2, 16, QChar('0'));
+        }
+        QByteArray spacedHex = hexBytes.join(' ').toUtf8();
+
+        // build fs command
+        QByteArray cmd = "fs write "
+                       + remotePath + " "
+                       + spacedHex
+                       + "\r\n";
+
+        qDebug() << ">>" << cmd.trimmed();
+
+        qint64 written = port.write(cmd);
+        if (written != cmd.size() ||
+            !port.waitForBytesWritten(5000)) {
+            QMessageBox::critical(this, tr("Fout"),
+                tr("Chunk offset %1 niet verzonden").arg(offsetHex));
+            port.close();
+            return;
+        }
+
+        QThread::msleep(300);
+        offset += chunkLen;
     }
 
-    // Reset progress.txt ("0")
+    // Reset progress.txt (ASCII ‘0’ = 0x30)
     {
-        QByteArray header = "SEND_FILE:progress.txt\n";
-        port.write(header);
-        port.waitForBytesWritten(100);
-
-        QByteArray prog = "0";
-        port.write(prog);
-        port.waitForBytesWritten(100);
-
-        QByteArray footer = "\nEOF\n";
-        port.write(footer);
-        port.waitForBytesWritten(100);
+        QByteArray resetCmd = "fs write /SD:/progress.txt 30\r\n";
+        port.write(resetCmd);
+        port.waitForBytesWritten(500);
     }
-    
+
+    // Reset score.txt
+    {
+        QByteArray resetCmd = "fs write /SD:/score.txt 30\r\n";
+        port.write(resetCmd);
+        port.waitForBytesWritten(500);
+    }
+
+    // (Optional feedback message)
+    if (port.waitForReadyRead(500)) {
+        QByteArray fb;
+        do { fb += port.readAll(); }
+        while (port.waitForReadyRead(100));
+        qDebug() << "Feedback:" << fb.trimmed();
+        QMessageBox::information(this, tr("Feedback"),
+                                 QString::fromUtf8(fb));
+    }
+
     port.close();
-    
     QMessageBox::information(this, tr("Klaar"),
-        tr("Route %1 geüpload via %2\nprogress.txt gereset naar 0")
-        .arg(fileName, portName));
+        tr("JSON (%1 bytes) in %2 chunks geüpload naar %3")
+        .arg(totalLen)
+        .arg((totalLen + CHUNK_SIZE - 1)/CHUNK_SIZE)
+        .arg(portName));
 }
 
 void MainWindow::on_btnAddLoc_clicked()
