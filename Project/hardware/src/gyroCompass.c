@@ -435,11 +435,6 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 		magn_xyz_double[i] = sensor_value_to_double(&magn_xyz[i]);
 	}
 
-	/* //Subtract the hard iron offset
-	magn_xyz_double[0] -= X_OFFSET;
-	magn_xyz_double[1] -= Y_OFFSET;
-	magn_xyz_double[2] -= Z_OFFSET;
-	*/
 	// Scale value over max range of int. Value is max 1 or -1
 	for (int i = 0; i < 3; i++)
 	{
@@ -738,7 +733,7 @@ uint8_t gyroscope_get_pitch(int *aPitch)
  *	this function recalibrates the compass and percentile direction
  *	in 2D
  *  @return if it returns >0 it is widening the calibration 
- * 	if this number is high constantly it is a sign of high magnatic interference
+ * 	if this number > 0 repeatedly it is a sign of high magnatic interference
 */
 uint8_t magnetometer_calibrate(int16_t* NS, int16_t* EW){
 	static int NS_min, NS_max; //north south axis calibration
@@ -796,7 +791,6 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t MagnetoValue[3], AccelValue[3];
-	//double angle;
 	int errorCode = 0;
 	if (!gyroscope_is_init)
 	{
