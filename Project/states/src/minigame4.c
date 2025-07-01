@@ -94,7 +94,7 @@ int playMg4(uint8_t question_nr) {
 	bool buttonReleased = true;
 	static uint8_t questionIndex = 0;
 	if(question_nr != 0){
-		questionIndex = question_nr;
+		questionIndex = question_nr - 100;
 	}
 	
 	struct Quiz *quizzes = NULL;
