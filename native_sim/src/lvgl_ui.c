@@ -268,7 +268,7 @@ void setup_led_array(lv_obj_t *parent){
     lv_obj_center(cont);
 
     for (int row = 0; row < 16; row++) {
-        for (int col = 0; col < 16; col++) {
+        for (int col = 15; col >= 0; col--) {
             leds[index] = lv_obj_create(cont);
             lv_obj_set_size(leds[index], led_size, led_size);
             lv_obj_set_pos(leds[index], col * led_size, row * led_size);
