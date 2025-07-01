@@ -17,9 +17,10 @@ Requirements
 ************
 
 - Ubuntu 20.04 +
-- WSL2 can also work 
-- Zephyr 4.0 (for LVGL 8.4)
+- WSL2 does not work, as the LVGL display goes black if its being updated in a thread
+- Zephyr 4.0 or lower (for LVGL 8.4)
 - Keyboard to control the pins
+- Mouse to control the pins also works
 
 Building and Running
 ********************
@@ -47,20 +48,30 @@ Also troubleshooting.md
 
 Progress
 ************
-ButtonMatrix: Done, compare with hardware
+ButtonMatrix: Done
 
 Buzzers: Check possibilities for emulation
 
 CircleMatrix: Done, compare with hardware
 
-GenericGPIO: Done, compare with hardware
+GenericGPIO: Done
 
 GyroCompass: Not done, workaround should be possible with sensor_emul or manual function rewriting
 
-LCD: Done, compare with hardware
+LCD: Done, not the same as hardware (Hardware is limited to 32 characters)
 
-LedMatrix: Done, compare with hardware
+LedMatrix: Done
 
 Potmeter: Not done
 
-SevenSegment: Done - Need to fix bug of LCD data appearing in this
+SevenSegment: Done, no dot
+
+Key differences with integrated version
+************
+The file structure is different across both versions.
+
+This version has no support for building for hardware.
+
+This version has a simpler functionality with less states, allowing easier testing of just the minigames.
+
+This version has less issues with timers, which means it can play games like snake which dont work on the integrated version.
