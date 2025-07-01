@@ -105,6 +105,7 @@ int playMg2() {
 
 	show_oneliners(oneLinersMG2, MG2_ONELINERS);
 	lcdEnable();
+	wait_till_game_start();
 	
 	generate_sequence(sequence);
 	

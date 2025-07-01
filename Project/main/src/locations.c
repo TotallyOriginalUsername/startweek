@@ -1,6 +1,7 @@
 //
 // Created by Kasper Janssen on 04/06/25.
 //
+
 #include "locations.h"
 
 LOG_MODULE_REGISTER(locations);
@@ -32,10 +33,27 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     if (!locArray)
         return -2;
 
-    struct json_obj_descr loc_descr[] = {
+
+    struct json_obj_descr loc_descr_type1[] = {
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_from_sd, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_from_sd, JSON_TOK_NUMBER),
+        JSON_OBJ_DESCR_PRIM(struct Location, mg_id, JSON_TOK_NUMBER),
+    };
+    struct json_obj_descr loc_descr_type0[] = {
         JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "x", x_from_sd, JSON_TOK_NUMBER),
         JSON_OBJ_DESCR_PRIM_NAMED(struct Location, "y", y_from_sd, JSON_TOK_NUMBER),
     };
+
+    const struct json_obj_descr *loc_descr;
+    size_t loc_descr_len;
+
+    if (type == 1) {
+        loc_descr = loc_descr_type1;
+        loc_descr_len = ARRAY_SIZE(loc_descr_type1);
+    } else {
+        loc_descr = loc_descr_type0;
+        loc_descr_len = ARRAY_SIZE(loc_descr_type0);
+    }
 
     struct json_obj json_arr;
     ret = json_arr_separate_object_parse_init(&json_arr, json_buf, len);
@@ -48,7 +66,7 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
     size_t i = 0;
     while (i < maxLocations) {
         memset(&locArray[i], 0, sizeof(struct Location));
-        ret = json_arr_separate_parse_object(&json_arr, loc_descr, 2, &locArray[i]);
+        ret = json_arr_separate_parse_object(&json_arr, loc_descr, loc_descr_len, &locArray[i]);
         if (ret == 0)
         {
             LOG_INF("End of array reached at index %zu", i);
@@ -60,9 +78,9 @@ int locations_load(uint16_t type, struct Location **locations, size_t *count, si
             free(locArray);
             return ret;
         }
-        i++;
         locArray[i].x = (int64_t)locArray[i].x_from_sd * 1000; // convert back to nanodegrees
         locArray[i].y = (int64_t)locArray[i].y_from_sd * 1000;
+        i++;
     }
 
     *count = i;

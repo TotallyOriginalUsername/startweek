@@ -7,6 +7,7 @@ K_TIMER_DEFINE(plateTimer, plate_timer_handler, NULL);
 K_TIMER_DEFINE(fruitTimer, NULL, NULL);
 K_TIMER_DEFINE(mg7Timer, NULL, NULL);
 #define fruit_timer_duration 150
+#define hit_detection_row 15
 #define plate_timer_duration 45
 #define mg7_duration 15000
 uint8_t plate_position = 8;
@@ -48,13 +49,6 @@ uint16_t generate_fruit_mg7(uint16_t previous_fruit){
 	}
 }
 
-uint8_t update_fruit_mg7(uint16_t fruit_masks[16]){
-	for(int i = 15; i > 0; i--){
-		fruit_masks[i] = fruit_masks[i-1];
-	}
-	return 0;
-}
-
 // Draws the game
 void draw_game_mg7(uint16_t plate_mask, uint16_t fruit_masks[16]){
 	uint16_t game_frame[16] = {0};
@@ -63,23 +57,6 @@ void draw_game_mg7(uint16_t plate_mask, uint16_t fruit_masks[16]){
 
 	game_frame[15] = game_frame[15] | plate_mask;
 	ledmatrixSetMutexValue(game_frame);
-}
-
-// Detects if a fruit properly hit the plate.
-bool hit_detection_mg7(uint16_t plate_mask, uint16_t fruit_masks[16]){
-
-	if (fruit_masks[15] != 0)
-	{
-		if ((fruit_masks[15] & ~plate_mask) != 0)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	return 0;
 }
 
 void plate_timer_handler(struct k_timer *timer_id){
@@ -131,18 +108,6 @@ void get_catch_input(){
 	}
 }
 
-// Wait till the user presses the button to start the game
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-	lcdClear();
-}
-
 int playMg7() {
 	uint32_t score = 1000;
 	uint16_t empty_frame[16] = {0};
@@ -170,27 +135,25 @@ int playMg7() {
 		native_loop();
 		// Handle fruit related logic at a slower speed then the microcontroller
 		if(k_timer_remaining_get(&fruitTimer) == 0){
-			if(hit_detection_mg7(plate_mask, fruit_masks)){
-				score = score - 20;
-				sprintf(lcd_msg, "Score: %d", score);
-				lcdStringWrite(lcd_msg);
+			if(led_matrix_hit_detection(fruit_masks, plate_mask, hit_detection_row)){
+				if(score >= 20){
+					score = score - 20;
+					sprintf(lcd_msg, "Score: %d", score);
+					lcdStringWrite(lcd_msg);
+				}
 			}
 			fruit_delay++;
 			if(fruit_delay >= 2){
 				fruit_delay = 0;
 				fruit_masks[0] = generate_fruit_mg7(fruit_masks[0]);
 			}
-			update_fruit_mg7(fruit_masks);
+			led_matrix_scroll_down(fruit_masks);
 			k_timer_start(&fruitTimer, K_MSEC(fruit_timer_duration), K_NO_WAIT);
 		}
 
 		get_catch_input();
 		plate_mask = (1 << plate_position) | (1 << (plate_position - 1)) | (1 << (plate_position + 1));
 		draw_game_mg7(plate_mask, fruit_masks);
-	}
-
-	if(score <= 0){
-		score = 0;
 	}
 
 	LOG_INF("Score: %d\n", score);

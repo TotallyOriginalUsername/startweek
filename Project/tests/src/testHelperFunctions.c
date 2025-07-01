@@ -33,4 +33,30 @@ ZTEST(testHelperFunctions, btnmatrix_to_ledmatrix)
         zassert_equal(output[i], expected_output[i]);
     }
 }
+
+ZTEST(testHelperFunctions, led_matrix_hit_detection)
+{
+    uint8_t row = 15;
+    uint16_t fruit_masks[16] = {0};
+    uint16_t plate_mask = 0b1110000000000000;
+	bool hit = led_matrix_hit_detection(fruit_masks, plate_mask, row);
+
+    zassert_equal(hit, 0);
+
+    fruit_masks[15] = 0b0000000000010000;
+	hit = led_matrix_hit_detection(fruit_masks, plate_mask, row);
+    zassert_equal(hit, 1);
+
+    fruit_masks[15] = 0b0100000000000000;
+	hit = led_matrix_hit_detection(fruit_masks, plate_mask, row);
+    zassert_equal(hit, 0);
+}
+
+ZTEST(testHelperFunctions, led_matrix_scroll_down)
+{
+	uint16_t fruit_masks[16] = {0};
+    fruit_masks[0] = 0b1000000000000000;
+    led_matrix_scroll_down(fruit_masks);
+    zassert_equal(fruit_masks[1], 0b1000000000000000);
+}
 #endif

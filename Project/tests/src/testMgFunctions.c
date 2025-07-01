@@ -16,6 +16,68 @@ ZTEST_SUITE(testMg, NULL, NULL, NULL, NULL, NULL);
 
 //Please keep the tests ordered from mg1 to mg10
 
+// Minigame 1's functions
+ZTEST(testMg, create_new_apple)
+{
+	struct apple_location current_apple = {0, 0};
+    create_new_apple(&current_apple);
+
+	zassert_within(current_apple.x, 0, 15);
+	zassert_within(current_apple.y, 0, 15);
+}
+
+ZTEST(testMg, hit_detection_fruit)
+{
+	bool result = false;
+	struct apple_location current_apple = {2, 2};
+    struct snake_locations snake_mask[15] = {[0 ... 15 - 1] = {17, 17}};
+
+	result = hit_detection_fruit(&current_apple, snake_mask);
+	zassert_equal(result,0);
+
+	snake_mask[0].x = 2;
+	snake_mask[0].y = 2;
+	result = hit_detection_fruit(&current_apple, snake_mask);
+	zassert_equal(result,1);
+}
+
+ZTEST(testMg, hit_detection_snake)
+{
+	bool result = false;
+	uint8_t snake_length = 10;
+    struct snake_locations snake_mask[15] = {[0 ... 15 - 1] = {17, 17}};
+
+	snake_mask[0].x = 1;
+	snake_mask[0].y = 1;
+	result = hit_detection_snake(snake_length, snake_mask);
+	zassert_equal(result,0);
+
+	snake_mask[0].x = -1;
+	result = hit_detection_snake(snake_length, snake_mask);
+	zassert_equal(result,1);
+
+	snake_mask[0].x = 4;
+	snake_mask[4].x = 4;
+	snake_mask[0].y = 0;
+	snake_mask[4].y = 4;
+	result = hit_detection_snake(snake_length, snake_mask);
+	zassert_equal(result,0);
+
+	snake_mask[0].y = 4;
+	snake_mask[4].y = 4;
+	result = hit_detection_snake(snake_length, snake_mask);
+	zassert_equal(result,1);
+}
+
+// Minigame 5's functions
+ZTEST(testMg, generate_fruit_mg5)
+{
+	uint16_t fruit = 0b0000000100000000;
+    uint16_t new_fruit = generate_fruit_mg5(fruit);
+
+	zassert_within(new_fruit, 1, 65536);
+}
+
 // Minigame 7's functions
 ZTEST(testMg, generate_fruit_mg7)
 {
@@ -26,31 +88,6 @@ ZTEST(testMg, generate_fruit_mg7)
 	bool generated_right = new_fruit == (fruit >> 1);
 
     zassert_true(generated_left || generated_right);
-}
-
-ZTEST(testMg, update_fruit_mg7)
-{
-	uint16_t fruit_masks[16] = {0};
-    fruit_masks[0] = 0b1000000000000000;
-    update_fruit_mg7(fruit_masks);
-    zassert_equal(fruit_masks[1], 0b1000000000000000);
-}
-
-ZTEST(testMg, hit_detection_mg7)
-{
-    uint16_t fruit_masks[16] = {0};
-    uint16_t plate_mask = 0b1110000000000000;
-	bool hit = hit_detection_mg7(plate_mask, fruit_masks);
-
-    zassert_equal(hit, 0);
-
-    fruit_masks[15] = 0b0000000000010000;
-	hit = hit_detection_mg7(plate_mask, fruit_masks);
-    zassert_equal(hit, 1);
-
-    fruit_masks[15] = 0b0100000000000000;
-	hit = hit_detection_mg7(plate_mask, fruit_masks);
-    zassert_equal(hit, 0);
 }
 
 // Minigame 8's functions

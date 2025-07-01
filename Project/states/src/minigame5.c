@@ -6,12 +6,10 @@ void plate_timer_handler_mg5(struct k_timer *timer_id);
 K_TIMER_DEFINE(plateTimer_mg5, plate_timer_handler_mg5, NULL);
 K_TIMER_DEFINE(fruitTimer_mg5, NULL, NULL);
 #define fruit_timer_duration_mg5 150
+#define hit_detection_row 14
 #define plate_timer_duration_mg5 35
 #define mg5_duration 15000
-
-uint16_t fruit_masks_mg5[16] = {0};
 uint8_t plate_position_mg5 = 8;
-bool first_fruit_mg5 = 1;
 
 char *mg5Threads[mg5ThreadCount] = {"startbtn", "ledmatrix", "abcbtn"};
 
@@ -28,49 +26,22 @@ char oneLinersMG5[MG5_ONELINERS][32] = {
 };
 
 // Generates a new fruit and prevents the generated fruit from going outside bounds.
-void generate_fruit_mg5(){
+uint16_t generate_fruit_mg5(){
+	uint16_t new_fruit = {0};
 
-	fruit_masks_mg5[0] |= 1 << sys_rand32_get() % 16;
-}
+	new_fruit |= 1 << sys_rand32_get() % 16;
 
-void update_fruit_mg5(){
-
-	if(first_fruit_mg5){
-		fruit_masks_mg5[0] = 0b0000000100000000;
-		first_fruit_mg5 = 0;
-	}
-
-	for(int i = 15; i > 0; i--){
-		fruit_masks_mg5[i] = fruit_masks_mg5[i-1];
-	}
-
+	return new_fruit;
 }
 
 // Draws the game
-void draw_game_mg5(uint16_t plate_mask){
+void draw_game_mg5(uint16_t plate_mask, uint16_t fruit_masks[16]){
 	uint16_t game_frame[16] = {0};
 
-	memcpy(game_frame, fruit_masks_mg5, sizeof(game_frame));
+	memcpy(game_frame, fruit_masks, sizeof(game_frame));
 
 	game_frame[15] = game_frame[15] | plate_mask;
 	ledmatrixSetMutexValue(game_frame);
-}
-
-// Detects if a fruit properly hit the plate.
-static bool hit_detection(uint16_t plate_mask){
-
-	if (fruit_masks_mg5[14] != 0)
-	{
-		if ((fruit_masks_mg5[14] & ~plate_mask) != 0)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	return 0;
 }
 
 void plate_timer_handler_mg5(struct k_timer *timer_id){
@@ -122,29 +93,17 @@ void get_catch_input_mg5(){
 	}
 }
 
-// Wait till the user presses the button to start the game
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-	lcdClear();
-}
-
 int playMg5() {
 	uint32_t score = 1000;
 	uint16_t empty_frame[16] = {0};
 	uint16_t plate_mask = {0};
 	uint8_t fruit_delay = 0;
+	uint16_t fruit_masks[16] = {0};
 	uint8_t fruits_created = 0;
 	char lcd_msg[32];
 
-	memset(fruit_masks_mg5, 0, sizeof(fruit_masks_mg5));
+	memset(fruit_masks, 0, sizeof(fruit_masks));
 	plate_position_mg5 = 8;
-	first_fruit_mg5 = 1;
 
 	show_oneliners(oneLinersMG5, MG5_ONELINERS);
 	lcdEnable();
@@ -160,7 +119,7 @@ int playMg5() {
 		native_loop();
 		// Handle fruit related logic at a slower speed then the microcontroller
 		if(k_timer_remaining_get(&fruitTimer_mg5) == 0){
-			if(hit_detection(plate_mask)){
+			if(led_matrix_hit_detection(fruit_masks, plate_mask, hit_detection_row)){
 				score = score - 50;
 				sprintf(lcd_msg, "Score: %d", score);
 				lcdStringWrite(lcd_msg);
@@ -169,18 +128,18 @@ int playMg5() {
 			if(fruit_delay >= 6){
 				fruit_delay = 0;
 				fruits_created++;
-				generate_fruit_mg5();
+				fruit_masks[0] = generate_fruit_mg5();
 			}
 			else{
-				fruit_masks_mg5[0] = 0b0000000000000000;
+				fruit_masks[0] = 0b0000000000000000;
 			}
-			update_fruit_mg5();
+			led_matrix_scroll_down(fruit_masks);
 			k_timer_start(&fruitTimer_mg5, K_MSEC(fruit_timer_duration_mg5), K_NO_WAIT);
 		}
 
 		get_catch_input_mg5();
 		plate_mask = (1 << plate_position_mg5) | (1 << (plate_position_mg5 - 1)) | (1 << (plate_position_mg5 + 1));
-		draw_game_mg5(plate_mask);
+		draw_game_mg5(plate_mask, fruit_masks);
 	}
 
 	LOG_INF("Score: %d\n", score);

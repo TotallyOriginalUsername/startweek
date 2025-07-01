@@ -3,6 +3,9 @@
 #include <stdlib.h>
 LOG_MODULE_REGISTER(sdCard);
 
+#define START_TIME 0
+#define END_TIME 1
+
 #define MAX_PATH 128
 
 /*
@@ -33,7 +36,7 @@ static struct fs_mount_t mp = {
 static const char *disk_mount_pt = DISK_MOUNT_PT;
 #endif
 
-uint8_t sd_card_init(){
+int sd_card_init(){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     static const char *disk_pdrv = DISK_DRIVE_NAME;
 	uint64_t memory_size_mb;
@@ -70,6 +73,7 @@ uint8_t sd_card_init(){
     }
     else {
         LOG_ERR("Error mounting disk\n");
+    	return res;
     }
 #endif
     return 0;
@@ -82,7 +86,7 @@ void sd_card_unmount(){
 }
 
 // Clear the score from the SD card
-uint8_t sd_clear_score(){
+int sd_clear_score(){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
 	int score = 0;
@@ -152,7 +156,7 @@ int sd_get_score(){
 }
 
 // Set the score in the file on the SD card
-uint8_t sd_set_score(int score){
+int sd_set_score(int score){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
 	int current_score;
@@ -168,7 +172,7 @@ uint8_t sd_set_score(int score){
     ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_WRITE);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
-		return -2;
+		return ret;
 	} else {
 		//LOG_ERR("%s - successfully opened file\n", __func__);
 	}
@@ -180,6 +184,61 @@ uint8_t sd_set_score(int score){
 	return 0;
 }
 
+// Set the progress in the file on the SD card. Honestly is just a copy of sd_get_score with a different file name.
+int sd_get_progress()
+{
+	int progress = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[20];
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	ret = fs_open(&data_filp, "/SD:/progress.txt",  FS_O_READ);
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		//LOG_ERR("%s - successfully opened file\n", __func__);
+	}
+
+	ret = fs_read(&data_filp, file_data_buffer, 200);
+	fs_close(&data_filp);
+
+	sscanf(file_data_buffer, "%d", &progress);
+#endif
+	return progress;
+}
+
+int sd_set_progress(int progress)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret;
+	char file_data_buffer[20];
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	ret = fs_open(&data_filp, "/SD:/progress.txt", FS_O_CREATE | FS_O_WRITE);
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return ret;
+	} else {
+		//LOG_ERR("%s - successfully opened file\n", __func__);
+	}
+
+	sprintf(file_data_buffer, "%d\n", progress);
+	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	if (ret)
+	{
+		LOG_ERR("%s -- failed to write to file (err = %d)\n", __func__, ret);
+		return ret;
+	}
+	fs_close(&data_filp);
+#endif
+	return 0;
+}
 
 uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_len)
 {
@@ -198,7 +257,7 @@ uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_l
 	ret = fs_open(&data_filp, type_file[select_file], FS_O_READ);
 	if (ret) {
 		LOG_ERR("Failed to open file: %s (err = %d)", type_file[select_file], ret);
-		return -2;
+		return ret;
 	} else {
 		LOG_MSG_DBG("Opened file: %s", type_file[select_file]);
 	}
@@ -222,4 +281,77 @@ uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_l
 
 #endif
 	return 0;
+}
+
+/**
+ * @brief Get the start or end time from the SD card.
+ *
+ * @param type 0 for start time, 1 for end time.
+ * @return int16_t >= 0 The time of the day in minutes
+ * @return int16_t < 0 On error
+ */
+int16_t get_time(uint8_t type)
+{
+	int16_t time = 0;
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[20];
+	struct fs_file_t data_filp;
+
+	fs_file_t_init(&data_filp);
+
+	switch (type) {
+		case 0: // Start time
+			ret = fs_open(&data_filp, "/SD:/start.txt", FS_O_READ);
+			break;
+		case 1: // End time
+			ret = fs_open(&data_filp, "/SD:/end.txt", FS_O_READ);
+			break;
+		default:
+			LOG_ERR("Invalid type for get_time: %d", type);
+			return -1;
+	}
+
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return ret; // narrowing conversion from 'int' to 'int16_t' may lose data
+	} else {
+		//LOG_ERR("%s - successfully opened file\n", __func__);
+	}
+
+	ret = fs_read(&data_filp, file_data_buffer, 200);
+	if (ret < 0) {
+		LOG_ERR("%s -- failed to read file (err = %d)\n", __func__, ret);
+		fs_close(&data_filp);
+		return ret; // narrowing conversion from 'int' to 'int16_t' may lose data
+	} else {
+		// LOG_MSG_DBG("%s - successfully read file\n", __func__);
+	}
+	fs_close(&data_filp);
+
+	sscanf(file_data_buffer, "%hd", &time);
+#endif
+	return time;
+}
+
+/**
+ * @brief Get the start time from the SD card.
+ *
+ * @return int16_t >= 0 The start time of the day in minutes
+ * @return int16_t < 0 On error
+ */
+int16_t sd_get_start_time()
+{
+	return get_time(START_TIME);
+}
+
+/**
+ * @brief Get the end time from the SD card.
+ *
+ * @return int16_t >= 0 The end time of the day in minutes
+ * @return int16_t < 0 On error
+ */
+int16_t sd_get_end_time()
+{
+	return get_time(END_TIME);
 }

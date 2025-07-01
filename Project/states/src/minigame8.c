@@ -46,16 +46,6 @@ uint32_t calculate_score_mg8(uint32_t remaining_time){
 	return score;
 }
 
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-}
-
 int playMg8() {
 	uint32_t score = 1000;
 	uint32_t remaining_time = 0;
