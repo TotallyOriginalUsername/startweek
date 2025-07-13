@@ -4,7 +4,7 @@ LOG_MODULE_REGISTER(helperFunctions);
 K_TIMER_DEFINE(timer, NULL, NULL);
 
 // LED circle direction to location related definitions
-#define ANGLE_BUFFER_SIZE 10 // Number of angles to average for the circle direction
+#define ANGLE_BUFFER_SIZE 20 // Number of angles to average for the circle direction
 #define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
 #define DIST_MIN_WIDTH 200 	//Distance at which the circle has maximum width
 #define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)

@@ -163,6 +163,7 @@ int playIdle() {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
+	char lcd_msg[32];
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
@@ -176,11 +177,11 @@ int playIdle() {
 			k_msleep(500);
 		} else
 		{
-			if (!lcdSet)
-			{
-				lcdStringWrite("Volg de LEDs!");
-				lcdSet = true;
-			}
+			
+			sprintf(lcd_msg, "Volg de LEDs!  %d meter", distMeters);
+			lcdStringWrite(lcd_msg);
+			k_msleep(50);
+			lcdSet = true;
 
 			distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon)); // Distance from current position to next location (meters)
 			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon));					// Angle between current location and next location
@@ -191,7 +192,7 @@ int playIdle() {
 #endif
 	lcdStringWrite("Gearriveerd!!");
 	ledcircleSetMutexValue(ledcircleOff);
-	k_msleep(4000);
+	k_msleep(5000);
 	lastReturned = locations[locIndex].mg_id;
 	return lastReturned; // Return the index of the game that has to be played.
 }
