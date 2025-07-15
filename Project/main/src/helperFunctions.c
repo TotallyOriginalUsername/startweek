@@ -127,7 +127,6 @@ void wait_till_abc_depressed(){
 #endif
     uint8_t input_count = 1;
     uint8_t *abcbtns;
-    LOG_WRN("Waiting\n");
 
     while(input_count != 0){
         abcbtns = abcbtnGetMutexValue();
@@ -140,8 +139,6 @@ void wait_till_abc_depressed(){
 		}
 		native_loop();
     }
-
-    LOG_WRN("Done waiting\n");
 }
 
 //Function to wait untill every 4x4 button has been released

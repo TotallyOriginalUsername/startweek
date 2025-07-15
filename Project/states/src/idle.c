@@ -163,7 +163,7 @@ int playIdle() {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
-	char lcd_msg[32];
+	char lcd_distance_msg[32];
 	lcdEnable();
 	bool lcdSet = false;
 	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
@@ -178,8 +178,8 @@ int playIdle() {
 		} else
 		{
 			
-			sprintf(lcd_msg, "Volg de LEDs!  %d meter", distMeters);
-			lcdStringWrite(lcd_msg);
+			sprintf(lcd_distance_msg, "Volg de LEDs!  %d meter", distMeters);
+			lcdStringWrite(lcd_distance_msg);
 			k_msleep(50);
 			lcdSet = true;
 
