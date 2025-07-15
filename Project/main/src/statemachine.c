@@ -27,31 +27,20 @@
 #include <stdio.h>
 
 LOG_MODULE_REGISTER(statemachine);
-
+#define MINIGAME_OFFSET 4
 // Setup state machine
-struct state;
-typedef void state_fn(struct state *);
 uint8_t trivia_ID;
 
-struct state {
-	state_fn *next;
-	int i;
-};
+enum statemachineStates {init_state, idle_state, end_game_state, exit_state, mg1_state, mg2_state, mg3_state, mg4_state,
+						mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, ctp_state};
 
-state_fn init_state, idle_state, mg1_state, mg2_state, mg3_state, mg4_state, mg5_state, mg6_state, mg7_state, mg8_state, mg9_state, mg10_state, ctp_state, end_game_state, exit_state;
-
-// Array of state functions
-state_fn* minigame_states[] = {
-    mg1_state, mg2_state, mg3_state, mg4_state, mg5_state,
-    mg6_state, mg7_state, mg8_state, mg9_state, mg10_state,
-	ctp_state
-};
-
+enum statemachineStates current_state = init_state;
 static int16_t end_time;
 
 // State functions
-void init_state(struct state *state) {
+enum statemachineStates init_stateFunction() {
 	LOG_INF("Initialization\n");
+	enum statemachineStates next_state;
 	disableAllThreads();
 	uint8_t ret = 0;
 	ret = configure();
@@ -75,8 +64,8 @@ void init_state(struct state *state) {
 		start_time = sd_get_start_time();
 		if (start_time < 0) {
 			LOG_ERR("Start time not set, exiting state machine");
-			state->next = exit_state;
-			return;
+			next_state = exit_state;
+			return next_state;
 		}
 
 		int16_t hour = getHour();
@@ -90,10 +79,14 @@ void init_state(struct state *state) {
 
 	end_time = sd_get_end_time();
 #endif
-	state->next = idle_state;
+	LOG_INF("Going to idle\n");
+	next_state = idle_state;
+	return next_state;
 }
 
-void idle_state(struct state *state) {
+enum statemachineStates idle_stateFunction() {
+	LOG_INF("Idle\n");
+	enum statemachineStates next_state;
 	char **names;
 	unsigned amount;
 	getIdleThreads(&names, &amount);
@@ -103,21 +96,23 @@ void idle_state(struct state *state) {
 
 	if (ret < -1) {
 		LOG_ERR("Error in idle state\n");
-		state->next = 0;
+		next_state = 0;
 	} else if (ret == -1) {
 		LOG_INF("Going to exit state\n");
-		state->next = exit_state;
+		next_state = exit_state;
 	}else if(ret >= 100){   		// if a minigame ID above 100 is assigned, it is a triva question, (change this when more than 100 games are made)
 		trivia_ID = ret - 100;		// internaly to the trivia game questions are labeled 0 to [however many are on the SD]
-		state->next = mg4_state;	// keep in mind that increasing the amount of questions will influence required buffersizes, as well as the main stack
+		next_state = mg4_state;	// keep in mind that increasing the amount of questions will influence required buffersizes, as well as the main stack
 	} else {
-		state->next = minigame_states[ret];
+		next_state = ret + MINIGAME_OFFSET;
 	}
+	return next_state;
 }
 
-void mg1_state(struct state *state) { // Makes use of button and led
+enum statemachineStates mg1_stateFunction() { // Makes use of button and led
 	// Initialise state, enable and disable corresponding threads
 	LOG_INF("Minigame 1\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -131,11 +126,13 @@ void mg1_state(struct state *state) { // Makes use of button and led
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg2_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg2_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 2\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -149,11 +146,13 @@ void mg2_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg3_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg3_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 3\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -167,11 +166,13 @@ void mg3_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg4_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg4_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 4\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -185,11 +186,13 @@ void mg4_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg5_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg5_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 5\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -203,11 +206,13 @@ void mg5_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg6_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg6_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 6\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -221,11 +226,13 @@ void mg6_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg7_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg7_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 7\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -239,11 +246,13 @@ void mg7_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg8_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg8_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 8\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -257,11 +266,13 @@ void mg8_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg9_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg9_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 9\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -275,11 +286,13 @@ void mg9_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void mg10_state(struct state *state) { // Makes use of gyro and buzzer
+enum statemachineStates mg10_stateFunction() { // Makes use of gyro and buzzer
 	LOG_INF("Minigame 10\n");
+	enum statemachineStates next_state;
 	int score = 0;
 
 	char **names;
@@ -293,35 +306,39 @@ void mg10_state(struct state *state) { // Makes use of gyro and buzzer
 	sd_set_score(score);
 	show_mg_score(score);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void ctp_state(struct state *state) // Catch the Pokemon minigame
+enum statemachineStates ctp_stateFunction() // Catch the Pokemon minigame
 {
 	char **names;
 	unsigned amount;
 	getCatchThePokemonThreads(&names, &amount);
 	enableThreads(names, amount);
+	enum statemachineStates next_state;
 
 	int ret = playCatchThePokemon();
 
 	if ( ret < 0 )
 	{
 		LOG_ERR("Error in catch the pokemon state\n");
-		state->next = exit_state;
-		return;
+		next_state = exit_state;
+		return next_state;
 	}
 
 	disableThreads(names, amount);
 	sd_set_score(ret);
 	show_mg_score(ret);
 
-	state->next = idle_state;
+	next_state = idle_state;
+	return next_state;
 }
 
-void end_game_state(struct state *state)
+enum statemachineStates end_game_stateFunction()
 {
 	LOG_INF("End game state");
+	enum statemachineStates next_state;
 
 	char **names;
 	unsigned amount;
@@ -332,13 +349,16 @@ void end_game_state(struct state *state)
 
 	disableThreads(names, amount);
 
-	// state->next = exit_state;
+	next_state = exit_state;
+	return next_state;
 }
 
-void exit_state(struct state *state) {
+enum statemachineStates exit_stateFunction() {
 	LOG_INF("Exit state");
+	enum statemachineStates next_state;
 	disableAllThreads(); // Shouldn't be required, but just to be sure
-	state->next = 0;
+	next_state = exit_state;
+	return next_state;
 }
 
 bool check_end_time_reached() {
@@ -356,13 +376,79 @@ bool check_end_time_reached() {
 }
 
 void startStatemachine() {
-	struct state state = {init_state, 0};
-	while (state.next)
-	{
-		state.next(&state);
+	bool statemachine_ongoing = 1;
+	bool test = 0;
+
+	while(statemachine_ongoing){
 #ifndef CONFIG_TESTMODE
-		if (check_end_time_reached())
-			state.next = end_game_state;
+	statemachine_ongoing = check_end_time_reached();
 #endif
+#if defined(CONFIG_TESTMODE)
+	if(test){
+		LOG_INF("Time reached");
+		statemachine_ongoing = 0;
+	}
+	else{
+		LOG_INF("Time will be reached");
+		statemachine_ongoing = 0;
+	}
+#endif
+		switch (current_state) {
+			case init_state:
+				current_state = init_stateFunction();
+				LOG_INF("Score after init: %d", sd_get_score());
+				break;
+			case idle_state:
+				current_state = idle_stateFunction();
+				break;
+			case mg1_state:
+				current_state = mg1_stateFunction();
+				break;
+			case mg2_state:
+				current_state = mg2_stateFunction();
+				break;
+			case mg3_state:
+				current_state = mg3_stateFunction();
+				break;
+			case mg4_state:
+				current_state = mg4_stateFunction();
+				break;
+			case mg5_state:
+				current_state = mg5_stateFunction();
+				break;
+			case mg6_state:
+				current_state = mg6_stateFunction();
+				break;
+			case mg7_state:
+				current_state = mg7_stateFunction();
+				break;
+			case mg8_state:
+				current_state = mg8_stateFunction();
+				break;
+			case mg9_state:
+				current_state = mg9_stateFunction();
+				break;
+			case mg10_state:
+				current_state = mg10_stateFunction();
+				break;
+			case ctp_state:
+				current_state = ctp_stateFunction();
+				break;
+			case end_game_state:
+				current_state = end_game_stateFunction();
+				break;
+			case exit_state:
+				current_state = exit_stateFunction();
+				break;
+			default:
+				break;
+			}
+	}
+
+	LOG_INF("Score after 0 games: %d", sd_get_score());
+
+	current_state = end_game_stateFunction();
+	while(1){
+		current_state = exit_stateFunction();
 	}
 }
