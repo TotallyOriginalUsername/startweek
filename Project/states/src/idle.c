@@ -118,7 +118,7 @@ int playIdle() {
 	lcdDisable();
 	k_msleep(100);
 	//convert the testIndex from human 1-10 back to code's 0-9
-	testIndex--;
+	//testIndex--;
 
 	return testIndex;
 #endif
