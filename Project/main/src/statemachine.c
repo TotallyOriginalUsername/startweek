@@ -243,28 +243,16 @@ bool check_end_time_reached() {
 
 void startStatemachine() {
 	bool statemachine_ongoing = 1;
-	//bool test = 0;
 	statemachineStates current_state = init_state;
 	int mgID = 0;
 	uint8_t trivia_ID;
 
 	while(statemachine_ongoing){
-// #ifndef CONFIG_TESTMODE
-// 	statemachine_ongoing = check_end_time_reached();
-	// if(check_end_time_reached()){
-	// 	current_state = end_game_state;
-	// }
-// #endif
-// #if defined(CONFIG_TESTMODE)
-// 	if(test){
-// 		LOG_INF("Time reached");
-// 		statemachine_ongoing = 0;
-// 	}
-// 	else{
-// 		LOG_INF("Time will be reached");
-// 		statemachine_ongoing = 0;
-// 	}
-// #endif
+#ifndef CONFIG_TESTMODE
+	if(check_end_time_reached()){
+		current_state = end_game_state;
+	}
+#endif
 		switch (current_state) {
 			case init_state:
 				init_stateFunction(&current_state);
@@ -288,12 +276,5 @@ void startStatemachine() {
 			default:
 				break;
 			}
-	}
-
-	LOG_INF("Score after 0 games: %d", sd_get_score());
-
-	end_game_stateFunction(&current_state);
-	while(1){
-		exit_stateFunction(&current_state);
 	}
 }
