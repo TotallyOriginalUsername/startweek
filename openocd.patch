@@ -1,7 +1,7 @@
-diff --git a/boards/arm/nucleo_h743zi/support/openocd.cfg b/boards/arm/nucleo_h743zi/support/openocd.cfg
+diff --git a/boards/st/nucleo_h743zi/support/openocd.cfg b/boards/st/nucleo_h743zi/support/openocd.cfg
 index 89d4f7ab594..64fc943dcb3 100644
---- a/boards/arm/nucleo_h743zi/support/openocd.cfg
-+++ b/boards/arm/nucleo_h743zi/support/openocd.cfg
+--- a/boards/st/nucleo_h743zi/support/openocd.cfg
++++ b/boards/st/nucleo_h743zi/support/openocd.cfg
 @@ -1,6 +1,13 @@
 -source [find board/st_nucleo_h743zi.cfg]
 +adapter driver hla
