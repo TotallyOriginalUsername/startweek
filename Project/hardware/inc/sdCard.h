@@ -22,6 +22,7 @@ int sd_get_progress();
 int sd_set_progress(int progress);
 
 uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_len);
+uint8_t sd_get_trivia(uint8_t trivia_nr, char *buf, size_t *len, size_t max_len);
 
 int16_t sd_get_start_time();
 int16_t sd_get_end_time();

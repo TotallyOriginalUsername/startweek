@@ -283,6 +283,48 @@ uint8_t sd_get_buffer(uint16_t select_file, char *buf, size_t *len, size_t max_l
 	return 0;
 }
 
+uint8_t sd_get_trivia(uint8_t trivia_nr, char *buf, size_t *len, size_t max_len)
+{
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int ret = 0;
+	char file_data_buffer[max_len];
+	char file_path[MAX_PATH];
+	struct fs_file_t data_filp;
+
+	snprintf(file_path, sizeof(file_path), "/SD:/TRIVIA/%d~1.jso", trivia_nr);
+	LOG_INF("Attempting to open file: %s", file_path);
+
+	fs_file_t_init(&data_filp);
+
+	ret = fs_open(&data_filp, file_path, FS_O_READ);
+	if (ret) {
+		LOG_ERR("Failed to open file: %s (err = %d)", file_path, ret);
+		return ret;
+	} else {
+		LOG_INF("Opened file: %s", file_path);
+	}
+
+	*len = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer) - 1);
+	fs_close(&data_filp);
+
+	if (len < 0) {
+		LOG_ERR("Failed to read file: %s", file_path);
+		return -2;
+	}
+
+	if (*len >= max_len) {
+		LOG_ERR("Buffer size too small. Requested: %zu, Available: %zu", *len, max_len);
+		return -3;
+	}
+
+	file_data_buffer[*len] = '\0';
+
+	memcpy(buf, file_data_buffer, *len + 1);
+
+#endif
+	return 0;
+}
+
 /**
  * @brief Get the start or end time from the SD card.
  *
