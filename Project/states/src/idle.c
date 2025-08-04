@@ -67,6 +67,7 @@ void initLocations()
 int playIdle(uint8_t* trivia_ID) {
 	uint8_t ledcircleOff[8] = {0};
 
+#if defined(CONFIG_TESTMODE)
 	static int testIndex = 1;
 	char lcd_msg[32];
 
