@@ -127,8 +127,14 @@ void idle_stateFunction(statemachineStates* next_state, int* mgID, uint8_t* triv
 	} else if (ret == -1) {
 		LOG_INF("Going to exit state\n");
 		*next_state = exit_state;
+<<<<<<< HEAD
 	}else if(ret == 0){ 
 		*next_state = trivia_state;
+=======
+	}else if(ret >= 100){   		// if a minigame ID above 100 is assigned, it is a triva question, (change this when more than 100 games are made)
+		*trivia_ID = ret - 100;		// internaly to the trivia game questions are labeled 0 to [however many are on the SD]
+		*next_state = trivia_state;	// keep in mind that increasing the amount of questions will influence required buffersizes, as well as the main stack
+>>>>>>> development
 	} else {
 		*next_state = mg_state;
 		*mgID = ret;
@@ -195,7 +201,11 @@ void trivia_stateFunction(statemachineStates* next_state, uint8_t trivia_ID) {
 	getTriviaThreads(&names, &amount);
 	enableThreads(names, amount);
 
+<<<<<<< HEAD
 	score = playTrivia(trivia_ID);
+=======
+	score = playMg4(trivia_ID);
+>>>>>>> development
 
 	disableThreads(names, amount);
 	sd_set_score(score);
