@@ -1,9 +1,6 @@
 #include "minigame6.h"
-#ifdef CONFIG_ARCH_POSIX
-#define native_loop() k_sleep(K_MSEC(1))
-#else
-#define native_loop()
-#endif
+#include "helperFunctions.h"
+
 K_TIMER_DEFINE(secTimerMg6, NULL, NULL);
 LOG_MODULE_REGISTER(mg_6);
 

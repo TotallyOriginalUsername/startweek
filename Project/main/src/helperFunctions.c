@@ -53,6 +53,7 @@ void btnmatrix_to_ledmatrix(uint8_t* btnmatrix_shape, uint16_t* ledmatrix_shape)
 void clear_btnmatrix_leds(){
 	uint8_t data_button_matrix[4] = {0};
 	btnmatrix_outSetMutexValue(data_button_matrix);
+	native_loop();
 }
 
 // Detects if a given row mask has a bit overlapping with the given led mask
@@ -85,39 +86,48 @@ uint8_t led_matrix_scroll_down(uint16_t* led_mask){
 void show_correct(){
 	uint8_t data_button_matrix[4] = {0b00000110, 0b00001001, 0b00001001, 0b00000110};
 	btnmatrix_outSetMutexValue(data_button_matrix);
+	native_loop();
 	k_msleep(2000);
 	clear_btnmatrix_leds();
+	native_loop();
 }
 
 //function to show a cross on the button matrix  for 2 seconds
 void show_incorrect(){
 	uint8_t data_button_matrix[4] = {0b00001001, 0b00000110, 0b00000110, 0b00001001};
 	btnmatrix_outSetMutexValue(data_button_matrix);
+	native_loop();
 	k_msleep(2000);
 	clear_btnmatrix_leds();
+	native_loop();
 }
 
 void show_oneliners(char input_array[][32], int lines)
 {
 	lcdEnable();
+	native_loop();
 
 	for (uint8_t i = 0; i < lines; i++){
+		native_loop();
 		lcdStringWrite(input_array[i]);
 		k_msleep(3000);
 	}
 
 	lcdClear();
 	lcdDisable();
+	native_loop();
 }
 
 void show_mg_score(int score){
 	char lcd_msg[32];
-
+	native_loop();
 	lcdEnable();
 	sprintf(lcd_msg, "Minigame score: %d", score);
 
 	lcdStringWrite(lcd_msg);
+	native_loop();
 	k_msleep(3000);
+	native_loop();
 }
 
 //Function to wait untill every abc button has been released
@@ -129,6 +139,7 @@ void wait_till_abc_depressed(){
     uint8_t *abcbtns;
 
     while(input_count != 0){
+		native_loop();
         abcbtns = abcbtnGetMutexValue();
         input_count = 0;
 
@@ -148,6 +159,7 @@ void wait_till_btnmatrix_depressed(){
     LOG_WRN("Waiting\n");
 
     while(input_count != 0){
+		native_loop();
         btnmatrix = btnmatrix_inGetMutexValue();
         input_count = 0;
 
@@ -164,23 +176,26 @@ void wait_till_btnmatrix_depressed(){
 
 // Wait till the user presses the start button to start the game
 void wait_till_game_start(){
+	native_loop();
 	lcdStringWrite("Druk op start");
 	startledSet(1);
+	native_loop();
 
 	while(startbuttonGet()){
 		native_loop();
 	}
 	startledSet(0);
 	lcdClear();
+	native_loop();
 }
 
 //Function to wait untill every switch is at rest
 void wait_till_switches_rest(){
     uint8_t input_count = 1;
     uint8_t *switches;
-    LOG_WRN("Waiting\n");
 
     while(input_count != 0){
+		native_loop();
         switches = switchesGetMutexValue();
         input_count = 0;
 
@@ -192,7 +207,6 @@ void wait_till_switches_rest(){
 		native_loop();
     }
 
-    LOG_WRN("Done waiting\n");
 }
 
 //Get functions
@@ -208,6 +222,7 @@ void get_abc_input(uint16_t input_time, uint8_t* input_array, size_t size){
 	k_timer_start(&timer, K_MSEC(input_time), K_NO_WAIT);
 	LOG_WRN("5 sec wait\n");
 	while ((!(k_timer_status_get(&timer) > 0)) && (input_count == 0)){
+		native_loop();
 		memcpy(input_array, abcbtnGetMutexValue(), size);
 		for (int i = 0; i < 3; i++){
 			if (input_array[i] == 0){
@@ -227,6 +242,7 @@ void get_btnmatrix_input(uint16_t input_time, uint8_t* input_array, size_t size)
 	k_timer_start(&timer, K_MSEC(input_time), K_NO_WAIT);
 	LOG_WRN("5 sec wait\n");
 	while ((!(k_timer_status_get(&timer) > 0)) && (input_count == 0)){
+		native_loop();
 		memcpy(input_array, btnmatrix_inGetMutexValue(), size);
 		for (int i = 0; i < 16; i++){
 			if (input_array[i] == 0){
@@ -244,6 +260,7 @@ uint8_t get_btnmatrix_input_number(uint16_t input_time){
     k_timer_start(&timer, K_MSEC(input_time), K_NO_WAIT);
 
     while ((!(k_timer_status_get(&timer) > 0))){
+		native_loop();
         memcpy(input_array, btnmatrix_inGetMutexValue(), sizeof(input_array));
 		for (int i = 0; i < 16; i++){
 			if (input_array[i] == 0){
@@ -261,6 +278,7 @@ uint8_t get_btnmatrix_input_number_untimed(){
     uint8_t input_array[16];
 
     while (input == 0){
+		native_loop();
         memcpy(input_array, btnmatrix_inGetMutexValue(), sizeof(input_array));
 		for (int i = 0; i < 16; i++){
 			if (input_array[i] == 0){
@@ -289,6 +307,7 @@ void set_btnmatrix_led(uint8_t position){
 	data_button_matrix[row] |= (1 << column);
 
 	btnmatrix_outSetMutexValue(data_button_matrix);
+	native_loop();
 }
 
 /**

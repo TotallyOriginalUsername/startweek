@@ -24,6 +24,8 @@
 #include <zephyr/sys/util.h>
 #include <zephyr/logging/log.h>
 
+#include "helperFunctions.h"
+
 #include <stdio.h>
 
 LOG_MODULE_REGISTER(statemachine);
@@ -118,6 +120,7 @@ void idle_stateFunction(statemachineStates* next_state, int* mgID, uint8_t* triv
 	unsigned amount;
 	getIdleThreads(&names, &amount);
 	enableThreads(names, amount);
+	printk("Going to play idle\n");
 	int ret = playIdle(trivia_ID);
 	disableThreads(names, amount);
 
@@ -247,6 +250,7 @@ void startStatemachine() {
 	uint8_t trivia_ID = 0;
 
 	while(statemachine_ongoing){
+		native_loop();
 #ifndef CONFIG_TESTMODE
 	if(check_end_time_reached()){
 		current_state = end_game_state;

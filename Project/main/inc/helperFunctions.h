@@ -10,7 +10,7 @@
 #endif
 
 #ifdef CONFIG_ARCH_POSIX
-#define native_loop() k_sleep(K_MSEC(1))
+#define native_loop() k_sleep(K_MSEC(1));lv_task_handler()
 #else
 #define native_loop()
 #endif

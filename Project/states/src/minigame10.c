@@ -38,6 +38,7 @@ bool check_input_mg10(uint8_t* btnmatrix_in, uint8_t mole_position){
 	uint8_t input_count = 0;
 
 	for (int j = 0; j < 16; j++){
+		native_loop();
 		if (btnmatrix_in[j] == 0){
 			player_input = j;
 			input_count++;
@@ -85,10 +86,12 @@ int playMg10() {
 		native_loop();
 		clear_btnmatrix_leds();
 		lcdClear();
+		native_loop();
 
 		mole_position = generate_mole();
 		set_btnmatrix_led(mole_position);
 		mole_count++;
+		native_loop();
 
 		get_btnmatrix_input(input_time, btnmatrix_in, sizeof(btnmatrix_in));
 		if(check_input_mg10(btnmatrix_in, mole_position)){
@@ -106,6 +109,7 @@ int playMg10() {
 	lcdDisable();
 	btnmatrix_outSetMutexValue(btnmatrix_off);
 	k_msleep(100);
+	native_loop();
 	
 	return (int)score;
 }

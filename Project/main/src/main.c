@@ -22,11 +22,12 @@ LOG_MODULE_REGISTER(main);
 
 #if defined(CONFIG_ARCH_POSIX)
 #define STACKSIZE2 16000
-#define TLVGL_PRIORITY 3
+#define TLVGL_PRIORITY 5
 
 void lvgl_task_handler_loop() {
     while (1) {
-		//k_cpu_idle();
+		k_cpu_idle();
+		//printk("Test\n");
         lv_task_handler();
 		//for native_sim
         k_sleep(K_MSEC(1));
@@ -34,7 +35,7 @@ void lvgl_task_handler_loop() {
 }
 #endif
 
-void tmain(void) // Core thread
+int main()
 {
 	#if defined(CONFIG_ARCH_POSIX)
 	const struct device *display_dev;
@@ -50,10 +51,9 @@ void tmain(void) // Core thread
 	LOG_INF("Main\n");
 
 	startStatemachine();
+	return 0;
 }
 
-// Define the threads
-K_THREAD_DEFINE(tmain_id, STACKSIZE_MAIN, tmain, NULL, NULL, NULL, TMAIN_PRIORITY, 0, 0);
-#if defined(CONFIG_ARCH_POSIX)
-K_THREAD_DEFINE(tlvgl_id, STACKSIZE2, lvgl_task_handler_loop, NULL, NULL, NULL, TLVGL_PRIORITY, 0, 0);
-#endif
+// #if defined(CONFIG_ARCH_POSIX)
+// K_THREAD_DEFINE(tlvgl_id, STACKSIZE2, lvgl_task_handler_loop, NULL, NULL, NULL, TLVGL_PRIORITY, 0, 0);
+// #endif

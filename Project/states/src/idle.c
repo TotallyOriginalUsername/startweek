@@ -66,6 +66,7 @@ void initLocations()
 
 int playIdle(uint8_t* trivia_ID) {
 	uint8_t ledcircleOff[8] = {0};
+	native_loop();
 
 #if defined(CONFIG_TESTMODE)
 	static int testIndex = 1;
@@ -73,8 +74,10 @@ int playIdle(uint8_t* trivia_ID) {
 
 	lcdEnable();
 	lcdStringWrite("Selecteer een spel met A en C");
+	native_loop();
 	k_msleep(3000);
 	lcdStringWrite("Bevestig met de startknop!");
+	native_loop();
 	k_msleep(3000);
 
 	abcledsSet('a', 1);
