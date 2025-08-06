@@ -89,7 +89,7 @@ int playIdle(uint8_t* trivia_ID) {
 
 		if(abcbuttonsGet('a') == 0){
 			if(testIndex == 1){
-				testIndex = 10;
+				testIndex = 11;
 			}
 			else{
 				testIndex--;
@@ -98,7 +98,7 @@ int playIdle(uint8_t* trivia_ID) {
 			lcdStringWrite(lcd_msg);
 		} 
 		else if(abcbuttonsGet('c') == 0){
-			if(testIndex == 10){
+			if(testIndex == 11){
 				testIndex = 1;
 			}
 			else{
