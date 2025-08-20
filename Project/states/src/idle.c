@@ -70,6 +70,7 @@ int playIdle(uint8_t* trivia_ID) {
 #if defined(CONFIG_TESTMODE)
 	static int testIndex = 1;
 	char lcd_msg[32];
+	return 11;
 
 	lcdEnable();
 	lcdStringWrite("Selecteer een spel met A en C");
