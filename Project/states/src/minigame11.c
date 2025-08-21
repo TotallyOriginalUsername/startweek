@@ -3,12 +3,14 @@
 LOG_MODULE_REGISTER(mg_11);
 
 void plate_timer_handler_mg11(struct k_timer *timer_id);
+K_TIMER_DEFINE(bulletTimer_mg11, NULL, NULL);
 K_TIMER_DEFINE(plateTimer_mg11, plate_timer_handler_mg11, NULL);
 K_TIMER_DEFINE(invaderTimer_down_mg11, NULL, NULL);
 K_TIMER_DEFINE(invaderTimer_horizontal_mg11, NULL, NULL);
 
-#define invader_timer_down_duration_mg11 600
-#define invader_timer_horizontal_duration_mg11 300
+#define bullet_timer_duration_mg11 50
+#define invader_timer_down_duration_mg11 1500
+#define invader_timer_horizontal_duration_mg11 250
 #define hit_detection_row 14
 #define plate_timer_duration_mg11 35
 #define mg11_duration 15000
@@ -112,7 +114,6 @@ void get_input_mg11(struct bullets* bullet){
 
 	if(abcbtns[0] == 0){
 		if(k_timer_remaining_get(&plateTimer_mg11) == 0){
-			printk("Button pressed");
 		k_sleep(K_MSEC(1));
 		k_timer_user_data_set(&plateTimer_mg11, &button);
 		k_timer_start(&plateTimer_mg11, K_MSEC(plate_timer_duration_mg11), K_NO_WAIT);
@@ -131,6 +132,7 @@ void get_input_mg11(struct bullets* bullet){
 			bullet->x = plate_position_mg11;
 			bullet->y = 15;
 			bullet->exists = true;
+			k_timer_start(&bulletTimer_mg11, K_MSEC(bullet_timer_duration_mg11), K_NO_WAIT);
 		}
 	}
 
@@ -149,7 +151,6 @@ void get_input_mg11(struct bullets* bullet){
 
 void update_bullet(struct bullets* bullet){
 	if(bullet->exists){
-		printk("Moving bullet up\n");
 		bullet->y = bullet->y - 1;
 	}
 	if(bullet->y <= 0){
@@ -186,12 +187,12 @@ void update_invader_direction(uint16_t invader_masks[16], uint8_t* invader_direc
 }
 
 int playMg11() {
-	uint32_t score = 1000;
+	uint32_t score = 0;
 	uint16_t empty_frame[16] = {0};
 	uint16_t plate_mask = {0};
 	uint8_t invader_direction = left;
 	uint16_t invader_masks[16] = {0};
-	uint8_t invaders_created = 0;
+	uint8_t game_ticks = 0;
 	char lcd_msg[32];
 
 	memset(invader_masks, 0, sizeof(invader_masks));
@@ -205,36 +206,40 @@ int playMg11() {
 
 	abcledsSet('a', 1);
 	abcledsSet('c', 1);
-	lcdStringWrite("Score: 1000");
+	lcdStringWrite("Score: 0");
 	k_timer_start(&invaderTimer_horizontal_mg11, K_MSEC(invader_timer_horizontal_duration_mg11), K_NO_WAIT);
 	k_timer_start(&invaderTimer_down_mg11, K_MSEC(invader_timer_down_duration_mg11), K_NO_WAIT);
 	generate_invader_mg11(invader_masks);
 	
-	while (invaders_created < 20)
+	while (game_ticks < 16)
 	{
 		native_loop();
 		// Handle invader related logic at a slower speed then the microcontroller
 		if(k_timer_remaining_get(&invaderTimer_horizontal_mg11) == 0){
-			//update_invader_direction(invader_masks, &invader_direction);
-			invader_direction = right;
+			update_invader_direction(invader_masks, &invader_direction);
 			k_timer_start(&invaderTimer_horizontal_mg11, K_MSEC(invader_timer_down_duration_mg11), K_NO_WAIT);
 		}
-
 		if(k_timer_remaining_get(&invaderTimer_down_mg11) == 0){
-			update_bullet(&bullet);
-			if(bullet_invader_hit_detection(invader_masks, &bullet)){
-				printk("Bullet hit an invader\n");
-			}
-			else{
-				printk("No hit\n");
-			}
 			if(led_matrix_hit_detection(invader_masks, plate_mask, hit_detection_row)){
 				score = score - 50;
 				sprintf(lcd_msg, "Score: %d", score);
 				lcdStringWrite(lcd_msg);
 			}
-			//led_matrix_scroll_down(invader_masks);
+			led_matrix_scroll_down(invader_masks);
 			k_timer_start(&invaderTimer_down_mg11, K_MSEC(invader_timer_down_duration_mg11), K_NO_WAIT);
+			game_ticks++;
+		}
+		if(k_timer_remaining_get(&bulletTimer_mg11) == 0){
+			update_bullet(&bullet);
+			if(bullet_invader_hit_detection(invader_masks, &bullet)){
+				printk("Bullet hit an invader\n");
+				score = score + 50;
+				sprintf(lcd_msg, "Score: %d", score);
+				lcdStringWrite(lcd_msg);
+			}
+			if(bullet.exists){
+				k_timer_start(&bulletTimer_mg11, K_MSEC(bullet_timer_duration_mg11), K_NO_WAIT);
+			}
 		}
 
 		get_input_mg11(&bullet);
