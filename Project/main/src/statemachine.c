@@ -17,6 +17,7 @@
 #include "minigame9.h"
 #include "minigame10.h"
 #include "minigame11.h"
+#include "minigame12.h"
 #include "trivia.h"
 
 #include <zephyr/device.h>
@@ -67,6 +68,9 @@ void getMgThreads(char*** names, unsigned* amount, int mgID){
 		case 11:
             getMg11Threads(names, amount);
             break;
+		case 12:
+			getMg12Threads(names, amount);
+			break;
         default:
             break;
     }
@@ -181,6 +185,9 @@ void mg_stateFunction(statemachineStates* next_state, int mgID) {
 			break;
 		case 11:
 			score = playMg11();
+			break;
+		case 12:
+			score = playMg12();
 			break;
 		default:
 			break;
