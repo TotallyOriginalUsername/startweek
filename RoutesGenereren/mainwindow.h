@@ -59,7 +59,6 @@ private slots:
     void handleWriteTimeout();
 
     void on_btnRefreshRoutes_clicked();
-    void on_btnRefreshPorts_clicked();
     void on_btnUploadSerial_clicked();
 
     void on_btnAddLoc_clicked();

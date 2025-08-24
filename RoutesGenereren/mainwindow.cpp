@@ -44,16 +44,15 @@ MainWindow::MainWindow(QWidget *parent) :
     populateLocationsTable();
 
     refreshRouteList();
-    refreshSerialPorts();
 
     scene = new QGraphicsScene(this);
     m_ui->graphicsView->setScene(scene);
     m_ui->graphicsView->setRenderHint(QPainter::Antialiasing, true);
 
     // SerialPort + console instellingen
-    //m_console->setEnabled(false);
-    //QWidget* tab1 = m_console;
-    //m_ui->tabWidget->addTab(tab1, "Developer mode");
+    m_console->setEnabled(false);
+    QWidget* tab1 = m_console;
+    m_ui->tabWidget->addTab(tab1, "Developer mode");
 
     m_ui->actionConnect->setEnabled(true);
     m_ui->actionDisconnect->setEnabled(false);
@@ -278,24 +277,9 @@ void MainWindow::refreshRouteList()
     }
 }
 
-void MainWindow::refreshSerialPorts()
-{
-    auto ports = QSerialPortInfo::availablePorts();
-    m_ui->comboPorts->clear();
-    for (const auto &info : ports)
-        m_ui->comboPorts->addItem(info.portName());
-    if (ports.isEmpty())
-        m_ui->comboPorts->addItem(tr("[geen poorten]"));
-}
-
 void MainWindow::on_btnRefreshRoutes_clicked()
 {
     refreshRouteList();
-}
-
-void MainWindow::on_btnRefreshPorts_clicked()
-{
-    refreshSerialPorts();
 }
 
 void MainWindow::on_btnUploadSerial_clicked()
@@ -318,45 +302,18 @@ void MainWindow::on_btnUploadSerial_clicked()
     const QByteArray jsonData = f.readAll();
     f.close();
 
-    // Open serial port
-    QString portName = m_ui->comboPorts->currentText();
-    if (portName.startsWith("[")) {
-        QMessageBox::warning(this, tr("Geen poort"),
-                             tr("Sluit koffer aan en ververs poorten."));
-        return;
-    }
-    QSerialPort port(portName, this);
-    port.setBaudRate(QSerialPort::Baud115200);
-    port.setDataBits(QSerialPort::Data8);
-    port.setParity(QSerialPort::NoParity);
-    port.setStopBits(QSerialPort::OneStop);
-    port.setFlowControl(QSerialPort::NoFlowControl);
-    if (!port.open(QIODevice::ReadWrite)) {
-        QMessageBox::critical(this, tr("Fout"),
-            tr("Kan poort %1 niet openen:\n%2")
-            .arg(portName, port.errorString()));
-        return;
-    }
-
-
     // Delete loc.txt, progress.txt and score.txt
     QByteArray resetCmd = "fs rm /SD:/loc.txt\r\n";
-    port.write(resetCmd);
-    port.waitForBytesWritten(1000);
+    m_serial->write(resetCmd);
+    //port.waitForBytesWritten(1000);
 
-    QThread::msleep(300);
+    //QThread::msleep(300);
 
     resetCmd = "fs rm /SD:/progress.txt\r\n";
-    port.write(resetCmd);
-    port.waitForBytesWritten(1000);
-
-    QThread::msleep(300);
+    m_serial->write(resetCmd);
 
     resetCmd = "fs rm /SD:/score.txt\r\n";
-    port.write(resetCmd);
-    port.waitForBytesWritten(1000);
-
-    QThread::msleep(300);
+    m_serial->write(resetCmd);
 
     // upload to /SD:/loc.txt
     const qint64 CHUNK_SIZE = 16;
@@ -387,50 +344,32 @@ void MainWindow::on_btnUploadSerial_clicked()
                        + "\r\n";
 
         qDebug() << ">>" << cmd.trimmed();
-
-        qint64 written = port.write(cmd);
-        if (written != cmd.size() ||
-            !port.waitForBytesWritten(5000)) {
-            QMessageBox::critical(this, tr("Fout"),
-                tr("Chunk offset %1 niet verzonden").arg(offsetHex));
-            port.close();
-            return;
-        }
+        m_serial->write(cmd);
+        // qint64 written = port.write(cmd);
+        // if (written != cmd.size() ||
+        //     !port.waitForBytesWritten(5000)) {
+        //     QMessageBox::critical(this, tr("Fout"),
+        //         tr("Chunk offset %1 niet verzonden").arg(offsetHex));
+        //     port.close();
+        //     return;
+        // }
 
         QThread::msleep(300);
         offset += chunkLen;
     }
 
     // Reset progress.txt (ASCII ‘0’ = 0x30)
-    {
-        QByteArray resetCmd = "fs write /SD:/progress.txt 30\r\n";
-        port.write(resetCmd);
-        port.waitForBytesWritten(500);
-    }
+    resetCmd = "fs write /SD:/progress.txt 30\r\n";
+    m_serial->write(resetCmd);
 
-    // Reset score.txt
-    {
-        QByteArray resetCmd = "fs write /SD:/score.txt 30\r\n";
-        port.write(resetCmd);
-        port.waitForBytesWritten(500);
-    }
+    resetCmd = "fs write /SD:/score.txt 30\r\n";
+    m_serial->write(resetCmd);
 
-    // (Optional feedback message)
-    if (port.waitForReadyRead(500)) {
-        QByteArray fb;
-        do { fb += port.readAll(); }
-        while (port.waitForReadyRead(100));
-        qDebug() << "Feedback:" << fb.trimmed();
-        QMessageBox::information(this, tr("Feedback"),
-                                 QString::fromUtf8(fb));
-    }
-
-    port.close();
     QMessageBox::information(this, tr("Klaar"),
         tr("JSON (%1 bytes) in %2 chunks geüpload naar %3")
         .arg(totalLen)
-        .arg((totalLen + CHUNK_SIZE - 1)/CHUNK_SIZE)
-        .arg(portName));
+        .arg((totalLen + CHUNK_SIZE - 1)/CHUNK_SIZE));
+        //.arg(portName));
 }
 
 void MainWindow::on_btnAddLoc_clicked()
