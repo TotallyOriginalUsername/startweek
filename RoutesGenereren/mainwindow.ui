@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>886</width>
-    <height>539</height>
+    <width>793</width>
+    <height>553</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,14 +63,14 @@
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
-        <string>Overzetten naar koffer</string>
+        <string>Kofferbeheer</string>
        </attribute>
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
-          <x>60</x>
-          <y>170</y>
-          <width>711</width>
+          <x>20</x>
+          <y>10</y>
+          <width>551</width>
           <height>36</height>
          </rect>
         </property>
@@ -85,19 +85,116 @@
          <item>
           <widget class="QComboBox" name="comboRouteFiles"/>
          </item>
-         <item>
-          <widget class="QPushButton" name="btnUploadSerial">
-           <property name="text">
-            <string>Upload Route</string>
-           </property>
-          </widget>
-         </item>
         </layout>
+       </widget>
+       <widget class="QPushButton" name="btnUploadRoute">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>271</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Upload Route</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnResetProgress">
+        <property name="geometry">
+         <rect>
+          <x>300</x>
+          <y>50</y>
+          <width>271</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Reset voortgang</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnResetScore">
+        <property name="geometry">
+         <rect>
+          <x>300</x>
+          <y>90</y>
+          <width>271</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Reset score</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnResetAll">
+        <property name="geometry">
+         <rect>
+          <x>300</x>
+          <y>130</y>
+          <width>271</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Reset koffer</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnUploadTime">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>271</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Upload tijden</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnUploadTrivia">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>130</y>
+          <width>271</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Upload trivia</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnReadScore">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>310</y>
+          <width>131</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Lees score:</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnReadProgress">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>350</y>
+          <width>131</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Lees voortgang:</string>
+        </property>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>Beheer locaties</string>
+        <string>Locatiebeheer</string>
        </attribute>
        <widget class="QTableWidget" name="tableLocations">
         <property name="geometry">
@@ -184,7 +281,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>886</width>
+     <width>793</width>
      <height>30</height>
     </rect>
    </property>

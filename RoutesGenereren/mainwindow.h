@@ -59,7 +59,13 @@ private slots:
     void handleWriteTimeout();
 
     void on_btnRefreshRoutes_clicked();
-    void on_btnUploadSerial_clicked();
+
+    void on_btnResetAll_clicked();
+    void on_btnResetProgress_clicked();
+    void on_btnResetScore_clicked();
+    void on_btnUploadRoute_clicked();
+    void on_btnUploadTime_clicked();
+    void on_btnUploadTrivia_clicked();
 
     void on_btnAddLoc_clicked();
     void on_btnEditLoc_clicked();

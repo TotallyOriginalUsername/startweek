@@ -282,8 +282,61 @@ void MainWindow::on_btnRefreshRoutes_clicked()
     refreshRouteList();
 }
 
-void MainWindow::on_btnUploadSerial_clicked()
+void MainWindow::on_btnResetAll_clicked()
 {
+    if(m_serial->isOpen()){
+        QByteArray resetCmd = "fs rm /SD:/loc.txt\r\n";
+        m_serial->write(resetCmd);
+
+        resetCmd = "fs rm /SD:/score.txt\r\n";
+        m_serial->write(resetCmd);
+
+        resetCmd = "fs rm /SD:/progress.txt\r\n";
+        m_serial->write(resetCmd);
+
+        // Reset progress.txt (ASCII ‘0’ = 0x30)
+        resetCmd = "fs write /SD:/progress.txt 30\r\n";
+        m_serial->write(resetCmd);
+
+        resetCmd = "fs write /SD:/score.txt 30\r\n";
+        m_serial->write(resetCmd);
+    }
+    else{
+        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
+    }
+}
+
+void MainWindow::on_btnResetScore_clicked()
+{
+    if(m_serial->isOpen()){
+        QByteArray resetCmd = "fs rm /SD:/score.txt\r\n";
+        m_serial->write(resetCmd);
+
+        resetCmd = "fs write /SD:/score.txt 30\r\n";
+        m_serial->write(resetCmd);
+    }
+    else{
+        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
+    }
+}
+
+void MainWindow::on_btnResetProgress_clicked()
+{
+    if(m_serial->isOpen()){
+        QByteArray resetCmd = "fs rm /SD:/progress.txt\r\n";
+        m_serial->write(resetCmd);
+
+        resetCmd = "fs write /SD:/progress.txt 30\r\n";
+        m_serial->write(resetCmd);
+    }
+    else{
+        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
+    }
+}
+
+void MainWindow::on_btnUploadRoute_clicked()
+{
+    if(m_serial->isOpen()){
     // Read json file
     QString fileName = m_ui->comboRouteFiles->currentText();
     if (fileName.startsWith("[")) {
@@ -308,12 +361,6 @@ void MainWindow::on_btnUploadSerial_clicked()
     //port.waitForBytesWritten(1000);
 
     //QThread::msleep(300);
-
-    resetCmd = "fs rm /SD:/progress.txt\r\n";
-    m_serial->write(resetCmd);
-
-    resetCmd = "fs rm /SD:/score.txt\r\n";
-    m_serial->write(resetCmd);
 
     // upload to /SD:/loc.txt
     const qint64 CHUNK_SIZE = 16;
@@ -358,18 +405,24 @@ void MainWindow::on_btnUploadSerial_clicked()
         offset += chunkLen;
     }
 
-    // Reset progress.txt (ASCII ‘0’ = 0x30)
-    resetCmd = "fs write /SD:/progress.txt 30\r\n";
-    m_serial->write(resetCmd);
-
-    resetCmd = "fs write /SD:/score.txt 30\r\n";
-    m_serial->write(resetCmd);
-
     QMessageBox::information(this, tr("Klaar"),
         tr("JSON (%1 bytes) in %2 chunks geüpload naar %3")
         .arg(totalLen)
         .arg((totalLen + CHUNK_SIZE - 1)/CHUNK_SIZE));
         //.arg(portName));
+    }
+    else {
+        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
+    }
+
+}
+
+void MainWindow::on_btnUploadTime_clicked(){
+    qDebug() << "Not implemented yet";
+}
+
+void MainWindow::on_btnUploadTrivia_clicked(){
+    qDebug() << "Not implemented yet";
 }
 
 void MainWindow::on_btnAddLoc_clicked()
