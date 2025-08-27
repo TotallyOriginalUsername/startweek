@@ -1,4 +1,4 @@
-QT       += core gui serialport
+QT       += core gui serialport sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,6 +11,7 @@ QT += concurrent
 
 SOURCES += \
     console.cpp \
+    database.cpp \
     main.cpp \
     mainwindow.cpp \
     routegenerator.cpp \
@@ -18,6 +19,7 @@ SOURCES += \
 
 HEADERS += \
     console.h \
+    database.h \
     mainwindow.h \
     routegenerator.h \
     settingsdialog.h

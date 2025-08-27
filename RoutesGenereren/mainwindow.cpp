@@ -358,9 +358,9 @@ void MainWindow::on_btnUploadRoute_clicked()
     // Delete loc.txt, progress.txt and score.txt
     QByteArray resetCmd = "fs rm /SD:/loc.txt\r\n";
     m_serial->write(resetCmd);
-    //port.waitForBytesWritten(1000);
+    m_serial->waitForBytesWritten(1000);
 
-    //QThread::msleep(300);
+    QThread::msleep(300);
 
     // upload to /SD:/loc.txt
     const qint64 CHUNK_SIZE = 16;
