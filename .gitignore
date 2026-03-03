@@ -1,3 +1,4 @@
+.vscode/
 # Prerequisites
 *.d
 
@@ -33,3 +34,4 @@
 
 # Qt Build output
 RoutesGenereren/build/
+build/
