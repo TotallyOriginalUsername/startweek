@@ -1,6 +1,9 @@
 #include "database.h"
 #include <QDebug>
 #include <QSqlRecord>
+#include <qglobal.h>
+#include <qsqlquery.h>
+#include <QMessageBox>
 
 Database::Database(const QString &dbName) {
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -119,6 +122,24 @@ QVector<QVector<QVariant>> Database::getLocationsWithMinigames() {
     return results;
 }
 
+void Database::setJsonPoints(std::vector<Point>& inputPoints) {
+    QSqlQuery query("SELECT X, Y, Cost, MG_ID FROM Locations");
+
+    if (!query.exec()) {
+        qWarning() << "Failed to retrieve locations:" << query.lastError().text();
+        return;
+    }
+
+    inputPoints.clear();
+    while (query.next()) {
+        int64_t x = query.value(0).toInt();
+        int64_t y = query.value(1).toInt();
+        float cost = query.value(2).toFloat();
+        int mgId = query.value(3).toInt();
+        inputPoints.emplace_back(x, y, cost, mgId);
+    }
+    qInfo("a");
+}
 
 void Database::setAllPoints(std::vector<std::tuple<int, int, double, int>>& allPoints) {
     QSqlQuery query("SELECT X, Y, Cost, MG_ID FROM Locations");
@@ -156,4 +177,49 @@ void Database::clearDatabase() {
     QSqlQuery query;
     query.exec("DELETE FROM Locations");
     query.exec("DELETE FROM Minigames");
+}
+
+void Database::resetDatabase(){
+    qInfo("Resetting  db...");
+    QSqlQuery query;
+    if (query.exec("SELECT name FROM sqlite_master WHERE type='table'")) {
+        while (query.next()) {
+            QString tableName = query.value(0).toString();
+            QString dropTable = QString("DROP TABLE IF EXISTS %1").arg(tableName);
+            query.exec(dropTable);
+        }
+    }
+
+    createTables();
+    insertBaseLocations();
+    insertBaseMinigames();
+}
+
+// 0 upon sucess, 1 upon no locations, 2 upon no minigames, 3 if database lacks the tables
+int Database::validateDatabase(){
+    QSqlQuery query;
+    if (query.exec("SELECT COUNT(*) FROM Locations")){
+        query.next();
+        if(query.value(0).toInt() <= 0){
+            qInfo("Lack of loc info");
+            return 1;
+        }
+    }
+    else {
+        qInfo("Database has no locations table");
+        return 3;
+    }
+    if (query.exec("SELECT COUNT(*) FROM Minigames")){
+        query.next();
+        if(query.value(0).toInt() <= 0){
+            qInfo("Lack of mg info");
+            return 2;
+        }
+    }
+    else {
+        qInfo("Database has no minigames");
+        return 3;
+    }
+
+    return 0;
 }

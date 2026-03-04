@@ -18,8 +18,10 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QSqlTableModel>
 
 #include <vector>
+#include "database.h"
 #include "routegenerator.h"
 
 QT_BEGIN_NAMESPACE
@@ -45,9 +47,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
-    void pushButton_2_clicked();
-
     void openSerialPort();
     void closeSerialPort();
     void about();
@@ -58,6 +57,8 @@ private slots:
     void handleBytesWritten(qint64 bytes);
     void handleWriteTimeout();
 
+    void on_btnGenerateRoutes_clicked();
+    void on_btnLoadLocationFromDB_clicked();
     void on_btnRefreshRoutes_clicked();
 
     void on_btnResetAll_clicked();
@@ -68,7 +69,6 @@ private slots:
     void on_btnUploadTrivia_clicked();
 
     void on_btnAddLoc_clicked();
-    void on_btnEditLoc_clicked();
     void on_btnRemoveLoc_clicked();
 
 private:
@@ -78,10 +78,9 @@ private:
     void drawRoutes();
     void refreshRouteList();
     void refreshSerialPorts();
-    void loadDefaultPoints();
-    void populateLocationsTable();
     void loadLocationsFromFile();
     void saveLocationsToFile();
+    void initializeDatabase();
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -97,7 +96,9 @@ private:
     QString dataRead;
     QString selectedNode;
     QGraphicsScene *scene = nullptr;
-
+    Database* m_database = nullptr;
+    QString m_currentDbPath;
+    QSqlTableModel *locationModel;
 };
 
 #endif // MAINWINDOW_H

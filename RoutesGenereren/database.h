@@ -1,6 +1,7 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
+#include "routegenerator.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -19,10 +20,13 @@ public:
     void insertBaseLocations();
     void insertBaseMinigames();
     QVector<QVector<QVariant>> getLocationsWithMinigames();
+    void setJsonPoints(std::vector<Point>& inputPoints);
     void setAllPoints(std::vector<std::tuple<int, int, double, int>>& allPoints);
 
     void printDatabase();
     void clearDatabase();
+    void resetDatabase();
+    int validateDatabase();
 
 private:
     QSqlDatabase db;

@@ -20,8 +20,12 @@
 #include <QPen>
 #include <QBrush>
 #include <QInputDialog>
+#include <QFileDialog>
 
 #include <chrono>
+#include <qchar.h>
+#include <qdebug.h>
+#include <qglobal.h>
 
 static constexpr std::chrono::seconds kWriteTimeout = std::chrono::seconds{5};
 
@@ -37,13 +41,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_ui->tabWidget->setCurrentIndex(0);
 
-    loadLocationsFromFile();
-    // if there was nothing in the file, fall back to defaults
-    if (allPoints.empty())
-        loadDefaultPoints();
-    populateLocationsTable();
-
-    refreshRouteList();
+    initializeDatabase();
+    m_database->setJsonPoints(allPoints);
 
     scene = new QGraphicsScene(this);
     m_ui->graphicsView->setScene(scene);
@@ -66,8 +65,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_serial, &QSerialPort::errorOccurred, this, &MainWindow::handleError);
     connect(m_serial, &QSerialPort::readyRead, this, &MainWindow::readData);
     connect(m_console, &Console::getData, this, &MainWindow::writeData);
-
-    //QObject::connect(m_ui->pushButton_2, SIGNAL(pressed()), this, SLOT(pushButton_2_clicked()));
 }
 
 MainWindow::~MainWindow()
@@ -145,8 +142,13 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     }
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_btnGenerateRoutes_clicked()
 {
+    if(allPoints.empty()){
+        QMessageBox::warning(this, "PICNIC detected", "Geen locaties ingeladen!\n"
+            "Laad eerst de locaties in");
+            return;
+    }
     m_ui->statusLabel->setText("Bezig met genereren...");
     QApplication::processEvents();
 
@@ -159,9 +161,9 @@ void MainWindow::on_pushButton_clicked()
     });
 }
 
-void MainWindow::pushButton_2_clicked()
-{
-
+void MainWindow::on_btnLoadLocationFromDB_clicked(){
+    qInfo("Loading locations from (updated) db");
+    m_database->setJsonPoints(allPoints);
 }
 
 void MainWindow::openSerialPort()
@@ -428,202 +430,72 @@ void MainWindow::on_btnUploadTrivia_clicked(){
 void MainWindow::on_btnAddLoc_clicked()
 {
     bool ok = false;
-        // 1) Vraag X en Y (int64_t)
-    QString xs = QInputDialog::getText(this, tr("Nieuw punt"), tr("X (microdegrees):"), QLineEdit::Normal,
-                                       QString(), &ok);
-    if (!ok) return;
-    int64_t x = xs.toLongLong(&ok);
+
+    QString name = QInputDialog::getText(this, "Nieuwe locatie",
+                                         "Naam:", QLineEdit::Normal,
+                                         "", &ok);
+    if (!ok || name.isEmpty()){
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldige naam op."));
+        return;
+    }
+
+    int x = QInputDialog::getInt(this, "Nieuwe locatie",
+                                 "X coordinaat:", 0,
+                                 0, 1000000, 1, &ok);
     if (!ok) {
         QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
         return;
     }
 
-    QString ys = QInputDialog::getText(this, tr("Nieuw punt"), tr("Y (microdegrees):"), QLineEdit::Normal,
-                                       QString(), &ok);
-    if (!ok) return;
-    int64_t y = ys.toLongLong(&ok);
+    int y = QInputDialog::getInt(this, "Nieuwe locatie",
+                                 "Y coordinaat:", 0,
+                                 0, 1000000000, 1, &ok);
     if (!ok) {
         QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
         return;
     }
 
-        // cost (float)
-        double cost = QInputDialog::getDouble(this, tr("Nieuw punt"), tr("Cost:"),
-                                              1.0, 0.0, 1e6, 2, &ok);
-        if (!ok) return;
-
-        // mg_id (int)
-        int mg = QInputDialog::getInt(this, tr("Nieuw punt"), tr("mg_id:"),
-                                      0, 0, std::numeric_limits<int>::max(), 1, &ok);
-        if (!ok) return;
-
-        allPoints.emplace_back(x, y, static_cast<float>(cost), mg);
-
-        populateLocationsTable();
-        saveLocationsToFile();
-}
-
-void MainWindow::on_btnEditLoc_clicked()
-{
-    auto *tbl = m_ui->tableLocations;
-    int row = tbl->currentRow();
-    if (row < 0 || row >= int(allPoints.size())) {
-        QMessageBox::warning(this, tr("Bewerken"), tr("Selecteer eerst een rij."));
+    double cost = QInputDialog::getDouble(this, "Nieuwe locatie",
+                                          "Cost:", 1.0,
+                                          0.0, 10.0, 2, &ok);
+    if (!ok) {
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
         return;
     }
 
-    Point &p = allPoints[row];
-    bool ok = false;
-    int64_t newX = 0, newY = 0;
-    double  newCost = 0.0;
-    int     newMg = 0;
+    int mgId = QInputDialog::getInt(this, "Nieuwe locatie",
+                                    "Minigame ID:", 0,
+                                    0, 250, 1, &ok);
+    if (!ok) {
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
+        return;
+    }
 
-    do {
-        QString xs = QInputDialog::getText(
-            this,
-            tr("Bewerk punt"),
-            tr("X (microdegrees):"),
-            QLineEdit::Normal,
-            QString::number(p.x),
-            &ok
-        );
-        if (!ok) return;
-        newX = xs.toLongLong(&ok);
-        if (!ok) {
-            QMessageBox::warning(this,
-                tr("Ongeldige invoer"),
-                tr("Voer een geldig geheel getal in voor X."));
-        }
-    } while (!ok);
+    int row = locationModel->rowCount();
+    locationModel->insertRow(row);
 
-    do {
-        QString ys = QInputDialog::getText(
-            this,
-            tr("Bewerk punt"),
-            tr("Y (microdegrees):"),
-            QLineEdit::Normal,
-            QString::number(p.y),
-            &ok
-        );
-        if (!ok) return;
-        newY = ys.toLongLong(&ok);
-        if (!ok) {
-            QMessageBox::warning(this,
-                tr("Ongeldige invoer"),
-                tr("Voer een geldig geheel getal in voor Y."));
-        }
-    } while (!ok);
+    locationModel->setData(locationModel->index(row, 0), name);
+    locationModel->setData(locationModel->index(row, 1), x);
+    locationModel->setData(locationModel->index(row, 2), y);
+    locationModel->setData(locationModel->index(row, 3), cost);
+    locationModel->setData(locationModel->index(row, 4), mgId);
 
-    do {
-        double c = QInputDialog::getDouble(
-            this,
-            tr("Bewerk punt"),
-            tr("Cost:"),
-            double(p.cost),
-            0.0, 1e6, 2,
-            &ok
-        );
-        if (!ok) return;
-        newCost = c;
-    } while (!ok);
-
-    do {
-        int m = QInputDialog::getInt(
-            this,
-            tr("Bewerk punt"),
-            tr("mg_id:"),
-            p.mg_id,
-            0, std::numeric_limits<int>::max(),
-            1,
-            &ok
-        );
-        if (!ok) return;
-        newMg = m;
-    } while (!ok);
-
-    p.x     = newX;
-    p.y     = newY;
-    p.cost  = static_cast<float>(newCost);
-    p.mg_id = newMg;
-
-    populateLocationsTable();
-    saveLocationsToFile();
+    locationModel->submitAll();
 }
-
 
 void MainWindow::on_btnRemoveLoc_clicked()
 {
-    auto *tbl = m_ui->tableLocations;
-        int row = tbl->currentRow();
-        if (row < 0 || row >= int(allPoints.size())) {
-            QMessageBox::warning(this, tr("Verwijderen"), tr("Selecteer eerst een rij."));
+    auto *view = m_ui->tableLocations;
+    QModelIndex index = view->currentIndex();
+    if (!index.isValid()){
+        QMessageBox::warning(this, tr("Verwijderen"), tr("Selecteer eerst een rij."));
             return;
-        }
-
-        if (QMessageBox::question(this, tr("Verwijderen"),
-                tr("Weet je zeker dat je punt %1 wilt verwijderen?")
-                 .arg(row+1))
-            != QMessageBox::Yes)
-        {
-            return;
-        }
-
-        allPoints.erase(allPoints.begin() + row);
-        populateLocationsTable();
-        saveLocationsToFile();
-}
-
-void MainWindow::loadDefaultPoints()
-{
-    allPoints = {
-        {51688573, 5287210, 2.0f, 0},  // Avans
-        {51690224, 5296625, 1.5f, 101},  // Jan de Groot
-        {51688460, 5303150, 2.0f, 112},  // Stadhuis
-        {51686200, 5304500, 1.5f, 1},  // Sint Jans Kathedraal
-        {51685051, 5289156, 2.0f, 9},  // Paleisbrug
-        {51684258, 5302611, 1.5f, 111},  // Zuidwal
-        {51691299, 5303950, 2.0f, 5},  // Arena
-        {51689428, 5310484, 1.5f, 100},  // Nationaal Carnavalsmuseum
-        {51695984, 5299074, 2.0f, 113},  // Tramkade
-        {51689124, 5303969, 1.5f, 108},  // De Markt
-        {51689619, 5299065, 2.0f, 114},  // Bolwerk
-        {51693002, 5301264, 1.5f, 115},  // VUE Cinema
-        {51697021, 5299328, 2.0f, 102},  // Bossche Brouwers
-        {51689724, 5300408, 1.5f, 116},  // Café Bar le Duc
-        {51686471, 5304106, 2.0f, 110},  // Museumkwartier
-        {51689471, 5303200, 1.5f, 109},  // Moriaan
-        {51689302, 5303396, 2.0f, 117},  // ’t Opkikkertje
-        {51695457, 5297448, 1.5f, 118},  // Verkadefabriek
-        {51694463, 5302862, 2.0f, 119},  // BHIC
-        {51690467, 5294925, 1.5f, 8},  // Station
-        {51683776, 5317938, 2.0f, 11},  // Zuiderpark
-        {51687561, 5305911, 1.5f, 120},  // Korte Putstraat
-        {51698630, 5292803, 1.5f, 121},  // Brabanthallen
-        {51688691, 5309001, 1.5f, 7},  // Café de Palm
-        {51687344, 5305871, 1.5f, 122},  // Bistro Tante Pietje
-        {51696264, 5307460, 1.5f, 10},  // Taxandriaplein Park
-        {51696501, 5312884, 1.5f, 123},  // IJzeren Vrouw Park
-        {51691911, 5286594, 1.5f, 2},  // Simon Stevinweg
-        {51690402, 5291740, 1.5f, 124},  // Hugo de Grootplein
-        {51685400, 5289354, 1.5f, 3},  // Kinepolis
-        {51690484, 5296206, 1.5f, 106},  // Gouden Draak
-        {51686618, 5308459, 1.5f, 125},  // Theater aan de Parade
-        {51686697, 5303137, 1.5f, 6}   // Gemeentehuis
-    };
-}
-
-void MainWindow::populateLocationsTable()
-{
-    auto *tbl = m_ui->tableLocations;
-    tbl->clearContents();
-    tbl->setRowCount(int(allPoints.size()));
-    for (int i = 0; i < int(allPoints.size()); ++i) {
-        const Point &p = allPoints[i];
-        tbl->setItem(i, 0, new QTableWidgetItem(QString::number(p.x)));
-        tbl->setItem(i, 1, new QTableWidgetItem(QString::number(p.y)));
-        tbl->setItem(i, 2, new QTableWidgetItem(QString::number(p.cost)));
-        tbl->setItem(i, 3, new QTableWidgetItem(QString::number(p.mg_id)));
     }
+
+    locationModel->removeRow(index.row());
+    locationModel->submitAll();
+    // refresh the model, otherwise an empty ! row remains
+    locationModel->select();
 }
 
 void MainWindow::loadLocationsFromFile()
@@ -652,29 +524,53 @@ void MainWindow::loadLocationsFromFile()
     }
 }
 
-void MainWindow::saveLocationsToFile()
-{
-    QString path = QCoreApplication::applicationDirPath() + "/locations.json";
+void MainWindow::initializeDatabase(){
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        tr("Open een bestaande database"),
+        "",
+        tr("Database Files (*.db *.sqlite)")
+    );
 
-
-    QJsonArray arr;
-    for (auto &p : allPoints) {
-        QJsonObject o;
-        o["x"]    = double(p.x);
-        o["y"]    = double(p.y);
-        o["cost"] = double(p.cost);
-        o["mg_id"]= p.mg_id;
-        arr.append(o);
+    QString path;
+    if(!fileName.isEmpty()){
+        qInfo("Using user db");
+        path = fileName;
     }
-    QJsonDocument doc(arr);
-
-    QFile f(path);
-    if (!f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
-        QMessageBox::warning(this, tr("Error"),
-            tr("Kan locaties niet opslaan in %1").arg(path));
-        return;
+    else {
+        qInfo("Using default db");
+        path = QCoreApplication::applicationDirPath() + "/locations.db";
     }
-    f.write(doc.toJson());
-    f.close();
+
+    m_database = new Database(path);
+    int ret = m_database->validateDatabase();
+    switch (ret) {
+        case 0:
+            break;
+        case 1:
+            QMessageBox::warning(this, "PICNIC detected", "Database heeft geen locaties\n"
+            "Backup locaties worden gebruikt");
+            m_database->insertBaseLocations();
+            break;
+        case 2:
+            QMessageBox::warning(this, "PICNIC detected", "Database heeft geen minigames\n"
+            "Backup minigames worden gebruikt");
+            m_database->insertBaseMinigames();
+            break;
+        case 3:
+            QMessageBox::warning(this, "PICNIC detected", "Database heeft geen juiste tabellen\n");
+            m_database->resetDatabase();
+            break;
+        default:
+            break;
+    }
+
+    locationModel = new QSqlTableModel(this);
+    locationModel->setTable("Locations");
+    locationModel->setEditStrategy(QSqlTableModel::OnFieldChange); 
+    locationModel->select();
+
+    m_ui->tableLocations->setModel(locationModel);
+    m_ui->tableLocations->resizeColumnsToContents();
 }
 

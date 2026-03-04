@@ -1,5 +1,6 @@
 #include "routegenerator.h"
 
+#include <qglobal.h>
 #include <vector>
 #include <iostream>
 #include <cmath>
@@ -174,7 +175,6 @@ void saveRoutesToFiles(const vector<vector<int>>& routes,
 }
 
 void generate_routes(const std::vector<Point> &inputPoints) {
-
     std::vector<Point> allPoints = inputPoints;
 
     vector<Point> hotpoints(allPoints.begin(), allPoints.begin() + NUM_HOTPOINTS);

@@ -18,16 +18,16 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
         <string>Genereer routes</string>
        </attribute>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="btnGenerateRoutes">
         <property name="geometry">
          <rect>
-          <x>10</x>
+          <x>180</x>
           <y>370</y>
           <width>191</width>
           <height>29</height>
@@ -40,7 +40,7 @@
        <widget class="QLabel" name="statusLabel">
         <property name="geometry">
          <rect>
-          <x>210</x>
+          <x>380</x>
           <y>370</y>
           <width>191</width>
           <height>31</height>
@@ -58,6 +58,19 @@
           <width>821</width>
           <height>351</height>
          </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnLoadLocationFromDB">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>370</y>
+          <width>161</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Laad/Update Locaties</string>
         </property>
        </widget>
       </widget>
@@ -196,42 +209,6 @@
        <attribute name="title">
         <string>Locatiebeheer</string>
        </attribute>
-       <widget class="QTableWidget" name="tableLocations">
-        <property name="geometry">
-         <rect>
-          <x>60</x>
-          <y>50</y>
-          <width>431</width>
-          <height>301</height>
-         </rect>
-        </property>
-        <property name="columnCount">
-         <number>4</number>
-        </property>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>99</number>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>X</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Y</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Cost</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>mg_id</string>
-         </property>
-        </column>
-       </widget>
        <widget class="QPushButton" name="btnAddLoc">
         <property name="geometry">
          <rect>
@@ -245,30 +222,27 @@
          <string>Toevoegen</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btnEditLoc">
-        <property name="geometry">
-         <rect>
-          <x>590</x>
-          <y>160</y>
-          <width>80</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Bewerken</string>
-        </property>
-       </widget>
        <widget class="QPushButton" name="btnRemoveLoc">
         <property name="geometry">
          <rect>
           <x>590</x>
-          <y>240</y>
+          <y>130</y>
           <width>80</width>
           <height>25</height>
          </rect>
         </property>
         <property name="text">
          <string>Verwijderen</string>
+        </property>
+       </widget>
+       <widget class="QTableView" name="tableLocations">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>571</width>
+          <height>371</height>
+         </rect>
         </property>
        </widget>
       </widget>
