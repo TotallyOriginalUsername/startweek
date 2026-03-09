@@ -64,6 +64,9 @@ private slots:
     void on_btnResetAll_clicked();
     void on_btnResetProgress_clicked();
     void on_btnResetScore_clicked();
+    void on_btnReadProgress_clicked();
+    void on_btnReadScore_clicked();
+    void on_btnTestData_clicked();
     void on_btnUploadRoute_clicked();
     void on_btnUploadTime_clicked();
     void on_btnUploadTrivia_clicked();
@@ -78,7 +81,6 @@ private:
     void drawRoutes();
     void refreshRouteList();
     void refreshSerialPorts();
-    void loadLocationsFromFile();
     void saveLocationsToFile();
     void initializeDatabase();
 

@@ -22,8 +22,8 @@ constexpr double METERS_PER_DEGREE    = 111320.0;   // gemiddeld
 constexpr double WALKING_SPEED_M_PER_S = 1.4;       // meter per seconde
 
 
-Point::Point(int64_t x, int64_t y, float cost, int mg_id)
-  : x(x), y(y), cost(cost), mg_id(mg_id)
+Point::Point(int loc_id, int64_t x, int64_t y, float cost, int mg_id)
+  : loc_id(loc_id), x(x), y(y), cost(cost), mg_id(mg_id)
 {}
 
 bool Point::operator==(const Point& other) const {
@@ -150,32 +150,9 @@ vector<int> christofides(vector<Point>& points) {
     return route;
 }
 
-void saveRoutesToFiles(const vector<vector<int>>& routes,
-                       const vector<vector<Point>>& selPts,
-                       const vector<Point>& allPts)
-{
-    for (size_t i = 0; i < routes.size(); ++i) {
-        string filename = "Route_" + to_string(i+1) + ".json";
-        ofstream file(filename);
-        if (!file) {
-            cerr << "Kon bestand niet openen: " << filename << "\n";
-            continue;
-        }
-        file << "[\n";
-        for (size_t j = 0; j < routes[i].size(); ++j) {
-            const Point& p = selPts[i][routes[i][j]];
-            file << "  { \"x\": " << p.x
-                 << ", \"y\": " << p.y
-                 << ", \"mg_id\": " << p.mg_id << " }"
-                 << (j+1 < routes[i].size() ? "," : "") << "\n";
-        }
-        file << "]\n";
-        cout << "Opgeslagen in '" << filename << "'.\n";
-    }
-}
-
-void generate_routes(const std::vector<Point> &inputPoints) {
+void generate_routes(const std::vector<Point> &inputPoints, std::vector<std::vector<int>>& routes) {
     std::vector<Point> allPoints = inputPoints;
+    routes.clear();
 
     vector<Point> hotpoints(allPoints.begin(), allPoints.begin() + NUM_HOTPOINTS);
     vector<Point> waypoints(allPoints.begin() + NUM_HOTPOINTS, allPoints.end());
@@ -217,10 +194,18 @@ void generate_routes(const std::vector<Point> &inputPoints) {
         }
     }
 
+    routes.resize(NUM_ROUTES);
+    for (int r = 0; r < NUM_ROUTES; ++r) {
+        const auto& route = routeIndices[r];
+        const auto& pts   = selectedPoints[r];
+        routes[r].reserve(route.size());
+        for (int index : route) {
+            routes[r].push_back(pts[index].loc_id);
+        }
+    }
+
     for (int i = 0; i < NUM_ROUTES; ++i) {
         cout << "Route " << i+1 << " tijd: "
              << fixed << setprecision(1) << routeTimes[i] << " min\n";
     }
-
-    saveRoutesToFiles(routeIndices, selectedPoints, allPoints);
 }

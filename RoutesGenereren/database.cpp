@@ -23,6 +23,7 @@ bool Database::createTables() {
     bool success = true;
 
     success &= query.exec("CREATE TABLE IF NOT EXISTS Locations ("
+                          "LOC_ID INTEGER PRIMARY KEY AUTOINCREMENT,"
                           "Location_Name TEXT, "
                           "X INTEGER, "
                           "Y INTEGER, "
@@ -31,10 +32,24 @@ bool Database::createTables() {
 
     success &= query.exec("CREATE TABLE IF NOT EXISTS Minigames ("
                           "MG_ID INTEGER, "
+                          "MG_TYPE INTEGER, "
                           "MG_name TEXT, "
                           "Question_ID INTEGER)");
 
+    success &= query.exec("CREATE TABLE IF NOT EXISTS Routes ("
+                      "Route_ID INTEGER, "
+                      "Position INTEGER, "
+                      "LOC_ID INTEGER, "
+                      "PRIMARY KEY(Route_ID, Position), "
+                      "FOREIGN KEY(Route_ID) REFERENCES Routes(Route_ID), "
+                      "FOREIGN KEY(LOC_ID) REFERENCES Locations(LOC_ID))");
+
     return success;
+}
+
+void Database::clearRoutes(){
+    QSqlQuery query;
+    query.exec("DELETE FROM Routes");
 }
 
 void Database::insertLocation(const QString &locationName, int x, int y, double cost, int mgId) {
@@ -50,10 +65,11 @@ void Database::insertLocation(const QString &locationName, int x, int y, double 
     }
 }
 
-void Database::insertMinigame(int mgId, const QString &mgName, int questionId) {
+void Database::insertMinigame(int mgId, int mgType, const QString &mgName, int questionId) {
     QSqlQuery query;
-    query.prepare("INSERT INTO Minigames (MG_ID, MG_name, Question_ID) VALUES (?, ?, ?)");
+    query.prepare("INSERT INTO Minigames (MG_ID, MG_TYPE, MG_name, Question_ID) VALUES (?, ?, ?, ?)");
     query.addBindValue(mgId);
+    query.addBindValue(mgType);
     query.addBindValue(mgName);
     query.addBindValue(questionId);
     if (!query.exec()) {
@@ -63,46 +79,46 @@ void Database::insertMinigame(int mgId, const QString &mgName, int questionId) {
 
 void Database::insertBaseLocations(){
     insertLocation("Avans", 51688573, 5287210, 2.0, 0);
-    insertLocation("Jan de Groot", 51690224, 5296625, 1.5, 101);
-    insertLocation("Stadhuis", 51688460, 5303150, 2.0, 112);
-    insertLocation("Sint Jans Kathedraal", 51686200, 5304500, 1.5, 1);
-    insertLocation("Paleisbrug", 51685051, 5289156, 2.0, 9);
-    insertLocation("Zuidwal", 51684258, 5302611, 1.5, 111);
-    insertLocation("Arena", 51691299, 5303950, 2.0, 5);
-    insertLocation("Nationaal Carnavalsmuseum", 51689428, 5310484, 1.5, 100);
-    insertLocation("Tramkade", 51695984, 5299074, 2.0, 113);
-    insertLocation("De Markt", 51689124, 5303969, 1.5, 108);
-    insertLocation("Bolwerk", 51689619, 5299065, 2.0, 114);
-    insertLocation("VUE Cinema", 51693002, 5301264, 1.5, 115);
-    insertLocation("Bossche Brouwers", 51697021, 5299328, 2.0, 102);
-    insertLocation("Café Bar le Duc", 51689724, 5300408, 1.5, 116);
-    insertLocation("Museumkwartier", 51686471, 5304106, 2.0, 110);
-    insertLocation("Moriaan", 51689471, 5303200, 1.5, 109);
-    insertLocation("’t Opkikkertje", 51689302, 5303396, 2.0, 117);
-    insertLocation("Verkadefabriek", 51695457, 5297448, 1.5, 118);
-    insertLocation("BHIC", 51694463, 5302862, 2.0, 119);
-    insertLocation("Station", 51690467, 5294925, 1.5, 8);
-    insertLocation("Zuiderpark", 51683776, 5317938, 2.0, 11);
-    insertLocation("Korte Putstraat", 51687561, 5305911, 1.5, 120);
-    insertLocation("Brabanthallen", 51698630, 5292803, 1.5, 121);
-    insertLocation("Café de Palm", 51688691, 5309001, 1.5, 7);
-    insertLocation("Bistro Tante Pietje", 51687344, 5305871, 1.5, 122);
-    insertLocation("Taxandriaplein Park", 51696264, 5307460, 1.5, 10);
-    insertLocation("IJzeren Vrouw Park", 51696501, 5312884, 1.5, 123);
-    insertLocation("Simon Stevinweg", 51691911, 5286594, 1.5, 2);
-    insertLocation("Hugo de Grootplein", 51690402, 5291740, 1.5, 124);
-    insertLocation("Kinepolis", 51685400, 5289354, 1.5, 3);
-    insertLocation("Gouden Draak", 51690484, 5296206, 1.5, 106);
-    insertLocation("Theater aan de Parade", 51686618, 5308459, 1.5, 125);
-    insertLocation("Gemeentehuis", 51686697, 5303137, 1.5, 6);
+    insertLocation("Jan de Groot", 51690224, 5296625, 1.5, 1);
+    insertLocation("Stadhuis", 51688460, 5303150, 2.0, 2);
+    insertLocation("Sint Jans Kathedraal", 51686200, 5304500, 1.5, 3);
+    insertLocation("Paleisbrug", 51685051, 5289156, 2.0, 4);
+    insertLocation("Zuidwal", 51684258, 5302611, 1.5, 5);
+    insertLocation("Arena", 51691299, 5303950, 2.0, 6);
+    insertLocation("Nationaal Carnavalsmuseum", 51689428, 5310484, 1.5, 7);
+    insertLocation("Tramkade", 51695984, 5299074, 2.0, 8);
+    insertLocation("De Markt", 51689124, 5303969, 1.5, 9);
+    insertLocation("Bolwerk", 51689619, 5299065, 2.0, 10);
+    insertLocation("VUE Cinema", 51693002, 5301264, 1.5, 11);
+    insertLocation("Bossche Brouwers", 51697021, 5299328, 2.0, 12);
+    insertLocation("Café Bar le Duc", 51689724, 5300408, 1.5, 0);
+    insertLocation("Museumkwartier", 51686471, 5304106, 2.0, 0);
+    insertLocation("Moriaan", 51689471, 5303200, 1.5, 0);
+    insertLocation("’t Opkikkertje", 51689302, 5303396, 2.0, 0);
+    insertLocation("Verkadefabriek", 51695457, 5297448, 1.5, 0);
+    insertLocation("BHIC", 51694463, 5302862, 2.0, 0);
+    insertLocation("Station", 51690467, 5294925, 1.5, 0);
+    insertLocation("Zuiderpark", 51683776, 5317938, 2.0, 0);
+    insertLocation("Korte Putstraat", 51687561, 5305911, 1.5, 0);
+    insertLocation("Brabanthallen", 51698630, 5292803, 1.5, 0);
+    insertLocation("Café de Palm", 51688691, 5309001, 1.5, 0);
+    insertLocation("Bistro Tante Pietje", 51687344, 5305871, 1.5, 0);
+    insertLocation("Taxandriaplein Park", 51696264, 5307460, 1.5, 0);
+    insertLocation("IJzeren Vrouw Park", 51696501, 5312884, 1.5, 0);
+    insertLocation("Simon Stevinweg", 51691911, 5286594, 1.5, 0);
+    insertLocation("Hugo de Grootplein", 51690402, 5291740, 1.5, 0);
+    insertLocation("Kinepolis", 51685400, 5289354, 1.5, 0);
+    insertLocation("Gouden Draak", 51690484, 5296206, 1.5, 0);
+    insertLocation("Theater aan de Parade", 51686618, 5308459, 1.5, 0);
+    insertLocation("Gemeentehuis", 51686697, 5303137, 1.5, 0);
 }
 
 void Database::insertBaseMinigames(){
-    insertMinigame(0, "trivia vraag 1", 0);
-    insertMinigame(0, "trivia vraag 2", 1);
-    insertMinigame(0, "trivia vraag 3", 2);
-    insertMinigame(1, "Snake", 0);
-    insertMinigame(2, "Simon Says", 0);
+    insertMinigame(0, 0, "trivia vraag 1", 0);
+    insertMinigame(1, 0, "trivia vraag 2", 1);
+    insertMinigame(2, 0, "trivia vraag 3", 2);
+    insertMinigame(3, 1, "Snake", 0);
+    insertMinigame(4, 2, "Simon Says", 0);
 }
 
 QVector<QVector<QVariant>> Database::getLocationsWithMinigames() {
@@ -122,8 +138,18 @@ QVector<QVector<QVariant>> Database::getLocationsWithMinigames() {
     return results;
 }
 
+int Database::getRouteAmount(){
+    int result = 0;
+    QSqlQuery query("SELECT COUNT(DISTINCT Route_ID) FROM Routes");
+
+    while (query.next()) {
+        result = query.value(0).toInt();
+    }
+    return result;
+}
+
 void Database::setJsonPoints(std::vector<Point>& inputPoints) {
-    QSqlQuery query("SELECT X, Y, Cost, MG_ID FROM Locations");
+    QSqlQuery query("SELECT LOC_ID, X, Y, Cost, MG_ID FROM Locations");
 
     if (!query.exec()) {
         qWarning() << "Failed to retrieve locations:" << query.lastError().text();
@@ -132,11 +158,12 @@ void Database::setJsonPoints(std::vector<Point>& inputPoints) {
 
     inputPoints.clear();
     while (query.next()) {
-        int64_t x = query.value(0).toInt();
-        int64_t y = query.value(1).toInt();
-        float cost = query.value(2).toFloat();
-        int mgId = query.value(3).toInt();
-        inputPoints.emplace_back(x, y, cost, mgId);
+        int locId = query.value(0).toInt();
+        int64_t x = query.value(1).toInt();
+        int64_t y = query.value(2).toInt();
+        float cost = query.value(3).toFloat();
+        int mgId = query.value(4).toInt();
+        inputPoints.emplace_back(locId, x, y, cost, mgId);
     }
     qInfo("a");
 }
@@ -156,6 +183,31 @@ void Database::setAllPoints(std::vector<std::tuple<int, int, double, int>>& allP
         double cost = query.value(2).toDouble();
         int mgId = query.value(3).toInt();
         allPoints.emplace_back(x, y, cost, mgId);
+    }
+}
+
+void Database::setRoutes(const std::vector<std::vector<int>>& routes)
+{
+    int routeId = 1;
+
+    for(const auto& route : routes)
+    {
+        for(int i = 0; i < route.size(); i++)
+        {
+            QSqlQuery insert;
+
+            insert.prepare(
+                "INSERT INTO Routes(Route_ID, Position, LOC_ID)"
+                "VALUES(?,?,?)"
+            );
+
+            insert.addBindValue(routeId);
+            insert.addBindValue(i);
+            insert.addBindValue(route[i]);
+
+            insert.exec();
+        }
+        routeId++;
     }
 }
 

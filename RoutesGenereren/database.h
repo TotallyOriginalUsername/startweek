@@ -15,13 +15,16 @@ public:
     ~Database();
 
     bool createTables();
+    void clearRoutes();
     void insertLocation(const QString &locationName, int x, int y, double cost, int mgId);
-    void insertMinigame(int mgId, const QString &mgName, int questionId);
+    void insertMinigame(int mgId, int mgType, const QString &mgName, int questionId);
     void insertBaseLocations();
     void insertBaseMinigames();
     QVector<QVector<QVariant>> getLocationsWithMinigames();
+    int getRouteAmount();
     void setJsonPoints(std::vector<Point>& inputPoints);
     void setAllPoints(std::vector<std::tuple<int, int, double, int>>& allPoints);
+    void setRoutes(const std::vector<std::vector<int>>& routes);
 
     void printDatabase();
     void clearDatabase();

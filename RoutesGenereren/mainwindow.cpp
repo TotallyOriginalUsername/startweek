@@ -144,6 +144,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_btnGenerateRoutes_clicked()
 {
+    std::vector<std::vector<int>> routes;
     if(allPoints.empty()){
         QMessageBox::warning(this, "PICNIC detected", "Geen locaties ingeladen!\n"
             "Laad eerst de locaties in");
@@ -152,13 +153,13 @@ void MainWindow::on_btnGenerateRoutes_clicked()
     m_ui->statusLabel->setText("Bezig met genereren...");
     QApplication::processEvents();
 
-    QFuture<void> future = QtConcurrent::run([this]() {
-        generate_routes(allPoints);
-        QMetaObject::invokeMethod(this, [this]() {
-            m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
-            drawRoutes();
-        }, Qt::QueuedConnection);
-    });
+    m_database->clearRoutes();
+    generate_routes(allPoints, routes);
+    m_database->setRoutes(routes);
+    QMetaObject::invokeMethod(this, [this]() {
+        m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
+        drawRoutes();
+    }, Qt::QueuedConnection);
 }
 
 void MainWindow::on_btnLoadLocationFromDB_clicked(){
@@ -216,8 +217,23 @@ void MainWindow::writeData(const QByteArray &data)
 
 void MainWindow::readData()
 {
-    const QByteArray data = m_serial->readAll();
-    m_console->putData(data);
+    while (m_serial->canReadLine())
+    {
+        QByteArray line = m_serial->readLine();
+        QString trimmedline = QString::fromUtf8(line).trimmed();
+
+        m_console->putData(line);
+        trimmedline.remove("\u001B[1;32muart:~$ \u001B[m");
+
+        if(trimmedline.startsWith("Score")){
+        m_ui->lblScore->setText(trimmedline.section(':',1));
+        }
+
+        if(trimmedline.startsWith("Progress"))
+        m_ui->lblProgress->setText(trimmedline.section(':',1));
+
+        qDebug() << "Received:" << trimmedline;
+    }
 }
 
 void MainWindow::handleError(QSerialPort::SerialPortError error)
@@ -264,76 +280,36 @@ void MainWindow::showWriteError(const QString &message)
     QMessageBox::warning(this, tr("Warning"), message);
 }
 
-void MainWindow::refreshRouteList()
-{
-    QDir buildDir(QCoreApplication::applicationDirPath());
-    buildDir.setNameFilters(QStringList{"*.json"});
-    buildDir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
-
-    auto files = buildDir.entryList();
-    m_ui->comboRouteFiles->clear();
-    if (files.isEmpty()) {
-        m_ui->comboRouteFiles->addItem(tr("[geen routes]"));
-    } else {
-        m_ui->comboRouteFiles->addItems(files);
-    }
-}
-
 void MainWindow::on_btnRefreshRoutes_clicked()
 {
-    refreshRouteList();
+    int routeAmount = m_database->getRouteAmount();
+
+    m_ui->comboRouteFiles->clear();
+    if(routeAmount == 0){
+        m_ui->comboRouteFiles->addItem(tr("[geen routes]"));
+    } else{
+        for (int i = 1; i <= routeAmount; i++) {
+            m_ui->comboRouteFiles->addItem(QString::number(i));
+        }
+    }
 }
 
 void MainWindow::on_btnResetAll_clicked()
 {
-    if(m_serial->isOpen()){
-        QByteArray resetCmd = "fs rm /SD:/loc.txt\r\n";
-        m_serial->write(resetCmd);
-
-        resetCmd = "fs rm /SD:/score.txt\r\n";
-        m_serial->write(resetCmd);
-
-        resetCmd = "fs rm /SD:/progress.txt\r\n";
-        m_serial->write(resetCmd);
-
-        // Reset progress.txt (ASCII ‘0’ = 0x30)
-        resetCmd = "fs write /SD:/progress.txt 30\r\n";
-        m_serial->write(resetCmd);
-
-        resetCmd = "fs write /SD:/score.txt 30\r\n";
-        m_serial->write(resetCmd);
-    }
-    else{
-        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
-    }
+    QByteArray dataToSend("sd reset all\r\n");
+    writeData(dataToSend);
 }
 
 void MainWindow::on_btnResetScore_clicked()
 {
-    if(m_serial->isOpen()){
-        QByteArray resetCmd = "fs rm /SD:/score.txt\r\n";
-        m_serial->write(resetCmd);
-
-        resetCmd = "fs write /SD:/score.txt 30\r\n";
-        m_serial->write(resetCmd);
-    }
-    else{
-        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
-    }
+    QByteArray dataToSend("sd set score 0\r\n");
+    writeData(dataToSend);
 }
 
 void MainWindow::on_btnResetProgress_clicked()
 {
-    if(m_serial->isOpen()){
-        QByteArray resetCmd = "fs rm /SD:/progress.txt\r\n";
-        m_serial->write(resetCmd);
-
-        resetCmd = "fs write /SD:/progress.txt 30\r\n";
-        m_serial->write(resetCmd);
-    }
-    else{
-        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
-    }
+    QByteArray dataToSend("sd set progress 0\r\n");
+    writeData(dataToSend);
 }
 
 void MainWindow::on_btnUploadRoute_clicked()
@@ -427,6 +403,25 @@ void MainWindow::on_btnUploadTrivia_clicked(){
     qDebug() << "Not implemented yet";
 }
 
+void MainWindow::on_btnReadScore_clicked()
+{
+    QByteArray dataToSend("sd get score\r\n");
+    writeData(dataToSend);
+}
+
+void MainWindow::on_btnReadProgress_clicked()
+{
+    QByteArray dataToSend("sd get progress\r\n");
+    writeData(dataToSend);
+}
+
+void MainWindow::on_btnTestData_clicked(){
+    QByteArray dataToSend("sd set progress 10\r\n");
+    writeData(dataToSend);
+    dataToSend = "sd set score 100\r\n";
+    writeData(dataToSend);
+}
+
 void MainWindow::on_btnAddLoc_clicked()
 {
     bool ok = false;
@@ -496,32 +491,6 @@ void MainWindow::on_btnRemoveLoc_clicked()
     locationModel->submitAll();
     // refresh the model, otherwise an empty ! row remains
     locationModel->select();
-}
-
-void MainWindow::loadLocationsFromFile()
-{
-    QString path = QCoreApplication::applicationDirPath() + "/locations.json";
-
-    QFile f(path);
-    if (!f.open(QIODevice::ReadOnly))
-        return;
-    auto raw = f.readAll();
-    f.close();
-
-    QJsonDocument doc = QJsonDocument::fromJson(raw);
-    if (!doc.isArray())
-        return;
-
-    allPoints.clear();
-    for (auto v : doc.array()) {
-        if (!v.isObject()) continue;
-        auto o = v.toObject();
-        int64_t x    = qint64(o.value("x").toDouble());
-        int64_t y    = qint64(o.value("y").toDouble());
-        float   cost = float(o.value("cost").toDouble());
-        int     mg   = o.value("mg_id").toInt();
-        allPoints.emplace_back(x,y,cost,mg);
-    }
 }
 
 void MainWindow::initializeDatabase(){
