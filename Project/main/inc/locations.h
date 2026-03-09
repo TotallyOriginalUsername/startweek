@@ -14,6 +14,7 @@
 #define LAT_LOC_AVANS 51688375000	// Avans Hogeschool, ingang aan de voorkant
 #define LON_LOC_AVANS 5287363000
 
+// Legacy Pokemon minigame struct
 struct Location {
     int64_t x;
     int64_t y;

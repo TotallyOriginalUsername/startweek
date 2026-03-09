@@ -194,7 +194,7 @@ void mg_stateFunction(statemachineStates* next_state, int mgID) {
     }
 
 	disableThreads(names, amount);
-	sd_set_score(score);
+	sd_add_score(score);
 	show_mg_score(score);
 
 	*next_state = idle_state;
@@ -212,7 +212,7 @@ void trivia_stateFunction(statemachineStates* next_state, uint8_t trivia_ID) {
 	score = playTrivia(trivia_ID);
 
 	disableThreads(names, amount);
-	sd_set_score(score);
+	sd_add_score(score);
 	show_mg_score(score);
 
 	*next_state = idle_state;

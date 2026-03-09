@@ -9,6 +9,7 @@
 #include "circleMatrix.h"
 #include "locations.h"
 #include "helperFunctions.h"
+#include "zephyr/sys/printk.h"
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
@@ -32,42 +33,28 @@ void getIdleThreads(char ***names, unsigned *amount) {
 	*amount = idleThreadCount;
 }
 
-static struct locations {
-	int64_t lat;
-	int64_t lon;
-	uint8_t mg_id;
-} locations[NR_OF_LOCS] = {0};
+static struct location_new locationsV2[NR_OF_LOCS] = {0};
+static int location_countV2 = 0;
 
-static size_t locations_count = 0;
-
-void initLocations()
-{
-	struct Location *locArray = NULL;
-	char lcd_msg[32];
-	int ret = locations_load(1, &locArray, &locations_count, NR_OF_LOCS);
-	if (ret != 0)
-	{
-		snprintf(lcd_msg, sizeof(lcd_msg), "Init loc err: %d", ret);
-		lcdEnable();
-		lcdStringWrite(lcd_msg);
-		k_msleep(2000);
-		LOG_ERR("Failed to load locations from disk");
-		return;
-	}
-
-	for (int i = 0; i < locations_count; i++)
-	{
-		locations[i].lat = locArray[i].x;
-		locations[i].lon = locArray[i].y;
-		locations[i].mg_id = locArray[i].mg_id < GAMES_AMOUNT ? locArray[i].mg_id : -2; // -2 if no minigame is assigned or out of range
-		LOG_INF("Location %d: lat=%lld, lon=%lld, mg_id=%d", i, locations[i].lat, locations[i].lon, locations[i].mg_id);
+void reloadLocations(){
+	memset(locationsV2, 0, sizeof locationsV2);
+	sd_get_locations(locationsV2, sizeof(locationsV2), &location_countV2);
+	for(int i = 0; i < location_countV2; i++){
+		locationsV2[i].lat = locationsV2[i].lat * 1000; // convert back to nanodegrees
+        locationsV2[i].lon = locationsV2[i].lon * 1000;
 	}
 }
 
 int playIdle(uint8_t* trivia_ID) {
 	uint8_t ledcircleOff[8] = {0};
-
 #if defined(CONFIG_TESTMODE)
+reloadLocations();
+		printk("Idle firstime locs:\n");
+		for (int i = 0; i < location_countV2; i++) {
+			printk("%lld,%lld,%hhu,%hhu\n", 
+                 locationsV2[i].lat, locationsV2[i].lon, locationsV2[i].mg_id, locationsV2[i].trivia_id);
+		}
+	return 12;
 	static int testIndex = 1;
 	char lcd_msg[32];
 
@@ -125,7 +112,12 @@ int playIdle(uint8_t* trivia_ID) {
 	if (firstTimeIdle) // Check if locations are initialized
 	{
 		firstTimeIdle = false;
-		initLocations();
+		reloadLocations();
+		printk("Idle firstime locs:\n");
+		for (int i = 0; i < location_countV2; i++) {
+			printk("%lld,%lld,%hhu,%hhu\n", 
+                 locationsV2[i].lat, locationsV2[i].lon, locationsV2[i].mg_id, locationsV2[i].trivia_id);
+		}
 		locIndex = sd_get_progress(); // Get the current location index from the SD card in the event that the device was turned off.
 		if (locIndex == -ENOENT) // If the file doesn't exist set locIndex to 0 and create the file.
 		{
@@ -150,7 +142,7 @@ int playIdle(uint8_t* trivia_ID) {
 		sd_set_progress(locIndex);
 	}
 
-	if (locIndex >= locations_count) {
+	if (locIndex >= location_countV2) {
 		LOG_INF("All locations have been visited.");
 		lastReturned = -1;
 		return lastReturned;
@@ -179,8 +171,8 @@ int playIdle(uint8_t* trivia_ID) {
 			k_msleep(50);
 			lcdSet = true;
 
-			distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon)); // Distance from current position to next location (meters)
-			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locations[locIndex].lat), nanoDegToLdDeg(locations[locIndex].lon));					// Angle between current location and next location
+			distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locationsV2[locIndex].lat), nanoDegToLdDeg(locationsV2[locIndex].lon)); // Distance from current position to next location (meters)
+			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locationsV2[locIndex].lat), nanoDegToLdDeg(locationsV2[locIndex].lon));					// Angle between current location and next location
 
 			set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
 		}
@@ -189,6 +181,7 @@ int playIdle(uint8_t* trivia_ID) {
 	lcdStringWrite("Gearriveerd!!");
 	ledcircleSetMutexValue(ledcircleOff);
 	k_msleep(5000);
-	lastReturned = locations[locIndex].mg_id;
+	*trivia_ID = locationsV2[locIndex].trivia_id;
+	lastReturned = locationsV2[locIndex].mg_id;
 	return lastReturned; // Return the index of the game that has to be played.
 }
