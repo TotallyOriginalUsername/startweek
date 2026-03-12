@@ -13,7 +13,7 @@
 
 LOG_MODULE_REGISTER(shellCMD);
 
-// Unsane way to turn fs shell sane
+// Global tracking of locations to allow receiving locations one by one
 int globalLocationsCount = 0;
 struct location_new globalLocations[64] = {0};
 
@@ -173,6 +173,26 @@ static int cmd_set_score(const struct shell *sh, size_t argc, char **argv)
 	return 0;
 }
 
+static int cmd_set_starttime(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	int starttime = atoi(argv[1]);
+
+	sd_set_start_time(starttime);
+
+	return 0;
+}
+
+static int cmd_set_endtime(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+	int endtime = atoi(argv[1]);
+
+	sd_set_end_time(endtime);
+
+	return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(get_commands,
         SHELL_CMD(progress, NULL, "Get progress", cmd_get_progress),
         SHELL_CMD(score, NULL, "Get score", cmd_get_score),
@@ -189,6 +209,8 @@ SHELL_STATIC_SUBCMD_SET_CREATE(reset_commands,
 SHELL_STATIC_SUBCMD_SET_CREATE(set_commands,
         SHELL_CMD(progress, NULL, "Set progress [value]", cmd_set_progress),
         SHELL_CMD(score, NULL, "Set score [value]", cmd_set_score),
+		SHELL_CMD(starttime, NULL, "Set starttime [value]", cmd_set_starttime),
+		SHELL_CMD(endtime, NULL, "Set endtime [value]", cmd_set_endtime),
         SHELL_SUBCMD_SET_END
 );
 
@@ -204,9 +226,9 @@ SHELL_CMD_REGISTER(sd, &sd_commands, "SD commands", NULL);
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_demo,
 		SHELL_CMD(add,   NULL, "Add location", cmd_add_loc),
 		SHELL_CMD(get,   NULL, "Get location(s)", cmd_get_loc),
-        SHELL_CMD(reload,   NULL, "Add location", cmd_reload_loc),
+        SHELL_CMD(reload,   NULL, "Reload location", cmd_reload_loc),
 		SHELL_CMD(save,   NULL, "Save location(s)", cmd_save_loc),
-		SHELL_CMD(start,   NULL, "Pong command", cmd_start_loc),
+		SHELL_CMD(start,   NULL, "Start loc transfer", cmd_start_loc),
         SHELL_SUBCMD_SET_END
 );
 /* Creating root (level 0) command "demo" */

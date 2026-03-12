@@ -91,7 +91,7 @@ void init_stateFunction(statemachineStates* next_state) {
 	}
 	initialize();
 	Startupdelay = 0;
-#ifndef CONFIG_TESTMODE
+#if !defined(CONFIG_TESTMODE) && !defined(CONFIG_NOTIMEMODE)
 	// check if current time is the same as the start time
 	int16_t start_time = 0;
 	int16_t current_time = 0;
@@ -261,7 +261,7 @@ void startStatemachine() {
 	uint8_t trivia_ID = 0;
 
 	while(statemachine_ongoing){
-#ifndef CONFIG_TESTMODE
+#if !defined(CONFIG_TESTMODE) && !defined(CONFIG_NOTIMEMODE)
 	if(check_end_time_reached()){
 		current_state = end_game_state;
 	}

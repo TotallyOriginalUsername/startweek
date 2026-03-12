@@ -42,13 +42,14 @@ void playEndGame()
     char score_string[16];
     int distMeters = 100;	// Initialize to a value outside the expected range
     int dir = 0;			// Direction the user must head in
+    lcdEnable();    //recheck this for issue #8
 
     score = sd_get_score();
     snprintf(score_string, sizeof(score_string), "Score: %d", score);
 
     while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
         show_oneliners(oneLinersEndGame, End_Game_ONELINERS);
-        lcdEnable();
+        //lcdEnable();
         lcdStringWrite(score_string);
         k_msleep(3000);
 

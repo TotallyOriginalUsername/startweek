@@ -47,6 +47,7 @@ void reloadLocations(){
 
 int playIdle(uint8_t* trivia_ID) {
 	uint8_t ledcircleOff[8] = {0};
+	lcdEnable();
 #if defined(CONFIG_TESTMODE)
 reloadLocations();
 		printk("Idle firstime locs:\n");
@@ -54,15 +55,14 @@ reloadLocations();
 			printk("%lld,%lld,%hhu,%hhu\n", 
                  locationsV2[i].lat, locationsV2[i].lon, locationsV2[i].mg_id, locationsV2[i].trivia_id);
 		}
-	return 12;
 	static int testIndex = 1;
 	char lcd_msg[32];
 
-	lcdEnable();
-	lcdStringWrite("Selecteer een spel met A en C");
-	k_msleep(3000);
+	//lcdEnable();
+	// lcdStringWrite("Selecteer een spel met A en C");
+	// k_msleep(3000);
 	lcdStringWrite("Bevestig met de startknop!");
-	k_msleep(3000);
+	//k_msleep(3000);
 
 	abcledsSet('a', 1);
 	abcledsSet('c', 1);
@@ -138,6 +138,7 @@ reloadLocations();
 
 	// If returning from a minigame, increment and save progress
 	if (lastReturned >= 0) {
+		locIndex = sd_get_progress();
 		locIndex++;
 		sd_set_progress(locIndex);
 	}
@@ -148,7 +149,10 @@ reloadLocations();
 		return lastReturned;
 	}
 
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+#if defined(CONFIG_NOGPSMODE)
+//do nothing
+
+#elif defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
 	int dir = 0;			// Direction the user must head in
 	char lcd_distance_msg[32];
@@ -181,6 +185,7 @@ reloadLocations();
 	lcdStringWrite("Gearriveerd!!");
 	ledcircleSetMutexValue(ledcircleOff);
 	k_msleep(5000);
+	lcdDisable();
 	*trivia_ID = locationsV2[locIndex].trivia_id;
 	lastReturned = locationsV2[locIndex].mg_id;
 	return lastReturned; // Return the index of the game that has to be played.

@@ -276,6 +276,7 @@ int sd_set_score(int score){
 	}
 	fs_close(&data_filp);
 #endif
+	printk("Score: %d\n", score);
 	return 0;
 }
 
@@ -369,6 +370,7 @@ int sd_set_progress(int progress)
 	}
 	fs_close(&data_filp);
 #endif
+	printk("Progress: %d\n", progress);
 	return 0;
 }
 
@@ -457,7 +459,7 @@ uint8_t sd_get_trivia(uint8_t trivia_nr, char *buf, size_t *len, size_t max_len)
 	return 0;
 }
 
-// Set the start rime in the file on the SD card
+// Set the start time in the file on the SD card
 int sd_set_start_time(int16_t time){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
@@ -481,7 +483,7 @@ int sd_set_start_time(int16_t time){
 	return 0;
 }
 
-// Set the start rime in the file on the SD card
+// Set the end time in the file on the SD card
 int sd_set_end_time(int16_t time){
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
     int ret;
