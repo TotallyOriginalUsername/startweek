@@ -1,9 +1,11 @@
 #include "database.h"
 #include <QDebug>
 #include <QSqlRecord>
+#include <qdebug.h>
 #include <qglobal.h>
 #include <qsqlquery.h>
 #include <QMessageBox>
+#include <vector>
 
 Database::Database(const QString &dbName) {
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -22,19 +24,21 @@ bool Database::createTables() {
     QSqlQuery query;
     bool success = true;
 
+    success &= query.exec("CREATE TABLE IF NOT EXISTS Minigames ("
+                          "MG_ID INTEGER, "
+                          "MG_TYPE INTEGER, "
+                          "MG_name TEXT, "
+                          "Question_ID INTEGER, "
+                          "PRIMARY KEY(MG_ID))");
+
     success &= query.exec("CREATE TABLE IF NOT EXISTS Locations ("
                           "LOC_ID INTEGER PRIMARY KEY AUTOINCREMENT,"
                           "Location_Name TEXT, "
                           "X INTEGER, "
                           "Y INTEGER, "
                           "Cost REAL, "
-                          "MG_ID INTEGER)");
-
-    success &= query.exec("CREATE TABLE IF NOT EXISTS Minigames ("
                           "MG_ID INTEGER, "
-                          "MG_TYPE INTEGER, "
-                          "MG_name TEXT, "
-                          "Question_ID INTEGER)");
+                          "FOREIGN KEY(MG_ID) REFERENCES Minigames(MG_ID))");
 
     success &= query.exec("CREATE TABLE IF NOT EXISTS Routes ("
                       "Route_ID INTEGER, "
@@ -91,17 +95,17 @@ void Database::insertBaseLocations(){
     insertLocation("Bolwerk", 51689619, 5299065, 2.0, 10);
     insertLocation("VUE Cinema", 51693002, 5301264, 1.5, 11);
     insertLocation("Bossche Brouwers", 51697021, 5299328, 2.0, 12);
-    insertLocation("Café Bar le Duc", 51689724, 5300408, 1.5, 0);
-    insertLocation("Museumkwartier", 51686471, 5304106, 2.0, 0);
-    insertLocation("Moriaan", 51689471, 5303200, 1.5, 0);
-    insertLocation("’t Opkikkertje", 51689302, 5303396, 2.0, 0);
-    insertLocation("Verkadefabriek", 51695457, 5297448, 1.5, 0);
-    insertLocation("BHIC", 51694463, 5302862, 2.0, 0);
-    insertLocation("Station", 51690467, 5294925, 1.5, 0);
-    insertLocation("Zuiderpark", 51683776, 5317938, 2.0, 0);
-    insertLocation("Korte Putstraat", 51687561, 5305911, 1.5, 0);
-    insertLocation("Brabanthallen", 51698630, 5292803, 1.5, 0);
-    insertLocation("Café de Palm", 51688691, 5309001, 1.5, 0);
+    insertLocation("Café Bar le Duc", 51689724, 5300408, 1.5, 13);
+    insertLocation("Museumkwartier", 51686471, 5304106, 2.0, 14);
+    insertLocation("Moriaan", 51689471, 5303200, 1.5, 15);
+    insertLocation("’t Opkikkertje", 51689302, 5303396, 2.0, 16);
+    insertLocation("Verkadefabriek", 51695457, 5297448, 1.5, 17);
+    insertLocation("BHIC", 51694463, 5302862, 2.0, 18);
+    insertLocation("Station", 51690467, 5294925, 1.5, 19);
+    insertLocation("Zuiderpark", 51683776, 5317938, 2.0, 20);
+    insertLocation("Korte Putstraat", 51687561, 5305911, 1.5, 21);
+    insertLocation("Brabanthallen", 51698630, 5292803, 1.5, 22);
+    insertLocation("Café de Palm", 51688691, 5309001, 1.5, 23);
     insertLocation("Bistro Tante Pietje", 51687344, 5305871, 1.5, 0);
     insertLocation("Taxandriaplein Park", 51696264, 5307460, 1.5, 0);
     insertLocation("IJzeren Vrouw Park", 51696501, 5312884, 1.5, 0);
@@ -117,8 +121,27 @@ void Database::insertBaseMinigames(){
     insertMinigame(0, 0, "trivia vraag 1", 0);
     insertMinigame(1, 0, "trivia vraag 2", 1);
     insertMinigame(2, 0, "trivia vraag 3", 2);
-    insertMinigame(3, 1, "Snake", 0);
-    insertMinigame(4, 2, "Simon Says", 0);
+    insertMinigame(3, 0, "trivia vraag 4", 3);
+    insertMinigame(4, 0, "trivia vraag 5", 4);
+    insertMinigame(5, 0, "trivia vraag 6", 5);
+    insertMinigame(6, 0, "trivia vraag 7", 6);
+    insertMinigame(7, 0, "trivia vraag 8", 7);
+    insertMinigame(8, 0, "trivia vraag 9", 8);
+    insertMinigame(9, 0, "trivia vraag 10", 9);
+    insertMinigame(10, 0, "trivia vraag 11", 10);
+    insertMinigame(11, 0, "trivia vraag 12", 11);
+    insertMinigame(12, 1, "Snake", 0);
+    insertMinigame(13, 2, "Simon Says", 0);
+    insertMinigame(14, 3, "Kopieer de vorm", 0);
+    insertMinigame(15, 4, "Pokemon", 0);
+    insertMinigame(16, 5, "Vang de rode ballen", 0);
+    insertMinigame(17, 6, "Timer minigame", 0);
+    insertMinigame(18, 7, "Volg de rode lijn", 0);
+    insertMinigame(19, 8, "10 Seconden", 0);
+    insertMinigame(20, 9, "Hoger of lager", 0);
+    insertMinigame(21, 10, "Whack a Mole", 0);
+    insertMinigame(22, 11, "Space invaders - knoppen", 0);
+    insertMinigame(23, 12, "Space invaders - kantel", 0);
 }
 
 QVector<QVector<QVariant>> Database::getLocationsWithMinigames() {
@@ -146,6 +169,36 @@ int Database::getRouteAmount(){
         result = query.value(0).toInt();
     }
     return result;
+}
+
+std::vector<SDLocations> Database::getRoute(int routeNumber){
+    std::vector<SDLocations> results;
+    QSqlQuery query;
+    query.prepare("SELECT X, Y, Minigames.MG_TYPE, Minigames.Question_ID FROM Routes "
+                        "LEFT JOIN Locations on Routes.LOC_ID = Locations.LOC_ID "
+                        "LEFT JOIN Minigames on Locations.MG_ID = Minigames.MG_ID "
+                        "WHERE Route_ID = ? "
+                        "ORDER BY Position");
+    query.addBindValue(routeNumber);
+
+    if (!query.exec()) {
+        qWarning() << "Failed to retrieve route:" << query.lastError().text();
+    }
+
+    while (query.next()) {
+        int x = query.value(0).toInt();
+        int y = query.value(1).toInt();
+        int mgType = query.value(2).toInt();
+        int questionId = query.value(3).toInt();
+
+        qDebug() << "X:" << x << "Y:" << y << "MG ID:" << mgType << "Tri ID:" << questionId;
+
+        //results.emplace(results.begin(),query.value(0).toInt(), 
+        //query.value(1).toInt(),query.value(2).toInt(),query.value(3).toInt());
+        results.emplace_back(x, y, mgType, questionId);
+    }
+        
+    return results;
 }
 
 void Database::setJsonPoints(std::vector<Point>& inputPoints) {

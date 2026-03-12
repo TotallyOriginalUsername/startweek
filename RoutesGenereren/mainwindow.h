@@ -19,6 +19,8 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QSqlTableModel>
+#include <QSqlRelationalTableModel>
+#include <QSqlRelationalDelegate>
 
 #include <vector>
 #include "database.h"
@@ -67,6 +69,7 @@ private slots:
     void on_btnReadProgress_clicked();
     void on_btnReadScore_clicked();
     void on_btnTestData_clicked();
+    void on_btnGetLoc_clicked();
     void on_btnUploadRoute_clicked();
     void on_btnUploadTime_clicked();
     void on_btnUploadTrivia_clicked();
@@ -100,7 +103,7 @@ private:
     QGraphicsScene *scene = nullptr;
     Database* m_database = nullptr;
     QString m_currentDbPath;
-    QSqlTableModel *locationModel;
+    QSqlRelationalTableModel *locationModel;
 };
 
 #endif // MAINWINDOW_H

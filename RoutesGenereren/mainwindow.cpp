@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <qchar.h>
+#include <qdatetime.h>
 #include <qdebug.h>
 #include <qglobal.h>
 
@@ -146,7 +147,7 @@ void MainWindow::on_btnGenerateRoutes_clicked()
 {
     std::vector<std::vector<int>> routes;
     if(allPoints.empty()){
-        QMessageBox::warning(this, "PICNIC detected", "Geen locaties ingeladen!\n"
+        QMessageBox::warning(this, "Error", "Geen locaties ingeladen!\n"
             "Laad eerst de locaties in");
             return;
     }
@@ -160,6 +161,7 @@ void MainWindow::on_btnGenerateRoutes_clicked()
         m_ui->statusLabel->setText("Routes succesvol gegenereerd!");
         drawRoutes();
     }, Qt::QueuedConnection);
+    on_btnRefreshRoutes_clicked();
 }
 
 void MainWindow::on_btnLoadLocationFromDB_clicked(){
@@ -189,6 +191,8 @@ void MainWindow::openSerialPort()
         QMessageBox::critical(this, tr("Error"), m_serial->errorString());
         showStatusMessage(tr("Open error"));
     }
+    // It needs some encouragement in order to work properly
+    writeData("Ganbatte\r\n");
 }
 
 void MainWindow::closeSerialPort()
@@ -217,6 +221,7 @@ void MainWindow::writeData(const QByteArray &data)
 
 void MainWindow::readData()
 {
+    QRegularExpression numberFilter("(\\w+):\\s*([0-9]+)");
     while (m_serial->canReadLine())
     {
         QByteArray line = m_serial->readLine();
@@ -224,13 +229,25 @@ void MainWindow::readData()
 
         m_console->putData(line);
         trimmedline.remove("\u001B[1;32muart:~$ \u001B[m");
+        trimmedline.remove("\u001B[8D\u001B[J");
 
-        if(trimmedline.startsWith("Score")){
-        m_ui->lblScore->setText(trimmedline.section(':',1));
+        QRegularExpressionMatch match = numberFilter.match(trimmedline);
+        
+        if (match.hasMatch())
+        {
+            QString label = match.captured(1);
+            QString number = match.captured(2);
+
+            if (label == "Score")
+            {
+                m_ui->lblScore->setText(number);
+            }
+
+            if (label == "Progress")
+            {
+                m_ui->lblProgress->setText(number);
+            }
         }
-
-        if(trimmedline.startsWith("Progress"))
-        m_ui->lblProgress->setText(trimmedline.section(':',1));
 
         qDebug() << "Received:" << trimmedline;
     }
@@ -314,80 +331,43 @@ void MainWindow::on_btnResetProgress_clicked()
 
 void MainWindow::on_btnUploadRoute_clicked()
 {
+    QString routeNumber2 = m_ui->comboRouteFiles->currentText();
+    std::vector<SDLocations> route2 = m_database->getRoute(routeNumber2.toInt());
+
     if(m_serial->isOpen()){
-    // Read json file
-    QString fileName = m_ui->comboRouteFiles->currentText();
-    if (fileName.startsWith("[")) {
-        QMessageBox::warning(this, tr("Geen route"),
-                             tr("Genereer eerst routes op tab 1."));
-        return;
-    }
-    QDir buildDir(QCoreApplication::applicationDirPath());
-    QString src = buildDir.filePath(fileName);
-    QFile f(src);
-    if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::critical(this, tr("Fout"),
-                              tr("Kan %1 niet openen").arg(src));
-        return;
-    }
-    const QByteArray jsonData = f.readAll();
-    f.close();
-
-    // Delete loc.txt, progress.txt and score.txt
-    QByteArray resetCmd = "fs rm /SD:/loc.txt\r\n";
-    m_serial->write(resetCmd);
-    m_serial->waitForBytesWritten(1000);
-
+    QString routeNumber = m_ui->comboRouteFiles->currentText();
+    std::vector<SDLocations> route = m_database->getRoute(routeNumber.toInt());
+    int locationAmount = route.size();
+    QByteArray start("loc start\r\n");
+    QByteArray save("loc save\r\n");
+    QByteArray reload("loc reload\r\n");
+    writeData(start);
+    // The hardware's RX ring buffer will be too full if you try to send every location without delays.
+    // waitForBytesWritten doesnt account for the wait on hw side, only for the pc to send everything
+    m_serial->waitForBytesWritten(4000);
     QThread::msleep(300);
 
-    // upload to /SD:/loc.txt
-    const qint64 CHUNK_SIZE = 16;
-    const qint64 totalLen   = jsonData.size();
-    qint64       offset     = 0;
-    const QByteArray remotePath("/SD:/loc.txt");
+    for(int i = 0; i < locationAmount; i++){
+        QByteArray locAdd = QString("loc add %1 %2 %3 %4\r\n")
+            .arg(route[i].x)
+            .arg(route[i].y)
+            .arg(route[i].mg_type)
+            .arg(route[i].trivia_id)
+            .toUtf8();
+            //qDebug() << locAdd;
 
-    while (offset < totalLen) {
-        qint64 chunkLen = qMin(CHUNK_SIZE, totalLen - offset);
-        QByteArray chunk = jsonData.mid(offset, chunkLen);
-
-        QString offsetHex = QString("%1")
-            .arg(offset, 2, 16, QChar('0'));
-
-        // build hex-strings
-        QStringList hexBytes;
-        hexBytes.reserve(chunkLen);
-        for (uchar b : chunk) {
-            hexBytes << QString("%1")
-                .arg(b, 2, 16, QChar('0'));
-        }
-        QByteArray spacedHex = hexBytes.join(' ').toUtf8();
-
-        // build fs command
-        QByteArray cmd = "fs write "
-                       + remotePath + " "
-                       + spacedHex
-                       + "\r\n";
-
-        qDebug() << ">>" << cmd.trimmed();
-        m_serial->write(cmd);
-        // qint64 written = port.write(cmd);
-        // if (written != cmd.size() ||
-        //     !port.waitForBytesWritten(5000)) {
-        //     QMessageBox::critical(this, tr("Fout"),
-        //         tr("Chunk offset %1 niet verzonden").arg(offsetHex));
-        //     port.close();
-        //     return;
-        // }
-
+        writeData(locAdd);
+        m_serial->waitForBytesWritten(4000);
         QThread::msleep(300);
-        offset += chunkLen;
     }
+    writeData(save);
+    m_serial->waitForBytesWritten(4000);
+    QThread::msleep(300);
+    writeData(reload);
 
     QMessageBox::information(this, tr("Klaar"),
-        tr("JSON (%1 bytes) in %2 chunks geüpload naar %3")
-        .arg(totalLen)
-        .arg((totalLen + CHUNK_SIZE - 1)/CHUNK_SIZE));
-        //.arg(portName));
+        tr("%1 locaties geuploadt naar de koffer")
+        .arg(locationAmount));
     }
     else {
         QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
@@ -396,7 +376,27 @@ void MainWindow::on_btnUploadRoute_clicked()
 }
 
 void MainWindow::on_btnUploadTime_clicked(){
-    qDebug() << "Not implemented yet";
+    QTime start = m_ui->timeEdit_start->time();
+    QTime end = m_ui->timeEdit_end->time();
+    if ( start >= end){
+        QMessageBox::warning(this, tr("Error"), tr("Starttijd moet voor eindtijd zijn"));
+        return;
+    }
+    int sd_start = (start.hour() * 60) - 120 + start.minute();
+    int sd_end = (end.hour() * 60) - 120 + end.minute();
+    qInfo("Start: %d, End: %d", sd_start, sd_end);
+
+    QByteArray startData = QString("sd set starttime %1\r\n")
+                .arg(sd_start)
+                .toUtf8();
+
+    writeData(startData);
+    
+    QByteArray endData = QString("sd set endtime %1\r\n")
+                .arg(sd_end)
+                .toUtf8();
+
+    writeData(endData);
 }
 
 void MainWindow::on_btnUploadTrivia_clicked(){
@@ -419,6 +419,12 @@ void MainWindow::on_btnTestData_clicked(){
     QByteArray dataToSend("sd set progress 10\r\n");
     writeData(dataToSend);
     dataToSend = "sd set score 100\r\n";
+    writeData(dataToSend);
+}
+
+
+void MainWindow::on_btnGetLoc_clicked(){
+    QByteArray dataToSend("loc get\r\n");
     writeData(dataToSend);
 }
 
@@ -517,29 +523,34 @@ void MainWindow::initializeDatabase(){
         case 0:
             break;
         case 1:
-            QMessageBox::warning(this, "PICNIC detected", "Database heeft geen locaties\n"
+            QMessageBox::warning(this, "Error", "Database heeft geen locaties\n"
             "Backup locaties worden gebruikt");
             m_database->insertBaseLocations();
             break;
         case 2:
-            QMessageBox::warning(this, "PICNIC detected", "Database heeft geen minigames\n"
+            QMessageBox::warning(this, "Error", "Database heeft geen minigames\n"
             "Backup minigames worden gebruikt");
             m_database->insertBaseMinigames();
             break;
         case 3:
-            QMessageBox::warning(this, "PICNIC detected", "Database heeft geen juiste tabellen\n");
+            QMessageBox::warning(this, "Error", "Database heeft geen juiste tabellen\n");
             m_database->resetDatabase();
             break;
         default:
             break;
     }
 
-    locationModel = new QSqlTableModel(this);
+    locationModel = new QSqlRelationalTableModel(this);
     locationModel->setTable("Locations");
-    locationModel->setEditStrategy(QSqlTableModel::OnFieldChange); 
+    locationModel->setEditStrategy(QSqlTableModel::OnFieldChange);
+    locationModel->setRelation(locationModel->fieldIndex("MG_ID"),
+                               QSqlRelation("Minigames", "MG_ID", "MG_name"));
     locationModel->select();
 
     m_ui->tableLocations->setModel(locationModel);
+    m_ui->tableLocations->setItemDelegate(new QSqlRelationalDelegate(m_ui->tableLocations));
+    m_ui->tableLocations->setColumnHidden(locationModel->fieldIndex("LOC_ID"), true);
     m_ui->tableLocations->resizeColumnsToContents();
+    m_ui->tableLocations->horizontalHeader()->setStretchLastSection(true);
 }
 

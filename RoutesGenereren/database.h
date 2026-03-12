@@ -8,6 +8,18 @@
 #include <QVector>
 #include <QString>
 #include <QVariant>
+#include <vector>
+
+
+struct SDLocations {
+    int x;
+    int y;
+    int mg_type;
+    int trivia_id;
+
+    SDLocations(int64_t x, int64_t y, int mg, int trivia)
+        : x(x), y(y), mg_type(mg), trivia_id(trivia) {}
+};
 
 class Database {
 public:
@@ -22,6 +34,7 @@ public:
     void insertBaseMinigames();
     QVector<QVector<QVariant>> getLocationsWithMinigames();
     int getRouteAmount();
+    std::vector<SDLocations> getRoute(int routeNumber);
     void setJsonPoints(std::vector<Point>& inputPoints);
     void setAllPoints(std::vector<std::tuple<int, int, double, int>>& allPoints);
     void setRoutes(const std::vector<std::vector<int>>& routes);

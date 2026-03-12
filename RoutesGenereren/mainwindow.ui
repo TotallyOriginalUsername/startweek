@@ -103,7 +103,7 @@
        <widget class="QPushButton" name="btnUploadRoute">
         <property name="geometry">
          <rect>
-          <x>20</x>
+          <x>300</x>
           <y>50</y>
           <width>271</width>
           <height>34</height>
@@ -117,7 +117,7 @@
         <property name="geometry">
          <rect>
           <x>300</x>
-          <y>50</y>
+          <y>180</y>
           <width>271</width>
           <height>34</height>
          </rect>
@@ -130,7 +130,7 @@
         <property name="geometry">
          <rect>
           <x>300</x>
-          <y>90</y>
+          <y>140</y>
           <width>271</width>
           <height>34</height>
          </rect>
@@ -142,9 +142,9 @@
        <widget class="QPushButton" name="btnResetAll">
         <property name="geometry">
          <rect>
-          <x>300</x>
-          <y>130</y>
-          <width>271</width>
+          <x>590</x>
+          <y>140</y>
+          <width>171</width>
           <height>34</height>
          </rect>
         </property>
@@ -155,7 +155,7 @@
        <widget class="QPushButton" name="btnUploadTime">
         <property name="geometry">
          <rect>
-          <x>20</x>
+          <x>300</x>
           <y>90</y>
           <width>271</width>
           <height>34</height>
@@ -168,8 +168,8 @@
        <widget class="QPushButton" name="btnUploadTrivia">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>130</y>
+          <x>360</x>
+          <y>350</y>
           <width>271</width>
           <height>34</height>
          </rect>
@@ -182,7 +182,7 @@
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>310</y>
+          <y>140</y>
           <width>131</width>
           <height>34</height>
          </rect>
@@ -195,7 +195,7 @@
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>350</y>
+          <y>180</y>
           <width>131</width>
           <height>34</height>
          </rect>
@@ -207,34 +207,93 @@
        <widget class="QLabel" name="lblScore">
         <property name="geometry">
          <rect>
-          <x>170</x>
-          <y>320</y>
+          <x>160</x>
+          <y>150</y>
           <width>58</width>
           <height>18</height>
          </rect>
         </property>
         <property name="text">
-         <string/>
+         <string>currentScore</string>
         </property>
        </widget>
        <widget class="QLabel" name="lblProgress">
         <property name="geometry">
          <rect>
-          <x>170</x>
-          <y>360</y>
+          <x>160</x>
+          <y>190</y>
           <width>58</width>
           <height>18</height>
          </rect>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string>currentProgress</string>
         </property>
        </widget>
        <widget class="QPushButton" name="btnTestData">
         <property name="geometry">
          <rect>
-          <x>660</x>
+          <x>637</x>
           <y>350</y>
+          <width>111</width>
+          <height>34</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>uploadTestData</string>
+        </property>
+       </widget>
+       <widget class="QTimeEdit" name="timeEdit_start">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>50</y>
+          <width>118</width>
+          <height>32</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QTimeEdit" name="timeEdit_end">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>90</y>
+          <width>118</width>
+          <height>32</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>58</width>
+          <height>18</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Starttijd:</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>58</width>
+          <height>18</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Eindtijd:</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnGetLoc">
+        <property name="geometry">
+         <rect>
+          <x>660</x>
+          <y>310</y>
           <width>88</width>
           <height>34</height>
          </rect>
@@ -251,8 +310,8 @@
        <widget class="QPushButton" name="btnAddLoc">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>90</y>
+          <x>670</x>
+          <y>20</y>
           <width>80</width>
           <height>25</height>
          </rect>
@@ -264,8 +323,8 @@
        <widget class="QPushButton" name="btnRemoveLoc">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>130</y>
+          <x>670</x>
+          <y>50</y>
           <width>80</width>
           <height>25</height>
          </rect>
@@ -279,7 +338,7 @@
          <rect>
           <x>10</x>
           <y>20</y>
-          <width>571</width>
+          <width>641</width>
           <height>371</height>
          </rect>
         </property>
