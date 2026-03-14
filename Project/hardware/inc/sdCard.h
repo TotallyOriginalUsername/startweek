@@ -38,4 +38,7 @@ int16_t sd_get_end_time();
 uint8_t sd_get_locations(struct location_new* locations, size_t size, int* locCount);
 uint8_t sd_set_locations(struct location_new* locations, int locCount);
 
+uint8_t sd_get_trivia_question(struct trivia_question* trivia);
+uint8_t sd_save_trivia_question(struct trivia_question* trivia);
+
 #endif // SDCARD_H

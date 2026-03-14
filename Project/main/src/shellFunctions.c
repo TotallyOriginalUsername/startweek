@@ -17,6 +17,8 @@ LOG_MODULE_REGISTER(shellCMD);
 int globalLocationsCount = 0;
 struct location_new globalLocations[64] = {0};
 
+struct trivia_question globalTrivia = {0};
+
 static int cmd_add_loc(const struct shell *sh, size_t argc, char **argv)
 {
 		globalLocations[globalLocationsCount].lat = atoi(argv[1]);
@@ -193,6 +195,106 @@ static int cmd_set_endtime(const struct shell *sh, size_t argc, char **argv)
 	return 0;
 }
 
+static int cmd_trivia_number(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	globalTrivia.questionNumber = atoi(argv[1]);
+
+	return 0;
+}
+
+static int cmd_trivia_correct(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	globalTrivia.correct = atoi(argv[1]);
+
+	return 0;
+}
+
+static int cmd_trivia_question(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	strncpy(globalTrivia.question, argv[1], sizeof(globalTrivia.question));
+	
+	return 0;
+}
+
+static int cmd_trivia_answer(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	int answerNumber = atoi(argv[1]);
+	switch (answerNumber) {
+		case 0:
+			strncpy(globalTrivia.answerA, argv[2], sizeof(globalTrivia.answerA));
+			break;
+		case 1:
+			strncpy(globalTrivia.answerB, argv[2], sizeof(globalTrivia.answerB));
+			break;
+		case 2:
+			strncpy(globalTrivia.answerC, argv[2], sizeof(globalTrivia.answerC));
+			break;
+		default:
+			shell_print(sh, "Trivia only supports 3 answers\n");
+			break;
+	}
+
+	return 0;
+}
+
+// Clears the shell's trivia, not on the sd
+static int cmd_trivia_clear(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	memset(&globalTrivia, 0, sizeof(globalTrivia));
+
+	return 0;
+}
+
+static int cmd_trivia_save(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	struct trivia_question testStruct = {0};
+	testStruct.questionNumber = globalTrivia.questionNumber;
+
+	sd_save_trivia_question(&globalTrivia);
+	
+	int ret = sd_get_trivia_question(&testStruct);
+	if(ret < 0){
+		shell_print(sh, "Couldn't load trivia");
+	}
+
+	return 0;
+}
+
+static int cmd_trivia_get(const struct shell *sh, size_t argc, char **argv)
+{
+	ARG_UNUSED(argc);
+
+	int ret = 0;
+	struct trivia_question testStruct = {0};
+	testStruct.questionNumber = globalTrivia.questionNumber;
+
+	for(int i = 1; i <=12; i++){
+		testStruct.questionNumber = i;
+		ret = sd_get_trivia_question(&testStruct);
+		if(ret < 0){
+			shell_print(sh, "Couldn't load trivia");
+		}else {
+			shell_print(sh, "Saved nr: %d,correct: %d\nQ: %s\nA: %s\nB: %s\nC: %s", testStruct.questionNumber,
+			testStruct.correct, testStruct.question, testStruct.answerA, testStruct.answerB,
+			testStruct.answerC);
+		}
+	}
+
+	return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(get_commands,
         SHELL_CMD(progress, NULL, "Get progress", cmd_get_progress),
         SHELL_CMD(score, NULL, "Get score", cmd_get_score),
@@ -223,6 +325,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sd_commands,
 
 SHELL_CMD_REGISTER(sd, &sd_commands, "SD commands", NULL);
 
+// Location and Trivia commands are not under the SD command to save characters
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_demo,
 		SHELL_CMD(add,   NULL, "Add location", cmd_add_loc),
 		SHELL_CMD(get,   NULL, "Get location(s)", cmd_get_loc),
@@ -233,3 +336,17 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_demo,
 );
 /* Creating root (level 0) command "demo" */
 SHELL_CMD_REGISTER(loc, &sub_demo, "Demo commands", NULL);
+
+
+SHELL_STATIC_SUBCMD_SET_CREATE(trivia_commands,
+		SHELL_CMD(number, NULL, "Set question number", cmd_trivia_number),
+		SHELL_CMD(correct, NULL, "Set correct answer", cmd_trivia_correct),
+        SHELL_CMD(q, NULL, "Set question text", cmd_trivia_question),
+        SHELL_CMD(a, NULL, "Set answer A/B/C(0/1/2)", cmd_trivia_answer),
+		SHELL_CMD(clear, NULL, "Clear trivia transfer", cmd_trivia_clear),
+        SHELL_CMD(save, NULL, "Save trivia", cmd_trivia_save),
+		SHELL_CMD(get, NULL, "Get current trivia", cmd_trivia_get),
+        SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(tr, &trivia_commands, "Trivia commands", NULL);

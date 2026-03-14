@@ -651,3 +651,65 @@ uint8_t sd_set_locations(struct location_new* locations, int locCount){
 #endif
 	return 0;
 }
+
+uint8_t sd_get_trivia_question(struct trivia_question* trivia){
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    int ret = 0;
+    char file_data_buffer[250];
+	char file_path[24];
+    struct fs_file_t data_filp;
+	snprintf(file_path, sizeof(file_path), "/SD:/%d.txt", trivia->questionNumber);
+
+    fs_file_t_init(&data_filp);
+
+    ret = fs_open(&data_filp, file_path, FS_O_READ);
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return -2;
+	}
+
+	ret = fs_read(&data_filp, file_data_buffer, sizeof(file_data_buffer));
+	fs_close(&data_filp);
+
+	if (sscanf(file_data_buffer, "%hhu,%hhu,%49[^,],%49[^,],%49[^,],%49[^,],", &trivia->questionNumber,
+		&trivia->correct, trivia->question, trivia->answerA, trivia->answerB, trivia->answerC) != 6) {
+			LOG_ERR("Trivia parsing error");
+			return -1;
+		}
+#endif
+	return 0;
+}
+
+uint8_t sd_save_trivia_question(struct trivia_question* trivia){
+		#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+    int ret;
+    char file_data_buffer[250];
+    char file_path[24];
+    struct fs_file_t data_filp;
+	snprintf(file_path, sizeof(file_path), "/SD:/%d.txt", trivia->questionNumber);
+
+    fs_file_t_init(&data_filp);
+
+    ret = fs_open(&data_filp, file_path, FS_O_CREATE | FS_O_RDWR);
+	if (ret) {
+		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
+		return ret;
+	}
+
+	ret = fs_truncate(&data_filp, 0);
+    if (ret) {
+        LOG_ERR("%s -- failed to truncate file (err = %d)\n", __func__, ret);
+        return ret;
+    }
+
+	snprintf(file_data_buffer, sizeof(file_data_buffer), "%hhu,%hhu,%s,%s,%s,%s", trivia->questionNumber,
+		trivia->correct, trivia->question, trivia->answerA, trivia->answerB, trivia->answerC);
+
+	ret = fs_write(&data_filp, file_data_buffer, strlen(file_data_buffer));
+	if(ret < 0){
+		LOG_ERR("Incorrect trivia in trivia savefile\n");
+	}
+	fs_close(&data_filp);
+#endif
+	return 0;
+}
