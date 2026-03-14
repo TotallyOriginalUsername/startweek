@@ -331,43 +331,40 @@ void MainWindow::on_btnResetProgress_clicked()
 
 void MainWindow::on_btnUploadRoute_clicked()
 {
-    QString routeNumber2 = m_ui->comboRouteFiles->currentText();
-    std::vector<SDLocations> route2 = m_database->getRoute(routeNumber2.toInt());
-
     if(m_serial->isOpen()){
-    QString routeNumber = m_ui->comboRouteFiles->currentText();
-    std::vector<SDLocations> route = m_database->getRoute(routeNumber.toInt());
-    int locationAmount = route.size();
-    QByteArray start("loc start\r\n");
-    QByteArray save("loc save\r\n");
-    QByteArray reload("loc reload\r\n");
-    writeData(start);
-    // The hardware's RX ring buffer will be too full if you try to send every location without delays.
-    // waitForBytesWritten doesnt account for the wait on hw side, only for the pc to send everything
-    m_serial->waitForBytesWritten(4000);
-    QThread::msleep(300);
-
-    for(int i = 0; i < locationAmount; i++){
-        QByteArray locAdd = QString("loc add %1 %2 %3 %4\r\n")
-            .arg(route[i].x)
-            .arg(route[i].y)
-            .arg(route[i].mg_type)
-            .arg(route[i].trivia_id)
-            .toUtf8();
-            //qDebug() << locAdd;
-
-        writeData(locAdd);
+        QString routeNumber = m_ui->comboRouteFiles->currentText();
+        std::vector<SDLocations> route = m_database->getRoute(routeNumber.toInt());
+        int locationAmount = route.size();
+        QByteArray start("loc start\r\n");
+        QByteArray save("loc save\r\n");
+        QByteArray reload("loc reload\r\n");
+        writeData(start);
+        // The hardware's RX ring buffer will be too full if you try to send every location without delays.
+        // waitForBytesWritten doesnt account for the wait on hw side, only for the pc to send everything
         m_serial->waitForBytesWritten(4000);
         QThread::msleep(300);
-    }
-    writeData(save);
-    m_serial->waitForBytesWritten(4000);
-    QThread::msleep(300);
-    writeData(reload);
 
-    QMessageBox::information(this, tr("Klaar"),
-        tr("%1 locaties geuploadt naar de koffer")
-        .arg(locationAmount));
+        for(int i = 0; i < locationAmount; i++){
+            QByteArray locAdd = QString("loc add %1 %2 %3 %4\r\n")
+                .arg(route[i].x)
+                .arg(route[i].y)
+                .arg(route[i].mg_type)
+                .arg(route[i].trivia_id)
+                .toUtf8();
+                //qDebug() << locAdd;
+
+            writeData(locAdd);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(300);
+        }
+        writeData(save);
+        m_serial->waitForBytesWritten(4000);
+        QThread::msleep(300);
+        writeData(reload);
+
+        QMessageBox::information(this, tr("Klaar"),
+            tr("%1 locaties geuploadt naar de koffer")
+            .arg(locationAmount));
     }
     else {
         QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
@@ -400,7 +397,51 @@ void MainWindow::on_btnUploadTime_clicked(){
 }
 
 void MainWindow::on_btnUploadTrivia_clicked(){
-    qDebug() << "Not implemented yet";
+    if(m_serial->isOpen()){
+        std::vector<SDTrivia> triviaList = m_database->getTrivia();
+
+        for(const auto &trivia: triviaList){
+            QByteArray clear = QString("tr clear\r\n").toUtf8();
+            writeData(clear);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(30);
+            QByteArray triviaID = QString("tr number %1\r\n").arg(trivia.questionId).toUtf8();
+            writeData(triviaID);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(30);
+            QByteArray triviaAnswer = QString("tr correct %1\r\n").arg(trivia.correct).toUtf8();
+            writeData(triviaAnswer);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(30);
+            QByteArray triviaQuestion = QString("tr q \"%1\"\r\n").arg(trivia.question).toUtf8();
+            writeData(triviaQuestion);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(300);
+            QByteArray triviaAnswer0 = QString("tr a 0 \"%1\"\r\n").arg(trivia.answer1).toUtf8();
+            writeData(triviaAnswer0);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(300);
+            QByteArray triviaAnswer1 = QString("tr a 1 \"%1\"\r\n").arg(trivia.answer2).toUtf8();
+            writeData(triviaAnswer1);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(300);
+            // Add a , after the last answer for the regex on the hw side
+            QByteArray triviaAnswer2 = QString("tr a 2 \"%1,\"\r\n").arg(trivia.answer3).toUtf8();
+            writeData(triviaAnswer2);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(300);
+            QByteArray save = QString("tr save\r\n").toUtf8();
+            writeData(save);
+            m_serial->waitForBytesWritten(4000);
+            QThread::msleep(100);
+        }
+
+        QMessageBox::information(this, tr("Klaar"),
+            tr("trivia geuploadt naar de koffer"));
+    }
+    else {
+        QMessageBox::warning(this, tr("Error!"), tr("Open eerst een verbinding met de koffer"));
+    }
 }
 
 void MainWindow::on_btnReadScore_clicked()

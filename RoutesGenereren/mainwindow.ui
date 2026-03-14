@@ -292,14 +292,14 @@
        <widget class="QPushButton" name="btnGetLoc">
         <property name="geometry">
          <rect>
-          <x>660</x>
+          <x>637</x>
           <y>310</y>
-          <width>88</width>
+          <width>111</width>
           <height>34</height>
          </rect>
         </property>
         <property name="text">
-         <string>PushButton</string>
+         <string>getCurrentLoc</string>
         </property>
        </widget>
       </widget>

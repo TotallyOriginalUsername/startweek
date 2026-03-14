@@ -24,12 +24,21 @@ bool Database::createTables() {
     QSqlQuery query;
     bool success = true;
 
+    success &= query.exec("CREATE TABLE IF NOT EXISTS Trivia ("
+                          "Question_ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+                          "Correct INTEGER,"
+                          "Question TEXT, "
+                          "Answer1 TEXT, "
+                          "Answer2 TEXT, "
+                          "Answer3 TEXT)");
+
     success &= query.exec("CREATE TABLE IF NOT EXISTS Minigames ("
                           "MG_ID INTEGER, "
                           "MG_TYPE INTEGER, "
                           "MG_name TEXT, "
                           "Question_ID INTEGER, "
-                          "PRIMARY KEY(MG_ID))");
+                          "PRIMARY KEY(MG_ID), "
+                          "FOREIGN KEY(Question_ID) REFERENCES Trivia(Question_ID) ON DELETE SET NULL)");
 
     success &= query.exec("CREATE TABLE IF NOT EXISTS Locations ("
                           "LOC_ID INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -81,6 +90,21 @@ void Database::insertMinigame(int mgId, int mgType, const QString &mgName, int q
     }
 }
 
+void Database::insertTrivia(int correct, const QString &question, const QString &answer1,
+    const QString &answer2, const QString &answer3){
+    QSqlQuery query;
+    query.prepare("INSERT INTO Trivia (Correct, Question, Answer1, Answer2, Answer3) VALUES (?, ?, ?, ?, ?)");
+    query.addBindValue(correct);
+    query.addBindValue(question);
+    query.addBindValue(answer1);
+    query.addBindValue(answer2);
+    query.addBindValue(answer3);
+
+    if (!query.exec()) {
+        qWarning() << "Failed to insert trivia:" << query.lastError().text();
+    }
+}
+
 void Database::insertBaseLocations(){
     insertLocation("Avans", 51688573, 5287210, 2.0, 0);
     insertLocation("Jan de Groot", 51690224, 5296625, 1.5, 1);
@@ -118,18 +142,18 @@ void Database::insertBaseLocations(){
 }
 
 void Database::insertBaseMinigames(){
-    insertMinigame(0, 0, "trivia vraag 1", 0);
-    insertMinigame(1, 0, "trivia vraag 2", 1);
-    insertMinigame(2, 0, "trivia vraag 3", 2);
-    insertMinigame(3, 0, "trivia vraag 4", 3);
-    insertMinigame(4, 0, "trivia vraag 5", 4);
-    insertMinigame(5, 0, "trivia vraag 6", 5);
-    insertMinigame(6, 0, "trivia vraag 7", 6);
-    insertMinigame(7, 0, "trivia vraag 8", 7);
-    insertMinigame(8, 0, "trivia vraag 9", 8);
-    insertMinigame(9, 0, "trivia vraag 10", 9);
-    insertMinigame(10, 0, "trivia vraag 11", 10);
-    insertMinigame(11, 0, "trivia vraag 12", 11);
+    insertMinigame(0, 0, "trivia vraag 1", 1);
+    insertMinigame(1, 0, "trivia vraag 2", 2);
+    insertMinigame(2, 0, "trivia vraag 3", 3);
+    insertMinigame(3, 0, "trivia vraag 4", 4);
+    insertMinigame(4, 0, "trivia vraag 5", 5);
+    insertMinigame(5, 0, "trivia vraag 6", 6);
+    insertMinigame(6, 0, "trivia vraag 7", 7);
+    insertMinigame(7, 0, "trivia vraag 8", 8);
+    insertMinigame(8, 0, "trivia vraag 9", 9);
+    insertMinigame(9, 0, "trivia vraag 10", 10);
+    insertMinigame(10, 0, "trivia vraag 11", 11);
+    insertMinigame(11, 0, "trivia vraag 12", 12);
     insertMinigame(12, 1, "Snake", 0);
     insertMinigame(13, 2, "Simon Says", 0);
     insertMinigame(14, 3, "Kopieer de vorm", 0);
@@ -142,6 +166,21 @@ void Database::insertBaseMinigames(){
     insertMinigame(21, 10, "Whack a Mole", 0);
     insertMinigame(22, 11, "Space invaders - knoppen", 0);
     insertMinigame(23, 12, "Space invaders - kantel", 0);
+}
+
+void Database::insertBaseTrivia(){
+    insertTrivia(1, "Hoe heet DenBosch met carnaval?", "A: Kielegat", "B: Oeteldonk", "C: Lampegat");
+    insertTrivia(2,"Wie bedacht de Bossche Bol?","A: Een Duitser","B: De burgermeester van Breda","C: Een Hagenees");
+    insertTrivia(1,"Hoe lang was de Binnendieze?","A: 19km","B: 12km","C: 37m");
+    insertTrivia(0,"Hoeveel studenten telt Avans?","A: Ongeveer 35 duizend","B: Ongeveer 5 duizend","C: Ongeveer 50 duizend");
+    insertTrivia(2,"Welk antwoord is goed?","A: B","B: A","C: C");
+    insertTrivia(0,"Hoeveel mensen maakte dit spel?","A: 8 verschillende","B: 3","C: 1 hele slimme");
+    insertTrivia(1,"Wat is het dier op DE fontein?","A: een adelaar","B: een draak","C: een student");
+    insertTrivia(1,"Wat is waar?","A: R is I keer U","B: U is I keer R","C: I is R keer U");
+    insertTrivia(2,"Waar kan je geen drank kopen?","A: Kees","B: Roels","C: De druif");
+    insertTrivia(2, "Wat is de Moriaan?", "A: Een bekende schilder", "B: Een oud lokaal lekkernij", "C: Een oud gebouw");
+    insertTrivia(0,"Waarom was er daksubsidie?","A: De stadsbrand van 1463","B: Voordelig voor de rijke","C: De 80 jarige oorlog");
+    insertTrivia(0,"Hoe oud is de stadsmuur?","A: Uit de 13e eeuw","B: Uit de 12e eeuw","C: Uit de 9e eeuw");
 }
 
 QVector<QVector<QVariant>> Database::getLocationsWithMinigames() {
@@ -191,14 +230,37 @@ std::vector<SDLocations> Database::getRoute(int routeNumber){
         int mgType = query.value(2).toInt();
         int questionId = query.value(3).toInt();
 
-        qDebug() << "X:" << x << "Y:" << y << "MG ID:" << mgType << "Tri ID:" << questionId;
+        //qDebug() << "X:" << x << "Y:" << y << "MG ID:" << mgType << "Tri ID:" << questionId;
 
+        //reverse order functionality one day?
         //results.emplace(results.begin(),query.value(0).toInt(), 
         //query.value(1).toInt(),query.value(2).toInt(),query.value(3).toInt());
         results.emplace_back(x, y, mgType, questionId);
     }
         
     return results;
+}
+
+std::vector<SDTrivia> Database::getTrivia()
+{
+    std::vector<SDTrivia> triviaList;
+
+    QSqlQuery query("SELECT Question_ID, Correct, Question, Answer1, Answer2, Answer3 FROM Trivia");
+
+    while(query.next()){
+        SDTrivia trivia(
+            query.value(0).toInt(),
+            query.value(1).toInt(),
+            query.value(2).toString(),
+            query.value(3).toString(),
+            query.value(4).toString(),
+            query.value(5).toString()
+        );
+
+        triviaList.push_back(trivia);
+    }
+
+    return triviaList;
 }
 
 void Database::setJsonPoints(std::vector<Point>& inputPoints) {
@@ -296,6 +358,7 @@ void Database::resetDatabase(){
     }
 
     createTables();
+    insertBaseTrivia();
     insertBaseLocations();
     insertBaseMinigames();
 }
