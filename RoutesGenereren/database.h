@@ -43,7 +43,7 @@ public:
     bool createTables();
     void clearRoutes();
     void insertLocation(const QString &locationName, int x, int y, double cost, int mgId);
-    void insertMinigame(int mgId, int mgType, const QString &mgName, int questionId);
+    void insertMinigame(int mgType, const QString &mgName, int questionId);
     void insertTrivia(int correct, const QString &question, const QString &answer1, const QString &answer2, const QString &answer3);
     void insertBaseLocations();
     void insertBaseMinigames();

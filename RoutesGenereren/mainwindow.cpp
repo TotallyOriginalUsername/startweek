@@ -27,6 +27,8 @@
 #include <qdatetime.h>
 #include <qdebug.h>
 #include <qglobal.h>
+#include <qsqlrelationaltablemodel.h>
+#include <vector>
 
 static constexpr std::chrono::seconds kWriteTimeout = std::chrono::seconds{5};
 
@@ -525,6 +527,75 @@ void MainWindow::on_btnAddLoc_clicked()
     locationModel->submitAll();
 }
 
+void MainWindow::on_btnAddMinigame_clicked()
+{
+    bool ok = false;
+
+    int mg_type = QInputDialog::getInt(this, "Nieuwe minigame",
+                                 "MG Type:", 0,
+                                 0, 255, 1, &ok);
+    if (!ok) {
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
+        return;
+    }
+
+    QString name = QInputDialog::getText(this, "Nieuwe minigame",
+                                         "Naam:", QLineEdit::Normal,
+                                         "", &ok);
+    if (!ok || name.isEmpty()){
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldige naam op."));
+        return;
+    }
+
+    int row = minigameModel->rowCount();
+    minigameModel->insertRow(row);
+
+    minigameModel->setData(minigameModel->index(row, 1), mg_type);
+    minigameModel->setData(minigameModel->index(row, 2), name);
+
+    minigameModel->submitAll();
+    //refresh locations, otherwise it doesn't see the newly added minigame
+    locationModel->select();
+}
+
+void MainWindow::on_btnAddTrivia_clicked()
+{
+    bool ok = false;
+    std::vector<QString> inputQuestions = {"Vraag", "Antwoord A", "Antwoord B", "Antwoord C"};
+    QString inputAnswers[4] = {};
+
+    int correct_answer = QInputDialog::getInt(this, "Nieuwe trivia",
+                                 "Antwoord (0-2):", 0,
+                                 0, 2, 1, &ok);
+    if (!ok) {
+        QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldig getal op."));
+        return;
+    }
+
+    for(int i = 0; i < 4; i++){
+        inputAnswers[i] = QInputDialog::getText(this, "Nieuwe trivia",
+                                         inputQuestions[i], QLineEdit::Normal,
+                                         "", &ok);
+        if (!ok || inputAnswers[i].isEmpty() || (inputAnswers[i].size() > 49)){
+            QMessageBox::warning(this, tr("Ongeldige invoer"), tr("Geef een geldige invoer."));
+            return;
+        }
+    }
+
+    int row = triviaModel->rowCount();
+    triviaModel->insertRow(row);
+
+    triviaModel->setData(triviaModel->index(row, 1), correct_answer);
+    triviaModel->setData(triviaModel->index(row, 2), inputAnswers[0]);
+    triviaModel->setData(triviaModel->index(row, 3), inputAnswers[1]);
+    triviaModel->setData(triviaModel->index(row, 4), inputAnswers[2]);
+    triviaModel->setData(triviaModel->index(row, 5), inputAnswers[3]);
+
+    triviaModel->submitAll();
+    //refresh minigame, otherwise it doesn't see the newly added trivia
+    minigameModel->select();
+}
+
 void MainWindow::on_btnRemoveLoc_clicked()
 {
     auto *view = m_ui->tableLocations;
@@ -538,6 +609,34 @@ void MainWindow::on_btnRemoveLoc_clicked()
     locationModel->submitAll();
     // refresh the model, otherwise an empty ! row remains
     locationModel->select();
+}
+
+void MainWindow::on_btnRemoveMinigame_clicked()
+{
+    auto *view = m_ui->tableMinigames;
+    QModelIndex index = view->currentIndex();
+    if (!index.isValid()){
+        QMessageBox::warning(this, tr("Verwijderen"), tr("Selecteer eerst een rij."));
+            return;
+    }
+
+    minigameModel->removeRow(index.row());
+    minigameModel->submitAll();
+    minigameModel->select();
+}
+
+void MainWindow::on_btnRemoveTrivia_clicked()
+{
+    auto *view = m_ui->tableTrivia;
+    QModelIndex index = view->currentIndex();
+    if (!index.isValid()){
+        QMessageBox::warning(this, tr("Verwijderen"), tr("Selecteer eerst een rij."));
+            return;
+    }
+
+    triviaModel->removeRow(index.row());
+    triviaModel->submitAll();
+    triviaModel->select();
 }
 
 void MainWindow::initializeDatabase(){
@@ -593,5 +692,34 @@ void MainWindow::initializeDatabase(){
     m_ui->tableLocations->setColumnHidden(locationModel->fieldIndex("LOC_ID"), true);
     m_ui->tableLocations->resizeColumnsToContents();
     m_ui->tableLocations->horizontalHeader()->setStretchLastSection(true);
+
+    minigameModel = new QSqlRelationalTableModel(this);
+    minigameModel->setTable("Minigames");
+    minigameModel->setEditStrategy(QSqlTableModel::OnFieldChange);
+    minigameModel->setRelation(minigameModel->fieldIndex("Question_ID"),
+                        QSqlRelation("Trivia", "Question_ID", "Question"));
+    minigameModel->setJoinMode(QSqlRelationalTableModel::LeftJoin);
+
+    // to allow removing trivia questions
+    auto* questions = minigameModel->relationModel(minigameModel->fieldIndex("Question_ID"));
+    questions->insertRow(0);
+    minigameModel->select();
+
+    m_ui->tableMinigames->setModel(minigameModel);
+    m_ui->tableMinigames->setItemDelegate(new QSqlRelationalDelegate(m_ui->tableMinigames));
+    m_ui->tableMinigames->setColumnHidden(minigameModel->fieldIndex("MG_ID"), true);
+    m_ui->tableMinigames->resizeColumnsToContents();
+    m_ui->tableMinigames->horizontalHeader()->setStretchLastSection(true);
+
+    triviaModel = new QSqlTableModel(this);
+    triviaModel->setTable("Trivia");
+    triviaModel->setEditStrategy(QSqlTableModel::OnFieldChange);
+
+    triviaModel->select();
+
+    m_ui->tableTrivia->setModel(triviaModel);
+    m_ui->tableTrivia->setColumnHidden(triviaModel->fieldIndex("Question_ID"), true);
+    m_ui->tableTrivia->resizeColumnsToContents();
+    m_ui->tableTrivia->horizontalHeader()->setStretchLastSection(true);
 }
 

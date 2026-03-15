@@ -33,11 +33,10 @@ bool Database::createTables() {
                           "Answer3 TEXT)");
 
     success &= query.exec("CREATE TABLE IF NOT EXISTS Minigames ("
-                          "MG_ID INTEGER, "
+                          "MG_ID INTEGER PRIMARY KEY AUTOINCREMENT, "
                           "MG_TYPE INTEGER, "
                           "MG_name TEXT, "
                           "Question_ID INTEGER, "
-                          "PRIMARY KEY(MG_ID), "
                           "FOREIGN KEY(Question_ID) REFERENCES Trivia(Question_ID) ON DELETE SET NULL)");
 
     success &= query.exec("CREATE TABLE IF NOT EXISTS Locations ("
@@ -78,10 +77,9 @@ void Database::insertLocation(const QString &locationName, int x, int y, double 
     }
 }
 
-void Database::insertMinigame(int mgId, int mgType, const QString &mgName, int questionId) {
+void Database::insertMinigame(int mgType, const QString &mgName, int questionId) {
     QSqlQuery query;
-    query.prepare("INSERT INTO Minigames (MG_ID, MG_TYPE, MG_name, Question_ID) VALUES (?, ?, ?, ?)");
-    query.addBindValue(mgId);
+    query.prepare("INSERT INTO Minigames (MG_TYPE, MG_name, Question_ID) VALUES (?, ?, ?)");
     query.addBindValue(mgType);
     query.addBindValue(mgName);
     query.addBindValue(questionId);
@@ -142,30 +140,30 @@ void Database::insertBaseLocations(){
 }
 
 void Database::insertBaseMinigames(){
-    insertMinigame(0, 0, "trivia vraag 1", 1);
-    insertMinigame(1, 0, "trivia vraag 2", 2);
-    insertMinigame(2, 0, "trivia vraag 3", 3);
-    insertMinigame(3, 0, "trivia vraag 4", 4);
-    insertMinigame(4, 0, "trivia vraag 5", 5);
-    insertMinigame(5, 0, "trivia vraag 6", 6);
-    insertMinigame(6, 0, "trivia vraag 7", 7);
-    insertMinigame(7, 0, "trivia vraag 8", 8);
-    insertMinigame(8, 0, "trivia vraag 9", 9);
-    insertMinigame(9, 0, "trivia vraag 10", 10);
-    insertMinigame(10, 0, "trivia vraag 11", 11);
-    insertMinigame(11, 0, "trivia vraag 12", 12);
-    insertMinigame(12, 1, "Snake", 0);
-    insertMinigame(13, 2, "Simon Says", 0);
-    insertMinigame(14, 3, "Kopieer de vorm", 0);
-    insertMinigame(15, 4, "Pokemon", 0);
-    insertMinigame(16, 5, "Vang de rode ballen", 0);
-    insertMinigame(17, 6, "Timer minigame", 0);
-    insertMinigame(18, 7, "Volg de rode lijn", 0);
-    insertMinigame(19, 8, "10 Seconden", 0);
-    insertMinigame(20, 9, "Hoger of lager", 0);
-    insertMinigame(21, 10, "Whack a Mole", 0);
-    insertMinigame(22, 11, "Space invaders - knoppen", 0);
-    insertMinigame(23, 12, "Space invaders - kantel", 0);
+    insertMinigame(0, "trivia vraag 1", 1);
+    insertMinigame(0, "trivia vraag 2", 2);
+    insertMinigame(0, "trivia vraag 3", 3);
+    insertMinigame(0, "trivia vraag 4", 4);
+    insertMinigame(0, "trivia vraag 5", 5);
+    insertMinigame(0, "trivia vraag 6", 6);
+    insertMinigame(0, "trivia vraag 7", 7);
+    insertMinigame(0, "trivia vraag 8", 8);
+    insertMinigame(0, "trivia vraag 9", 9);
+    insertMinigame(0, "trivia vraag 10", 10);
+    insertMinigame(0, "trivia vraag 11", 11);
+    insertMinigame(0, "trivia vraag 12", 12);
+    insertMinigame(1, "Snake", 0);
+    insertMinigame(2, "Simon Says", 0);
+    insertMinigame(3, "Kopieer de vorm", 0);
+    insertMinigame(4, "Pokemon", 0);
+    insertMinigame(5, "Vang de rode ballen", 0);
+    insertMinigame(6, "Timer minigame", 0);
+    insertMinigame(7, "Volg de rode lijn", 0);
+    insertMinigame(8, "10 Seconden", 0);
+    insertMinigame(9, "Hoger of lager", 0);
+    insertMinigame(10, "Whack a Mole", 0);
+    insertMinigame(11, "Space invaders - knoppen", 0);
+    insertMinigame(12, "Space invaders - kantel", 0);
 }
 
 void Database::insertBaseTrivia(){

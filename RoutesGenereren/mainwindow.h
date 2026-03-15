@@ -75,7 +75,11 @@ private slots:
     void on_btnUploadTrivia_clicked();
 
     void on_btnAddLoc_clicked();
+    void on_btnAddMinigame_clicked();
+    void on_btnAddTrivia_clicked();
     void on_btnRemoveLoc_clicked();
+    void on_btnRemoveMinigame_clicked();
+    void on_btnRemoveTrivia_clicked();
 
 private:
     void initActionsConnections();
@@ -104,6 +108,8 @@ private:
     Database* m_database = nullptr;
     QString m_currentDbPath;
     QSqlRelationalTableModel *locationModel;
+    QSqlRelationalTableModel* minigameModel;
+    QSqlTableModel* triviaModel;
 };
 
 #endif // MAINWINDOW_H
