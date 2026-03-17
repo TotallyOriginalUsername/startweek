@@ -4,4 +4,12 @@ config TESTMODE
     bool "Test games manually"
     default n
 
+config NOGPSMODE
+    bool "Test without GPS functionality"
+    default n
+
+config NOTIMEMODE
+    bool "Test without time functionality"
+    default n
+
 source "Kconfig.zephyr"
