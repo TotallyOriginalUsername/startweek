@@ -445,9 +445,9 @@
 		lcddisplayd2 = &LCD_Display_D2;
 		lcddisplayd1 = &LCD_Display_D1;
 		lcddisplayd0 = &LCD_Display_D0;
-		buzzer0=&buzzer0;
 		buzzer1=&buzzer1;
 		buzzer2=&buzzer2;
+		buzzer3=&buzzer3;
 		3dcompassdataready = &data_ready_3d_compass;
 		3dcompassintterupt = &interupt_3d_compass;
 		magnetometer=&magnetometer;
@@ -462,15 +462,15 @@
 	pwmdevs {
 		compatible = "pwm-leds";
 		status = "okay";
-		buzzer0: buzzer_pwm1 {
+		buzzer1: buzzer_pwm1 {
 			pwms = 	<&pwm1 2 0 PWM_POLARITY_NORMAL>;
 			status = "okay";
 		};
-		buzzer1: buzzer_pwm2 {
+		buzzer2: buzzer_pwm2 {
 			pwms = 	<&pwm2 3 0 PWM_POLARITY_NORMAL>;
 			status = "okay";
 		};
-		buzzer2: buzzer_pwm3 {
+		buzzer3: buzzer_pwm3 {
 			pwms = 	<&pwm3 1 0 PWM_POLARITY_NORMAL>;
 			status = "okay";
 		};
