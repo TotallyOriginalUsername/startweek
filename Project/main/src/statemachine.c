@@ -20,6 +20,7 @@
 #include "minigame12.h"
 #include "trivia.h"
 
+#include <stdbool.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
@@ -32,6 +33,7 @@ LOG_MODULE_REGISTER(statemachine);
 
 typedef enum {init_state, idle_state, end_game_state, exit_state, mg_state, trivia_state} statemachineStates;
 static int16_t end_time;
+static bool firstTimeMG = true;
 
 void getMgThreads(char*** names, unsigned* amount, int mgID){
 	switch(mgID){
@@ -146,6 +148,7 @@ void idle_stateFunction(statemachineStates* next_state, int* mgID, uint8_t* triv
 void mg_stateFunction(statemachineStates* next_state, int mgID) {
 	LOG_INF("Minigame state\n");
 	int score = 0;
+	bool replayUsed = false;
 
 	char **names = NULL;
 	unsigned amount = 0;
@@ -194,8 +197,26 @@ void mg_stateFunction(statemachineStates* next_state, int mgID) {
     }
 
 	disableThreads(names, amount);
-	sd_add_score(score);
-	show_mg_score(score);
+
+	// replay the minigame if the score was below 500
+	if((score < 500) && (firstTimeMG == true)){
+		firstTimeMG = false;
+		replayUsed = true;
+		score = 0;
+		lcdEnable();
+		lcdStringWrite("Score was onder de 500");
+		k_msleep(2000);
+		lcdStringWrite("Spel wordt opnieuw gestart");
+		k_msleep(2000);
+		lcdDisable();
+		mg_stateFunction(next_state, mgID);
+		firstTimeMG = true;
+	}
+
+	if(!replayUsed){
+		sd_add_score(score);
+		show_mg_score(score);
+	}
 
 	*next_state = idle_state;
 }
@@ -218,26 +239,17 @@ void trivia_stateFunction(statemachineStates* next_state, uint8_t trivia_ID) {
 	*next_state = idle_state;
 }
 
-void end_game_stateFunction(statemachineStates* next_state)
-{
+void exit_stateFunction(statemachineStates* next_state) {
 	LOG_INF("End game state");
 
 	char **names;
 	unsigned amount;
-	getMg10Threads(&names, &amount);
+	getEndGameThreads(&names, &amount);
 	enableThreads(names, amount);
 
 	playEndGame();
 
 	disableThreads(names, amount);
-
-	*next_state = exit_state;
-}
-
-void exit_stateFunction(statemachineStates* next_state) {
-	LOG_INF("Exit state");
-	disableAllThreads(); // Shouldn't be required, but just to be sure
-	*next_state = exit_state;
 }
 
 bool check_end_time_reached() {
@@ -279,9 +291,6 @@ void startStatemachine() {
 				break;
 			case trivia_state:
 				trivia_stateFunction(&current_state, trivia_ID);
-				break;
-			case end_game_state:
-				end_game_stateFunction(&current_state);
 				break;
 			case exit_state:
 				exit_stateFunction(&current_state);
