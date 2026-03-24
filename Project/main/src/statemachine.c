@@ -1,5 +1,6 @@
 // Includes: own header file, hardware headers, minigame headers, framework headers, system headers (sorted alpabetically)
 #include "statemachine.h"
+#include "devMode.h"
 #include "threads.h"
 #include "sdCard.h"
 #include "gps.h"
@@ -31,9 +32,14 @@
 
 LOG_MODULE_REGISTER(statemachine);
 
-typedef enum {init_state, idle_state, end_game_state, exit_state, mg_state, trivia_state} statemachineStates;
+typedef enum {init_state, idle_state, devmode_state , exit_state, mg_state, trivia_state} statemachineStates;
 static int16_t end_time;
 static bool firstTimeMG = true;
+#if defined(CONFIG_TESTMODE)
+static bool devModeOn = true;
+#else
+static bool devModeOn = false;
+#endif
 
 void getMgThreads(char*** names, unsigned* amount, int mgID){
 	switch(mgID){
@@ -92,6 +98,9 @@ void init_stateFunction(statemachineStates* next_state) {
 		}
 	}
 	initialize();
+	reloadLocations();
+	reloadProgress();
+
 	Startupdelay = 0;
 #if !defined(CONFIG_TESTMODE) && !defined(CONFIG_NOTIMEMODE)
 	// check if current time is the same as the start time
@@ -118,8 +127,13 @@ void init_stateFunction(statemachineStates* next_state) {
 
 	end_time = sd_get_end_time();
 #endif
-	LOG_INF("Going to idle\n");
-	*next_state = idle_state;
+	if (devModeOn) {
+		LOG_INF("init to dev\n");
+		*next_state = devmode_state;
+	} else {
+		LOG_INF("init to idle\n");
+		*next_state = idle_state;
+	}
 }
 
 void idle_stateFunction(statemachineStates* next_state, int* mgID, uint8_t* trivia_ID) {
@@ -128,7 +142,7 @@ void idle_stateFunction(statemachineStates* next_state, int* mgID, uint8_t* triv
 	unsigned amount;
 	getIdleThreads(&names, &amount);
 	enableThreads(names, amount);
-	int ret = playIdle(trivia_ID);
+	int ret = playIdle(trivia_ID, &devModeOn);
 	disableThreads(names, amount);
 
 	if (ret < -1) {
@@ -137,8 +151,32 @@ void idle_stateFunction(statemachineStates* next_state, int* mgID, uint8_t* triv
 	} else if (ret == -1) {
 		LOG_INF("Going to exit state\n");
 		*next_state = exit_state;
-	}else if(ret == 0){ 
+	} else if(devModeOn){
+		LOG_INF("Going to dev state\n");
+		*next_state = devmode_state;
+	} else if(ret == 0){
 		*next_state = trivia_state;
+	} else {
+		*next_state = mg_state;
+		*mgID = ret;
+	}
+}
+
+void devmode_stateFunction(statemachineStates* next_state, int* mgID) {
+	LOG_INF("Developer state\n");
+	char **names;
+	unsigned amount;
+	getIdleThreads(&names, &amount);
+	enableThreads(names, amount);
+	int ret = playDevMode(&devModeOn);
+	disableThreads(names, amount);
+
+	if (ret < -1) {
+		LOG_ERR("Error in dev state\n");
+		*next_state = 0;
+	} else if (ret == -1) {
+		LOG_INF("Going back to idle state\n");
+		*next_state = idle_state;
 	} else {
 		*next_state = mg_state;
 		*mgID = ret;
@@ -198,43 +236,52 @@ void mg_stateFunction(statemachineStates* next_state, int mgID) {
 
 	disableThreads(names, amount);
 
-	// replay the minigame if the score was below 500
-	if((score < 500) && (firstTimeMG == true)){
-		firstTimeMG = false;
-		replayUsed = true;
-		score = 0;
-		lcdEnable();
-		lcdStringWrite("Score was onder de 500");
-		k_msleep(2000);
-		lcdStringWrite("Spel wordt opnieuw gestart");
-		k_msleep(2000);
-		lcdDisable();
-		mg_stateFunction(next_state, mgID);
-		firstTimeMG = true;
+	if (!devModeOn) {
+//skip replaying game functionality
+#if defined(CONFIG_GITGUD)
+	firstTimeMG = false;
+#endif
+		// replay the minigame if the score was below 500
+		if((score < 500) && (firstTimeMG == true)){
+			firstTimeMG = false;
+			replayUsed = true;
+			score = 0;
+			lcdEnable();
+			lcdStringWrite("Score was onder de 500");
+			k_msleep(2000);
+			lcdStringWrite("Spel wordt opnieuw gestart");
+			k_msleep(2000);
+			lcdDisable();
+			mg_stateFunction(next_state, mgID);
+			firstTimeMG = true;
+		}
+		if(!replayUsed){
+			sd_add_score(score);
+			show_mg_score(score);
+		}
+		*next_state = idle_state;
+	} else {
+		*next_state = devmode_state;
 	}
-
-	if(!replayUsed){
-		sd_add_score(score);
-		show_mg_score(score);
-	}
-
-	*next_state = idle_state;
 }
 
 void trivia_stateFunction(statemachineStates* next_state, uint8_t trivia_ID) {
 	LOG_INF("Trivia\n");
-	int score = 0;
+	// Currently locations with no minigame or trivia have a minigame and trivia ID of 0
+	// Those should be skipped from showing a trivia question as there is none
+	if(trivia_ID != 0){
+		int score = 0;
+		char **names;
+		unsigned amount;
+		getTriviaThreads(&names, &amount);
+		enableThreads(names, amount);
 
-	char **names;
-	unsigned amount;
-	getTriviaThreads(&names, &amount);
-	enableThreads(names, amount);
+		score = playTrivia(trivia_ID);
 
-	score = playTrivia(trivia_ID);
-
-	disableThreads(names, amount);
-	sd_add_score(score);
-	show_mg_score(score);
+		disableThreads(names, amount);
+		sd_add_score(score);
+		show_mg_score(score);
+	}
 
 	*next_state = idle_state;
 }
@@ -247,9 +294,15 @@ void exit_stateFunction(statemachineStates* next_state) {
 	getEndGameThreads(&names, &amount);
 	enableThreads(names, amount);
 
-	playEndGame();
+	playEndGame(&devModeOn);
 
 	disableThreads(names, amount);
+	if(devModeOn){
+		LOG_INF("Going to dev state\n");
+		*next_state = devmode_state;
+	} else {
+		*next_state = idle_state;
+	}
 }
 
 bool check_end_time_reached() {
@@ -285,6 +338,9 @@ void startStatemachine() {
 				break;
 			case idle_state:
 				idle_stateFunction(&current_state, &mgID, &trivia_ID);
+				break;
+			case devmode_state:
+				devmode_stateFunction(&current_state, &mgID);
 				break;
 			case mg_state:
 				mg_stateFunction(&current_state, mgID);

@@ -191,7 +191,7 @@ int sd_clear_score(){
     struct fs_file_t data_filp;
 
     fs_file_t_init(&data_filp);
-    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_RDWR);
+    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_CREATE | FS_O_RDWR);
     if (ret) {
         LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
         return ret;
@@ -259,7 +259,7 @@ int sd_set_score(int score){
 
     fs_file_t_init(&data_filp);
 
-    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_WRITE);
+    ret = fs_open(&data_filp, "/SD:/score.txt", FS_O_CREATE | FS_O_RDWR);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
 		return ret;
@@ -289,7 +289,7 @@ int sd_clear_progress(){
     struct fs_file_t data_filp;
 
     fs_file_t_init(&data_filp);
-    ret = fs_open(&data_filp, "/SD:/progress.txt", FS_O_RDWR);
+    ret = fs_open(&data_filp, "/SD:/progress.txt", FS_O_CREATE | FS_O_RDWR);
     if (ret) {
         LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
         return ret;
@@ -468,7 +468,7 @@ int sd_set_start_time(int16_t time){
 
     fs_file_t_init(&data_filp);
 
-    ret = fs_open(&data_filp, "/SD:/start.txt", FS_O_WRITE);
+    ret = fs_open(&data_filp, "/SD:/start.txt", FS_O_CREATE | FS_O_RDWR);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
 		return ret;
@@ -492,7 +492,7 @@ int sd_set_end_time(int16_t time){
 
     fs_file_t_init(&data_filp);
 
-    ret = fs_open(&data_filp, "/SD:/end.txt", FS_O_WRITE);
+    ret = fs_open(&data_filp, "/SD:/end.txt", FS_O_CREATE | FS_O_RDWR);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
 		return ret;
@@ -626,7 +626,7 @@ uint8_t sd_set_locations(struct location_new* locations, int locCount){
 
     fs_file_t_init(&data_filp);
 
-    ret = fs_open(&data_filp, "/SD:/test.txt", FS_O_RDWR);
+    ret = fs_open(&data_filp, "/SD:/test.txt", FS_O_CREATE | FS_O_RDWR);
 	if (ret) {
 		LOG_ERR("%s -- failed to open file (err = %d)\n", __func__, ret);
 		return ret;

@@ -29,7 +29,7 @@ void getEndGameThreads(char ***names, unsigned *amount) {
     *amount = endGameThreadCount;
 }
 
-void playEndGame()
+void playEndGame(bool* devModeOn)
 {
     int score = 0;
     char score_string[16];
@@ -54,6 +54,7 @@ void playEndGame()
 		}
 		native_loop();
     }
+    *devModeOn = true;
     lcdClear();
 	lcdDisable();
 }

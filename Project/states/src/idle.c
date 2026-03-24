@@ -10,6 +10,7 @@
 #include "locations.h"
 #include "helperFunctions.h"
 #include "zephyr/sys/printk.h"
+#include <stdint.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
@@ -20,13 +21,8 @@ LOG_MODULE_REGISTER(idle);
 #define GAMES_AMOUNT 10
 #define NR_OF_LOCS 64
 
-#if defined(CONFIG_TESTMODE)
 unsigned idleThreadCount = 2;
 char *idleThreads[2] = {"ledcircle", "abcbtn"};
-#else
-unsigned idleThreadCount = 1;
-char *idleThreads[1] = {"ledcircle"};
-#endif
 
 void getIdleThreads(char ***names, unsigned *amount) {
 	*names = idleThreads;
@@ -35,6 +31,8 @@ void getIdleThreads(char ***names, unsigned *amount) {
 
 static struct location_new locationsV2[NR_OF_LOCS] = {0};
 static int location_countV2 = 0;
+static int locIndex = 0;
+static int lastReturned = -2; // -2 if never returned, -1 if all locations visited >= 0 is the last mg_id
 
 void reloadLocations(){
 	memset(locationsV2, 0, sizeof locationsV2);
@@ -45,96 +43,42 @@ void reloadLocations(){
 	}
 }
 
-int playIdle(uint8_t* trivia_ID) {
+void reloadProgress() {
+  locIndex =  sd_get_progress();   // Get the current location index from the SD card
+  if (locIndex == -ENOENT) // If the file doesn't exist set locIndex to 0 and create the file.
+  {
+    lcdEnable();
+    lcdStringWrite("Geen voortgang gevonden");
+    k_msleep(1000);
+    locIndex = 0;
+	lastReturned = -2;
+    sd_set_progress(locIndex); // If no progress file exists, set it to 0
+    lcdStringWrite("Voortgang gereset");
+    k_msleep(1000);
+  } 
+}
+
+bool checkDevInput(){
+	uint8_t* abcbtns;
+	abcbtns = abcbtnGetMutexValue();
+    uint8_t input_count = 0;
+
+    for (int i = 0; i < 3; i++){
+		if (abcbtns[i] == 0){
+			input_count++;
+		}
+	}
+	if(input_count >= 3){
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+int playIdle(uint8_t* trivia_ID, bool* devModeOn) {
 	uint8_t ledcircleOff[8] = {0};
 	lcdEnable();
-#if defined(CONFIG_TESTMODE)
-reloadLocations();
-		printk("Idle firstime locs:\n");
-		for (int i = 0; i < location_countV2; i++) {
-			printk("%lld,%lld,%hhu,%hhu\n", 
-                 locationsV2[i].lat, locationsV2[i].lon, locationsV2[i].mg_id, locationsV2[i].trivia_id);
-		}
-	static int testIndex = 1;
-	char lcd_msg[32];
-
-	//lcdEnable();
-	// lcdStringWrite("Selecteer een spel met A en C");
-	// k_msleep(3000);
-	lcdStringWrite("Bevestig met de startknop!");
-	//k_msleep(3000);
-
-	abcledsSet('a', 1);
-	abcledsSet('c', 1);
-	startledSet(1);
-	sprintf(lcd_msg, "Minigame: %d", testIndex);
-	lcdStringWrite(lcd_msg);
-
-	while(startbuttonGet()){
-		native_loop();
-		wait_till_abc_depressed();
-
-		if(abcbuttonsGet('a') == 0){
-			if(testIndex == 1){
-				testIndex = 12;
-			}
-			else{
-				testIndex--;
-			}
-			sprintf(lcd_msg, "Minigame: %d", testIndex);
-			lcdStringWrite(lcd_msg);
-		} 
-		else if(abcbuttonsGet('c') == 0){
-			if(testIndex == 12){
-				testIndex = 1;
-			}
-			else{
-				testIndex++;
-			}
-			sprintf(lcd_msg, "Minigame: %d", testIndex);
-			lcdStringWrite(lcd_msg);
-		}
-	}
-
-	startledSet(0);
-	abcledsSet('a', 0);
-	abcledsSet('c', 0);
-	lcdClear();
-	lcdDisable();
-	k_msleep(100);
-
-	return testIndex;
-#endif
-	static int locIndex = 0;
-	static int lastReturned = -2; // -2 if never returned, -1 if all locations visited >= 0 is the last mg_id
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-	static bool firstTimeIdle = true; // i know should be in init but this is easier for now.
-	if (firstTimeIdle) // Check if locations are initialized
-	{
-		firstTimeIdle = false;
-		reloadLocations();
-		printk("Idle firstime locs:\n");
-		for (int i = 0; i < location_countV2; i++) {
-			printk("%lld,%lld,%hhu,%hhu\n", 
-                 locationsV2[i].lat, locationsV2[i].lon, locationsV2[i].mg_id, locationsV2[i].trivia_id);
-		}
-		locIndex = sd_get_progress(); // Get the current location index from the SD card in the event that the device was turned off.
-		if (locIndex == -ENOENT) // If the file doesn't exist set locIndex to 0 and create the file.
-		{
-			lcdEnable();
-			lcdStringWrite("Geen voortgang gevonden");
-			k_msleep(1000);
-			locIndex = 0;
-			sd_set_progress(locIndex); // If no progress file exists, set it to 0
-			lcdStringWrite("Voortgang gereset");
-			k_msleep(1000);
-		}
-		else if (locIndex < 0)
-		{
-			return locIndex; // If the progress is negative there has been a reading error.
-		}
-	}
-#endif
 
 	// If returning from a minigame, increment and save progress
 	if (lastReturned >= 0) {
@@ -150,7 +94,10 @@ reloadLocations();
 	}
 
 #if defined(CONFIG_NOGPSMODE)
-//do nothing
+	if(checkDevInput()){
+		*devModeOn = true;
+		return 0;
+	}
 
 #elif defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int distMeters = 100;	// Initialize to a value outside the expected range
@@ -179,6 +126,11 @@ reloadLocations();
 			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon), nanoDegToLdDeg(locationsV2[locIndex].lat), nanoDegToLdDeg(locationsV2[locIndex].lon));					// Angle between current location and next location
 
 			set_led_circle_dir_dist(get_relative_dir(dir), distMeters);	// Set the led circle direction and distance
+		}
+		//check for secret dev input
+		if(checkDevInput()){
+			*devModeOn = true;
+			break;
 		}
 	}
 #endif
