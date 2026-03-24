@@ -518,11 +518,11 @@ void MainWindow::on_btnAddLoc_clicked()
     int row = locationModel->rowCount();
     locationModel->insertRow(row);
 
-    locationModel->setData(locationModel->index(row, 0), name);
-    locationModel->setData(locationModel->index(row, 1), x);
-    locationModel->setData(locationModel->index(row, 2), y);
-    locationModel->setData(locationModel->index(row, 3), cost);
-    locationModel->setData(locationModel->index(row, 4), mgId);
+    locationModel->setData(locationModel->index(row, 1), name);
+    locationModel->setData(locationModel->index(row, 2), x);
+    locationModel->setData(locationModel->index(row, 3), y);
+    locationModel->setData(locationModel->index(row, 4), cost);
+    locationModel->setData(locationModel->index(row, 5), mgId);
 
     locationModel->submitAll();
 }
@@ -685,6 +685,7 @@ void MainWindow::initializeDatabase(){
     locationModel->setEditStrategy(QSqlTableModel::OnFieldChange);
     locationModel->setRelation(locationModel->fieldIndex("MG_ID"),
                                QSqlRelation("Minigames", "MG_ID", "MG_name"));
+                                locationModel->setJoinMode(QSqlRelationalTableModel::LeftJoin);
     locationModel->select();
 
     m_ui->tableLocations->setModel(locationModel);
