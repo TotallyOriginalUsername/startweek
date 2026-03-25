@@ -15,6 +15,10 @@ void getDevModethreads(char ***names, unsigned *amount) {
 int playDevMode(bool* devMode){
 	static int testIndex = 1;
 	char lcd_msg[32];
+	// reset the testindex after leaving devMode
+	if(testIndex == -1){
+		testIndex = 1;
+	}
 
 	lcdEnable();
 	// lcdStringWrite("Selecteer een spel met A en C");
@@ -47,7 +51,7 @@ int playDevMode(bool* devMode){
             break;
         } else if(abcbuttonsGet('c') == 0){
 			if(testIndex == 12){
-				testIndex = 1;
+				testIndex = -1;
 			}
 			else{
 				testIndex++;

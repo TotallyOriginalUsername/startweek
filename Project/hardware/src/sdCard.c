@@ -8,9 +8,6 @@
 #include <stdlib.h>
 LOG_MODULE_REGISTER(sdCard);
 
-#define START_TIME 0
-#define END_TIME 1
-
 #define MAX_PATH 128
 
 /*
@@ -566,7 +563,7 @@ int16_t get_time(uint8_t type)
  */
 int16_t sd_get_start_time()
 {
-	return get_time(START_TIME);
+	return get_time(0);
 }
 
 /**
@@ -577,7 +574,7 @@ int16_t sd_get_start_time()
  */
 int16_t sd_get_end_time()
 {
-	return get_time(END_TIME);
+	return get_time(1);
 }
 
 uint8_t sd_get_locations(struct location_new* locations, size_t size, int* locCount){

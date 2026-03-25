@@ -21,6 +21,13 @@ LOG_MODULE_REGISTER(idle);
 #define GAMES_AMOUNT 10
 #define NR_OF_LOCS 64
 
+#define EndTime_ONELINERS 3
+char oneLinersEndtime[EndTime_ONELINERS][32] = {
+    "Het spel is nu    afgelopen  ",
+    "Bedankt voor het spelen!     ",
+    "Ga terug naar de startlocatie",
+};
+
 unsigned idleThreadCount = 2;
 char *idleThreads[2] = {"ledcircle", "abcbtn"};
 
@@ -32,7 +39,6 @@ void getIdleThreads(char ***names, unsigned *amount) {
 static struct location_new locationsV2[NR_OF_LOCS] = {0};
 static int location_countV2 = 0;
 static int locIndex = 0;
-static int lastReturned = -2; // -2 if never returned, -1 if all locations visited >= 0 is the last mg_id
 
 void reloadLocations(){
 	memset(locationsV2, 0, sizeof locationsV2);
@@ -51,11 +57,14 @@ void reloadProgress() {
     lcdStringWrite("Geen voortgang gevonden");
     k_msleep(1000);
     locIndex = 0;
-	lastReturned = -2;
     sd_set_progress(locIndex); // If no progress file exists, set it to 0
     lcdStringWrite("Voortgang gereset");
     k_msleep(1000);
   } 
+}
+
+int getLocationAmount(){
+	return location_countV2;
 }
 
 bool checkDevInput(){
@@ -76,21 +85,17 @@ bool checkDevInput(){
 	}
 }
 
+// guides player to the next location
 int playIdle(uint8_t* trivia_ID, bool* devModeOn) {
 	uint8_t ledcircleOff[8] = {0};
 	lcdEnable();
 
-	// If returning from a minigame, increment and save progress
-	if (lastReturned >= 0) {
-		locIndex = sd_get_progress();
-		locIndex++;
-		sd_set_progress(locIndex);
-	}
+	locIndex = sd_get_progress();
+	locIndex++;
 
 	if (locIndex >= location_countV2) {
 		LOG_INF("All locations have been visited.");
-		lastReturned = -1;
-		return lastReturned;
+		return -1;
 	}
 
 #if defined(CONFIG_NOGPSMODE)
@@ -136,9 +141,41 @@ int playIdle(uint8_t* trivia_ID, bool* devModeOn) {
 #endif
 	lcdStringWrite("Gearriveerd!!");
 	ledcircleSetMutexValue(ledcircleOff);
+	sd_set_progress(locIndex);
 	k_msleep(5000);
 	lcdDisable();
 	*trivia_ID = locationsV2[locIndex].trivia_id;
-	lastReturned = locationsV2[locIndex].mg_id;
-	return lastReturned; // Return the index of the game that has to be played.
+	return locationsV2[locIndex].mg_id;;
+}
+
+void walkToEndLocation(){
+#if defined(CONFIG_NOGPSMODE)
+	return;
+#elif defined(CONFIG_BOARD_NUCLEO_H743ZI)
+	int distMeters = 100;
+    int dir = 0;
+	while(distMeters > REQUIRED_DIST_METERS) {	// Device is too far away from next target
+        show_oneliners(oneLinersEndtime, EndTime_ONELINERS);
+
+        int64_t currLat = getLatitude();		// Get the current latitude
+        int64_t currLon = getLongitude();		// Get the current longitude
+        if ( currLat == 0 && currLon == 0) {	// GPS doesn't have lock
+            LOG_ERR("GPS does not have a lock!\n");
+            lcdStringWrite("GPS heeft geen  fix..");
+            k_msleep(500);
+            lcdStringWrite("GPS heeft geen  fix...");
+            k_msleep(500);
+        } else
+        {
+            distMeters = getDistanceMeters(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon),
+											nanoDegToLdDeg(locationsV2[location_countV2].lat), nanoDegToLdDeg(locationsV2[location_countV2].lon));
+			dir = getAngle(nanoDegToLdDeg(currLat), nanoDegToLdDeg(currLon),
+							nanoDegToLdDeg(locationsV2[location_countV2].lat), nanoDegToLdDeg(locationsV2[location_countV2].lon));	
+
+            LOG_INF("Sending players to end location: %d meters at %d degrees\n", distMeters, dir);
+            set_led_circle_dir_dist(dir, distMeters);
+        }
+    }
+#endif
+    LOG_INF("Arrived at end location!\n");
 }

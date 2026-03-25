@@ -6,7 +6,10 @@
 void reloadLocations();
 void reloadProgress();
 
+int getLocationAmount();
+
 void getIdleThreads(char ***, unsigned *);
 int playIdle(uint8_t* trivia_ID, bool* devModeOn);
+void walkToEndLocation();
 
 #endif // IDLE_H
