@@ -15,6 +15,7 @@ void getDevModethreads(char ***names, unsigned *amount) {
 int playDevMode(bool* devMode){
 	static int testIndex = 1;
 	char lcd_msg[32];
+
 	// reset the testindex after leaving devMode
 	if(testIndex == -1){
 		testIndex = 1;
@@ -38,7 +39,7 @@ int playDevMode(bool* devMode){
 
 		if(abcbuttonsGet('a') == 0){
 			if(testIndex == 1){
-				testIndex = 12;
+				testIndex = 13;
 			}
 			else{
 				testIndex--;
@@ -50,8 +51,8 @@ int playDevMode(bool* devMode){
             testIndex = 1;
             break;
         } else if(abcbuttonsGet('c') == 0){
-			if(testIndex == 12){
-				testIndex = -1;
+			if(testIndex == 13){
+				testIndex = 1;
 			}
 			else{
 				testIndex++;

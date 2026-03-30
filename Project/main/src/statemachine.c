@@ -19,6 +19,7 @@
 #include "minigame10.h"
 #include "minigame11.h"
 #include "minigame12.h"
+#include "minigame13.h"
 #include "trivia.h"
 
 #include <stdbool.h>
@@ -48,7 +49,7 @@ static int locationAmount = 0;
 typedef struct {void (*getMgThreads)(char*** names, unsigned* amount);
 				int  (*playMinigame)(void);} minigamesStruct;
 
-static minigamesStruct minigames[12] = {
+static minigamesStruct minigames[13] = {
 	{getMg1Threads, playMg1},
 	{getMg2Threads, playMg2},
 	{getMg3Threads, playMg3},
@@ -60,7 +61,8 @@ static minigamesStruct minigames[12] = {
 	{getMg9Threads, playMg9},
 	{getMg10Threads, playMg10},
 	{getMg11Threads, playMg11},
-	{getMg12Threads, playMg12}};
+	{getMg12Threads, playMg12},
+	{getMg13Threads, playMg13}};
 
 // State functions
 void init_stateFunction(statemachineStates* next_state) {
@@ -145,7 +147,7 @@ void devmode_stateFunction(statemachineStates* next_state, int* mgID) {
 	LOG_INF("Developer state\n");
 	char **names;
 	unsigned amount;
-	getIdleThreads(&names, &amount);
+	getDevModethreads(&names, &amount);
 	enableThreads(names, amount);
 	int ret = playDevMode(&devModeOn);
 	disableThreads(names, amount);
