@@ -29,7 +29,7 @@ char oneLinersEndtime[EndTime_ONELINERS][32] = {
 };
 
 unsigned idleThreadCount = 2;
-char *idleThreads[2] = {"ledcircle", "abcbtn"};
+char *idleThreads[2] = {"ledcircle", "btnmatrix_in"};
 
 void getIdleThreads(char ***names, unsigned *amount) {
 	*names = idleThreads;
@@ -68,16 +68,14 @@ int getLocationAmount(){
 }
 
 bool checkDevInput(){
-	uint8_t* abcbtns;
-	abcbtns = abcbtnGetMutexValue();
-    uint8_t input_count = 0;
+	uint8_t input_array[16] = {1};
+	uint8_t button_combination[16] = {1,1,1,0,
+									  1,1,1,0,
+									  1,1,1,0,
+									  1,1,1,0};
+	memcpy(input_array, btnmatrix_inGetMutexValue(), sizeof(input_array));
 
-    for (int i = 0; i < 3; i++){
-		if (abcbtns[i] == 0){
-			input_count++;
-		}
-	}
-	if(input_count >= 3){
+	if(memcmp(input_array, button_combination, sizeof(input_array)) == 0){
 		return true;
 	}
 	else {
