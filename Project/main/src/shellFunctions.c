@@ -113,6 +113,7 @@ static int cmd_reset_progress(const struct shell *sh, size_t argc, char **argv)
 	if (ret < 0) {
 		shell_print(sh, "Something went wrong with resetting progress\n");
 	}
+	reloadProgress();
 
 	return 0;
 }
