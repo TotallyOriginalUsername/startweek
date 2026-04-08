@@ -28,6 +28,6 @@ for i in range(height):
 
 for index, bw_value in enumerate(bw_array):
     if index == len(bw_array) - 1:
-        print(f"0b{bw_value:016b}", end='')
+        print(f"0b{bw_value:016b}")
     else:
         print(f"0b{bw_value:016b},", end='')

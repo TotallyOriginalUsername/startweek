@@ -39,7 +39,7 @@ int playDevMode(bool* devMode){
 
 		if(abcbuttonsGet('a') == 0){
 			if(testIndex == 1){
-				testIndex = 14;
+				testIndex = 15;
 			}
 			else{
 				testIndex--;
@@ -51,7 +51,7 @@ int playDevMode(bool* devMode){
             testIndex = 1;
             break;
         } else if(abcbuttonsGet('c') == 0){
-			if(testIndex == 14){
+			if(testIndex == 15){
 				testIndex = 1;
 			}
 			else{

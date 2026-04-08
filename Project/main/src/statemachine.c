@@ -21,6 +21,7 @@
 #include "minigame12.h"
 #include "minigame13.h"
 #include "minigame14.h"
+#include "minigame15.h"
 #include "trivia.h"
 
 #include <stdbool.h>
@@ -50,7 +51,7 @@ static int locationAmount = 0;
 typedef struct {void (*getMgThreads)(char*** names, unsigned* amount);
 				int  (*playMinigame)(void);} minigamesStruct;
 
-static minigamesStruct minigames[14] = {
+static minigamesStruct minigames[15] = {
 	{getMg1Threads, playMg1},
 	{getMg2Threads, playMg2},
 	{getMg3Threads, playMg3},
@@ -64,7 +65,8 @@ static minigamesStruct minigames[14] = {
 	{getMg11Threads, playMg11},
 	{getMg12Threads, playMg12},
 	{getMg13Threads, playMg13},
-	{getMg14Threads, playMg14}};
+	{getMg14Threads, playMg14},
+	{getMg15Threads, playMg15}};
 
 // State functions
 void init_stateFunction(statemachineStates* next_state) {
