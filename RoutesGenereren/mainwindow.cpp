@@ -21,6 +21,7 @@
 #include <QBrush>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QProgressDialog>
 
 #include <chrono>
 #include <qchar.h>
@@ -399,8 +400,13 @@ void MainWindow::on_btnUploadTime_clicked(){
 }
 
 void MainWindow::on_btnUploadTrivia_clicked(){
+    int uploadCount = 0;
     if(m_serial->isOpen()){
         std::vector<SDTrivia> triviaList = m_database->getTrivia();
+        QProgressDialog progress("Uploading trivia", "Stop", 0, triviaList.size(), this);
+        progress.setMinimumDuration(0);
+        progress.setCancelButton(nullptr);
+        progress.setWindowModality(Qt::WindowModal);
 
         for(const auto &trivia: triviaList){
             QByteArray clear = QString("tr clear\r\n").toUtf8();
@@ -436,7 +442,10 @@ void MainWindow::on_btnUploadTrivia_clicked(){
             writeData(save);
             m_serial->waitForBytesWritten(4000);
             QThread::msleep(100);
+            uploadCount++;
+            progress.setValue(uploadCount);
         }
+        progress.setValue(triviaList.size());
 
         QMessageBox::information(this, tr("Klaar"),
             tr("trivia geuploadt naar de koffer"));

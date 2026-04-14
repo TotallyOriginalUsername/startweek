@@ -164,6 +164,9 @@ void Database::insertBaseMinigames(){
     insertMinigame(10, "Whack a Mole", 0);
     insertMinigame(11, "Space invaders - knoppen", 0);
     insertMinigame(12, "Space invaders - kantel", 0);
+    insertMinigame(13, "Binary switches", 0);
+    insertMinigame(14, "Kantelspel", 0);
+    insertMinigame(15, "Tetris", 0);
 }
 
 void Database::insertBaseTrivia(){
