@@ -563,8 +563,9 @@ void MainWindow::on_btnAddMinigame_clicked()
     minigameModel->setData(minigameModel->index(row, 2), name);
 
     minigameModel->submitAll();
-    //refresh locations, otherwise it doesn't see the newly added minigame
+    //refresh locations and it's relation, otherwise it doesn't see the newly added minigame
     locationModel->select();
+    locationModel->relationModel(locationModel->fieldIndex("MG_name"))->select();
 }
 
 void MainWindow::on_btnAddTrivia_clicked()
@@ -603,6 +604,8 @@ void MainWindow::on_btnAddTrivia_clicked()
     triviaModel->submitAll();
     //refresh minigame, otherwise it doesn't see the newly added trivia
     minigameModel->select();
+    //Qt renames the column to foreign key, so use Question instead of Question_ID
+    minigameModel->relationModel(minigameModel->fieldIndex("Question"))->select();
 }
 
 void MainWindow::on_btnRemoveLoc_clicked()
@@ -632,6 +635,7 @@ void MainWindow::on_btnRemoveMinigame_clicked()
     minigameModel->removeRow(index.row());
     minigameModel->submitAll();
     minigameModel->select();
+    locationModel->relationModel(locationModel->fieldIndex("MG_name"))->select();
 }
 
 void MainWindow::on_btnRemoveTrivia_clicked()
@@ -646,6 +650,7 @@ void MainWindow::on_btnRemoveTrivia_clicked()
     triviaModel->removeRow(index.row());
     triviaModel->submitAll();
     triviaModel->select();
+    minigameModel->relationModel(minigameModel->fieldIndex("Question"))->select();
 }
 
 void MainWindow::initializeDatabase(){
