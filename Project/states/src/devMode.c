@@ -48,7 +48,7 @@ int playDevMode(bool* devMode){
 			lcdStringWrite(lcd_msg);
 		} else if (abcbuttonsGet('b') == 0) {
             *devMode = false;
-            testIndex = 1;
+            testIndex = -1;
             break;
         } else if(abcbuttonsGet('c') == 0){
 			if(testIndex == 15){
