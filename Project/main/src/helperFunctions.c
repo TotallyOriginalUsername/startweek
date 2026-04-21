@@ -4,7 +4,7 @@ LOG_MODULE_REGISTER(helperFunctions);
 K_TIMER_DEFINE(timer, NULL, NULL);
 
 // LED circle direction to location related definitions
-#define ANGLE_BUFFER_SIZE 10 // Number of angles to average for the circle direction
+#define ANGLE_BUFFER_SIZE 20 // Number of angles to average for the circle direction
 #define DIST_MAX_WIDTH 20	// Distance at which the circle has minimum width
 #define DIST_MIN_WIDTH 200 	//Distance at which the circle has maximum width
 #define DIST_RANGE (DIST_MIN_WIDTH - DIST_MAX_WIDTH)
@@ -55,6 +55,32 @@ void clear_btnmatrix_leds(){
 	btnmatrix_outSetMutexValue(data_button_matrix);
 }
 
+// Detects if a given row mask has a bit overlapping with the given led mask
+bool led_matrix_hit_detection(uint16_t* led_mask, uint16_t row_mask, uint8_t row_number){
+
+	if (led_mask[row_number] != 0)
+	{
+		if ((led_mask[row_number] & ~row_mask) != 0)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	return 0;
+}
+
+// Scrolls every row one downwards
+uint8_t led_matrix_scroll_down(uint16_t* led_mask){
+	for(int i = 15; i > 0; i--){
+		led_mask[i] = led_mask[i-1];
+	}
+
+	return 0;
+}
+
 //function to show a circle on the button matrix for 2 seconds
 void show_correct(){
 	uint8_t data_button_matrix[4] = {0b00000110, 0b00001001, 0b00001001, 0b00000110};
@@ -101,7 +127,6 @@ void wait_till_abc_depressed(){
 #endif
     uint8_t input_count = 1;
     uint8_t *abcbtns;
-    LOG_WRN("Waiting\n");
 
     while(input_count != 0){
         abcbtns = abcbtnGetMutexValue();
@@ -114,8 +139,6 @@ void wait_till_abc_depressed(){
 		}
 		native_loop();
     }
-
-    LOG_WRN("Done waiting\n");
 }
 
 //Function to wait untill every 4x4 button has been released
@@ -137,6 +160,18 @@ void wait_till_btnmatrix_depressed(){
     }
 
     LOG_WRN("Done waiting\n");
+}
+
+// Wait till the user presses the start button to start the game
+void wait_till_game_start(){
+	lcdStringWrite("Druk op start");
+	startledSet(1);
+
+	while(startbuttonGet()){
+		native_loop();
+	}
+	startledSet(0);
+	lcdClear();
 }
 
 //Function to wait untill every switch is at rest

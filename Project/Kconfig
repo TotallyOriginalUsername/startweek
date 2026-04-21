@@ -4,4 +4,16 @@ config TESTMODE
     bool "Test games manually"
     default n
 
+config NOGPSMODE
+    bool "Test without GPS functionality"
+    default n
+
+config NOTIMEMODE
+    bool "Test without time functionality"
+    default n
+
+config GITGUD
+    bool "Test without being able to replay games"
+    default n
+
 source "Kconfig.zephyr"

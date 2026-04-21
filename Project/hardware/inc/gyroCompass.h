@@ -21,6 +21,7 @@ uint8_t magnetometer_set_sampling_freq(int aFreq);
 uint8_t magnetometer_init(void);
 uint8_t magnetometer_exit(void);
 uint8_t magnetometer_get_magneto(int16_t *aMagneto);
+uint8_t magnetometer_calibrate(int16_t* NZ, int16_t* EW);
 
 //gyroscope functions
 uint8_t gyroscope_set_sampling_freq(int aFreq);

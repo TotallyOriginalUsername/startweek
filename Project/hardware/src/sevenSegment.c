@@ -173,7 +173,7 @@ uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 	set_segmented_display(input, dpPosition);
 	k_msleep(4);
 #else
-	for (size_t i = 0; i < 4; i++)
+	for (size_t i = 0; i < 5; i++)
 	{
 		bool dp = false;
 		switch (i)
@@ -201,6 +201,12 @@ uint8_t sevenSegmentSet(char input[4],uint8_t dpPosition)
 			gpio_pin_set_dt(&sevenSegmentMuxDig2,LOW);
 			gpio_pin_set_dt(&sevenSegmentMuxDig3,LOW);
 			gpio_pin_set_dt(&sevenSegmentMuxDig4,HIGH);
+			break;
+		case 4:
+			gpio_pin_set_dt(&sevenSegmentMuxDig1,LOW);
+			gpio_pin_set_dt(&sevenSegmentMuxDig2,LOW);
+			gpio_pin_set_dt(&sevenSegmentMuxDig3,LOW);
+			gpio_pin_set_dt(&sevenSegmentMuxDig4,LOW);
 			break;
 		}
 		if(dpPosition == i)

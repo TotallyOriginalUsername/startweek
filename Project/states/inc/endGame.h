@@ -4,8 +4,9 @@
 
 #ifndef ENDGAME_H
 #define ENDGAME_H
+#include <stdbool.h>
 
 void getEndGameThreads(char ***, unsigned *);
-void playEndGame();
+void playEndGame(bool* devModeOn);
 
 #endif //ENDGAME_H

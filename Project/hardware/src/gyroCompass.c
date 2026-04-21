@@ -37,6 +37,23 @@ const int16_t K3 = 446;
 const uint16_t MINDELTADIV = 1;
 
 /**
+ * @brief Calculates the angle in degrees based on x and y.
+ * @param[in] x value of the x-axis
+ * @param[in] y value of the y-axis
+ * @return angle in degrees (0-359)
+ */
+#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
+static int16_t getMangoAngle(int16_t x, int16_t y)
+{
+	/* Calculate the angle in degrees */
+	int32_t angle = (int32_t)(atan2((double)y-50, (double)x-50) * 180.0 / M_PIL);
+	if (angle < 0)
+		angle += 360; // Normalize to 0-359 degrees
+	return (int16_t)angle;
+}
+#endif
+
+/**
  * @brief Calculates the integer division of iy by ix where iy <= ix.
  *
  * This function performs a binary division to calculate the ratio of two integers iy and ix
@@ -224,204 +241,6 @@ static uint8_t gyroCompass_i_hundred_atan2_deg(int16_t iy, int16_t ix, int16_t *
 }
 #endif
 
-/**
- * @brief Calculates ix / sqrt(ix*ix + iy*iy) using binary division.
- *
- * This function computes the ratio ix / sqrt(ix*ix + iy*iy) using a binary division algorithm.
- * The result is returned as a signed 16-bit integer in the range -32768 to 32767.
- *
- * @param[in] ix The x component
- * @param[in] iy The y component
- * @param[out] result The ratio ix / sqrt(ix*ix + iy*iy) as a signed 16-bit integer.
- *
- * @return Error code (0 for success)
- */
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-static uint8_t gyroCompass_i_trig(int16_t ix, int16_t iy, int16_t *result)
-{
-	uint32_t itmp;	 /* Scratch */
-	uint32_t ixsq;	 /* ix * ix */
-	int16_t isignx;	 /* Storage for sign of x. Algorithm assumes x >= 0 then corrects later */
-	uint32_t ihypsq; /* (ix * ix) + (iy * iy) */
-	int16_t ir;		 /* Result = ix / sqrt(ix*ix+iy*iy) range -1, 1 returned as signed int16 */
-	int16_t idelta;	 /* Delta on candidate result dividing each stage by factor of 2 */
-
-	/* correct for pathological case: ix==iy==0 */
-	if ((ix == 0) && (iy == 0))
-	{
-		ix = iy = 1;
-	}
-
-	/* check for -32768 which is not handled correctly */
-	if (ix == -32768)
-	{
-		ix = -32767;
-	}
-	if (iy == -32768)
-	{
-		iy = -32767;
-	}
-
-	/* store the sign for later use. algorithm assumes x is positive for convenience */
-	isignx = 1;
-	if (ix < 0)
-	{
-		ix = (int16_t)-ix;
-		isignx = -1;
-	}
-
-	/* for convenience in the boosting set iy to be positive as well as ix */
-	iy = (int16_t)abs(iy);
-
-	/* to reduce quantization effects, boost ix and iy but keep below maximum signed 16 bit */
-	while ((ix < 16384) && (iy < 16384))
-	{
-		ix += ix;
-		iy += iy;
-	}
-
-	/* calculate ix*ix and the hypotenuse squared */
-	ixsq = (uint32_t)((uint32_t)ix * (uint32_t)ix);			 /* ixsq=ix*ix: 0 to 32767^2 = 1073676289 */
-	ihypsq = (uint32_t)(ixsq + (uint32_t)iy * (uint32_t)iy); /* ihypsq=(ix*ix+iy*iy) 0 to 2*32767*32767=2147352578 */
-
-	/* set result r to zero and binary search step to 16384 = 0.5 */
-	ir = 0;
-	idelta = 16384; /* Set as 2^14 = 0.5 */
-
-	/* loop over binary sub-division algorithm */
-	do
-	{
-		/* generate new candidate solution for ir and test if we are too high or too low */
-		/* itmp=(ir+delta)^2, range 0 to 32767*32767 = 2^30 = 1073676289 */
-		itmp = (uint32_t)((int32_t)(ir + idelta) * (int32_t)(ir + idelta)); /* itmp=(ir+idelta)^2 */
-
-		/* itmp=(ir+delta)^2*(ix*ix+iy*iy), range 0 to 2^31 = 2147221516 */
-		itmp = (itmp >> 15) * (ihypsq >> 15);
-		if (itmp <= ixsq)
-			ir += idelta;
-		idelta >>= 1; /* divide by 2 using right shift one bit */
-	} while (idelta >= MINDELTATRIG); /* last loop is performed for idelta=MINDELTATRIG */
-
-	/* correct the sign */
-	*result = (int16_t)(ir * isignx);
-	return 0;
-}
-#endif
-
-/**
- * @brief Computes the yaw angle.
- *
- * This function calculates the yaw angle based on the magnetometer and accelerometer data.
- * The computed yaw angle is returned through the provided angle parameter.
- *
- * @param[in] iBpx Magnetometer x-axis data
- * @param[in] iBpy Magnetometer y-axis data
- * @param[in] iBpz Magnetometer z-axis data
- * @param[in] iGpx Accelerometer x-axis data
- * @param[in] iGpy Accelerometer y-axis data
- * @param[in] iGpz Accelerometer z-axis data
- * @param[out] angle The computed yaw angle
- *
- * @return Error code (0 for success)
- */
-#if defined(CONFIG_BOARD_NUCLEO_H743ZI)
-static uint8_t gyroCompass_i_ecompass(int16_t iBpx, int16_t iBpy, int16_t iBpz,
-									  int16_t iGpx, int16_t iGpy, int16_t iGpz, double *angle)
-{
-	int16_t iSin, iCos; /* sine and cosine */
-	int16_t iPhi_16t, iThe; /* roll and pitch angles */
-	int iPhi;
-	int16_t iBfy, iBfx, iBfz;
-	uint8_t errorCode;
-
-	errorCode = gyroCompass_i_hundred_atan2_deg(iGpy, iGpz, &iPhi_16t); /* Eq 13 */
-	if (errorCode != 0)
-	{
-		return errorCode;
-	}
-	iPhi = iPhi_16t;
-	iPhi -= 18000;	  // 180 degree offset
-	if (iPhi > 18000) // make sure it stays between -180 and 180 degrees
-	{
-		iPhi -= 36000;
-	}
-	if (iPhi < -18000)
-	{
-		iPhi += 36000;
-	}
-
-	/* calculate sin and cosine of roll angle Phi */
-	errorCode = gyroCompass_i_trig(iGpy, iGpz, &iSin); /* Eq 13: sin = opposite / hypotenuse */
-	if (errorCode != 0)
-	{
-		return errorCode;
-	}
-	errorCode = gyroCompass_i_trig(iGpz, iGpy, &iCos); /* Eq 13: cos = adjacent / hypotenuse */
-	if (errorCode != 0)
-	{
-		return errorCode;
-	}
-
-	/* de-rotate by roll angle Phi */
-	iBfy = (int16_t)((iBpy * iCos - iBpz * iSin) >> 15); /* Eq 19 y component */
-	iBpz = (int16_t)((iBpy * iSin + iBpz * iCos) >> 15); /* Bpy*sin(Phi)+Bpz*cos(Phi)*/
-	iGpz = (int16_t)((iGpy * iSin + iGpz * iCos) >> 15); /* Eq 15 denominator */
-
-	/* calculate current pitch angle Theta */
-	errorCode = gyroCompass_i_hundred_atan2_deg((int16_t)-iGpx, iGpz, &iThe); /* Eq 15 */
-	if (errorCode != 0)
-	{
-		return errorCode;
-	}
-
-	if (iThe > 9000) // make sure it stays between -90 and 90 degrees
-	{
-		iThe = (int16_t)(18000 - iThe);
-	}
-	if (iThe < -9000)
-	{
-		iThe = (int16_t)(-18000 - iThe);
-	}
-
-	/* calculate sin and cosine of pitch angle Theta */
-	errorCode = gyroCompass_i_trig(iGpx, iGpz, &iSin); /* Eq 15: sin = opposite / hypotenuse */
-	if (errorCode != 0)
-	{
-		return errorCode;
-	}
-	iSin = (int16_t)-iSin;
-	errorCode = gyroCompass_i_trig(iGpz, iGpx, &iCos); /* Eq 15: cos = adjacent / hypotenuse */
-	if (errorCode != 0)
-	{
-		return errorCode;
-	}
-
-	/* correct cosine if pitch not in range -90 to 90 degrees */
-	if (iCos < 0)
-	{
-		iCos = (int16_t)-iCos;
-	}
-
-	iBfx = (int16_t)((iBpx * iCos + iBpz * iSin) >> 15);  /* Eq 19: x component */
-	iBfz = (int16_t)((-iBpx * iSin + iBpz * iCos) >> 15); /* Eq 19: z component */
-
-	*angle = atan2(iBfy, iBfx) * 180 / M_PIL;
-
-	*angle += 180; // Add 180 degrees offset
-
-	/* restrict yaw angle to range 0 to 360 degrees */
-	if (*angle > 360)
-	{
-		*angle -= 360;
-	}
-	else if (*angle < 0)
-	{
-		*angle += 360;
-	}
-
-	return 0;
-}
-#endif
 
 /**
  * @brief Multiplies two matrices.
@@ -511,8 +330,8 @@ uint8_t magnetometer_set_sampling_freq(int aFreq)
 							SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr);
 	if (error != 0)
 	{
-		LOG_ERR("Cannot set sampling frequency for magnetometer.\n");
-		return 10;
+		LOG_ERR("Cannot set sampling frequency for magnetometer because: %d", error);
+		return error;
 	}
 
 	return 0;
@@ -545,14 +364,16 @@ uint8_t magnetometer_init(void)
 		return 1;
 	}
 
-	// int error = magnetometer_set_sampling_freq(magno_sample_freq);
-	// if (error != 0)
-	// {
-	//  return error;
-	// }
+	/*int error = magnetometer_set_sampling_freq(magno_sample_freq);
+	if (error != 0)
+	{
+	  LOG_ERR("Magnetometer cant set samplerate \n");
+	  return error;
+	}*/
 #endif
 
 	magnetometer_is_init = true;
+	LOG_INF("Magnetometer initialized\n");
 	return 0;
 }
 
@@ -571,16 +392,12 @@ uint8_t magnetometer_exit(void)
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	if (!magnetometer_is_init)
 	{
+		LOG_ERR("Magnetometer not initialized\n");
 		return 1;
 	}
 
-	// int error = magnetometer_set_sampling_freq(magno_sample_freq_off);
-	// if (error != 0)
-	// {
-	//  return error;
-	// }
 #endif
-
+	LOG_INF("Magnetometer exit\n");
 	magnetometer_is_init = false;
 	return 0;
 }
@@ -617,11 +434,6 @@ uint8_t magnetometer_get_magneto(int16_t *aMagneto)
 	{
 		magn_xyz_double[i] = sensor_value_to_double(&magn_xyz[i]);
 	}
-
-	// Subtract the hard iron offset
-	magn_xyz_double[0] -= X_OFFSET;
-	magn_xyz_double[1] -= Y_OFFSET;
-	magn_xyz_double[2] -= Z_OFFSET;
 
 	// Scale value over max range of int. Value is max 1 or -1
 	for (int i = 0; i < 3; i++)
@@ -914,6 +726,55 @@ uint8_t gyroscope_get_pitch(int *aPitch)
 	return 0;
 }
 
+
+/**
+ *	@brief calibrates the compas then makes it percentile
+ *	call this often to ensure the compass functions well,
+ *	this function recalibrates the compass and percentile direction
+ *	in 2D
+ *  @return if it returns >0 it is widening the calibration 
+ * 	if this number > 0 repeatedly it is a sign of high magnatic interference
+*/
+uint8_t magnetometer_calibrate(int16_t* NS, int16_t* EW){
+	static int NS_min, NS_max; //north south axis calibration
+	static int EW_min, EW_max; //east west axis calibration
+	uint8_t actions = 0;
+	static int64_t lastUpdate = 0;
+	
+
+	if (*EW > EW_max){
+		EW_max = *EW;
+		actions++;
+	}else if(*EW < EW_min){
+		EW_min = *EW;
+		actions++;
+	}
+
+	if (*NS > NS_max){
+		NS_max = *NS;
+		actions++;
+	}else if(*NS < NS_min){
+		NS_min = *NS;
+		actions++;
+	}
+
+	if (actions > 0){
+		lastUpdate = k_uptime_get(); // Get the current time in milliseconds
+	}else if (lastUpdate + 1000 < k_uptime_get()){
+		EW_max--;
+		EW_min++;
+		NS_max--;
+		NS_min++;
+	}
+
+	*NS = (int16_t)((float)(*NS - NS_min)/(float)(NS_max - NS_min) * (float)100.0);
+	*EW = (int16_t)((float)(*EW - EW_min)/(float)(EW_max - EW_min) * (float)100.0);
+	*NS = 100 - *NS;// flip north south since hard iron offset is not used
+	return actions;
+
+}
+
+
 /**
  * @brief Retrieves the heading from the gyroscope and magnetometer sensors.
  *
@@ -930,7 +791,6 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 {
 #if defined(CONFIG_BOARD_NUCLEO_H743ZI)
 	int16_t MagnetoValue[3], AccelValue[3];
-	double angle;
 	int errorCode = 0;
 	if (!gyroscope_is_init)
 	{
@@ -959,13 +819,9 @@ uint8_t gyroCompass_get_heading(int *aHeading)
 		return 3;
 	}
 
-	errorCode = gyroCompass_i_ecompass(MagnetoValue[0], MagnetoValue[1], MagnetoValue[2], AccelValue[0], AccelValue[1], AccelValue[2], &angle);
-	if (errorCode)
-	{
-		return 3;
-	}
+	magnetometer_calibrate(&MagnetoValue[0],&MagnetoValue[1]);
+	*aHeading = getMangoAngle(MagnetoValue[0],MagnetoValue[1]);
 
-	*aHeading = angle;
 #endif
 	return 0;
 }

@@ -64,17 +64,6 @@ bool check_input_mg10(uint8_t* btnmatrix_in, uint8_t mole_position){
 	return 0;
 }
 
-// Wait till the user presses the button to start the game
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-}
-
 int playMg10() {
 	uint32_t score = 0;
 	uint8_t btnmatrix_in[16] = {1};

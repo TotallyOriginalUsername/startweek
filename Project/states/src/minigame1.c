@@ -1,26 +1,11 @@
 #include "minigame1.h"
 
 K_TIMER_DEFINE(mg1Timer, NULL, NULL);
+
+LOG_MODULE_REGISTER(mg_1);
+
 #define mg1Timer_duration 200
 #define snake_max_length 15
-
-bool button_pressed_mg1 = 0;
-bool game_ongoing_mg1 = 1;
-
-struct apple_location{
-	uint8_t x;
-	uint8_t y;
-};
-struct apple_location current_apple = {0, 0};
-
-enum snake_directions {up, right, down, left};
-struct snake_locations{
-	uint8_t x;
-	uint8_t y;
-};
-uint8_t snake_direction = up;
-struct snake_locations snake_mask[snake_max_length] = {[0 ... snake_max_length - 1] = {17, 17}};
-uint8_t snake_length = 3;
 
 char *mg1Threads[mg1ThreadCount] = {"startbtn", "ledmatrix", "abcbtn"};
 
@@ -59,40 +44,41 @@ uint8_t get_abcbutton_input_number_untimed(){
 	}
 }
 
-void create_new_apple(){
-	current_apple.x = sys_rand32_get() % 16;
-	current_apple.y = sys_rand32_get() % 16;
+void create_new_apple(struct apple_location* current_apple){
+	current_apple->x = sys_rand32_get() % 16;
+	current_apple->y = sys_rand32_get() % 16;
 }
 
-void draw_snake_game(){
+void draw_snake_game(struct apple_location* current_apple,
+	struct snake_locations* snake_mask, uint8_t snake_length){
 	uint16_t game_frame[16] = {0};
 
 	for (int i = 0; i < snake_length; i++) {
 		game_frame[snake_mask[i].y] |= 1 << snake_mask[i].x;
 	}
-	game_frame[current_apple.y] |= 1 << current_apple.x;
+	game_frame[current_apple->y] |= 1 << current_apple->x;
 
 	ledmatrixSetMutexValue(game_frame);
 }
 
-void set_direction(uint8_t btnValue){
+void set_snake_direction(uint8_t btnValue, uint8_t* snake_direction){
 	switch (btnValue){
 	case 0:
-		if(snake_direction == up){
-			snake_direction = left;
+		if(*snake_direction == up){
+			*snake_direction = left;
 		}
 		else{
-			snake_direction--;
+			(*snake_direction)--;
 		}
 		break;
 	case 1:
 		break;
 	case 2:
-		if(snake_direction == left){
-			snake_direction = up;
+		if(*snake_direction == left){
+			*snake_direction = up;
 		}
 		else{
-			snake_direction++;
+			(*snake_direction)++;
 		}
 		break;
 	default:
@@ -101,8 +87,8 @@ void set_direction(uint8_t btnValue){
 }
 
 //Return 1 upon a hit with the fruit
-bool hit_detection_fruit(){
-	if ((snake_mask[0].x == current_apple.x) && (snake_mask[0].y == current_apple.y)) {
+bool hit_detection_fruit(struct apple_location* current_apple, struct snake_locations* snake_mask){
+	if ((snake_mask[0].x == current_apple->x) && (snake_mask[0].y == current_apple->y)) {
         return 1;
     }
 	else{
@@ -111,7 +97,7 @@ bool hit_detection_fruit(){
 }
 
 //Return 1 upon a hit with the walls or other part of the snake
-bool hit_detection_snake(){
+bool hit_detection_snake(uint8_t snake_length, struct snake_locations* snake_mask){
 	if((snake_mask[0].y > 15) || (snake_mask[0].y < 0)){
 		return 1;
 	}
@@ -133,7 +119,7 @@ bool hit_detection_snake(){
 }
 
 //Updates the snake's position
-void update_snake(){
+void update_snake(uint8_t snake_direction, struct snake_locations* snake_mask, uint8_t snake_length){
 	int i = 0;
 
 	for(i = snake_length -1; i > 0; i--){
@@ -159,30 +145,23 @@ void update_snake(){
 	}
 }
 
-static void wait_till_game_start(){
-	lcdStringWrite("Druk op start");
-	startledSet(1);
-
-	while(startbuttonGet()){
-		native_loop();
-	}
-	startledSet(0);
-}
-
 int playMg1() {
+	bool game_ongoing_mg1 = 1;
 	uint8_t btnmatrix_off[4] = {0};
 	uint8_t apples_caught = 0;
 	uint8_t old_input = 17;
 	uint8_t new_input = 17;
+	uint8_t snake_direction = up;
+	uint8_t snake_length = 3;
 	uint16_t led_matrix_off[16] = {0};
 	uint32_t score = 0;
+
+	struct apple_location current_apple = {2, 10};
+	struct snake_locations snake_mask[snake_max_length] = {[0 ... snake_max_length - 1] = {17, 17}};
 
 	snake_mask[0].x = 7;
 	snake_mask[0].y = 7;
 	snake_length = 3;
-	current_apple.x = 2;
-	current_apple.y = 10;
-	game_ongoing_mg1 = 1;
 
 	show_oneliners(oneLinersMG1, MG1_ONELINERS);
 	lcdEnable();
@@ -198,19 +177,19 @@ int playMg1() {
 		new_input = get_abcbutton_input_number_untimed();
 		if(new_input != old_input){
 			old_input = new_input;
-			set_direction(old_input);
+			set_snake_direction(old_input, &snake_direction);
 		}
 		// Handle snake related logic at a slower speed
 		if(k_timer_remaining_get(&mg1Timer) == 0){
-			update_snake();
-			draw_snake_game();
+			update_snake(snake_direction, snake_mask, snake_length);
+			draw_snake_game(&current_apple, snake_mask, snake_length);
 
-			if(hit_detection_snake()){
+			if(hit_detection_snake(snake_length, snake_mask)){
 				game_ongoing_mg1 = 0;
 			}
 
-			if(hit_detection_fruit()){
-				create_new_apple();
+			if(hit_detection_fruit(&current_apple, snake_mask)){
+				create_new_apple(&current_apple);
 				score = score + 100;
 				apples_caught++;
 				snake_length++;
@@ -224,7 +203,7 @@ int playMg1() {
 		}
 	};
 
-	printk("Score: %d\n", score);
+	LOG_INF("Score: %d", score);
 	abcledsSet('a', 0);
 	abcledsSet('c', 0);
 	lcdDisable();
