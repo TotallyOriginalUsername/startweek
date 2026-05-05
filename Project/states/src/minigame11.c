@@ -200,7 +200,7 @@ int playMg11() {
 
 	struct bullets bullet =	{17,17,false};
 
-	//show_oneliners(oneLinersMG11, MG11_ONELINERS);
+	show_oneliners(oneLinersMG11, MG11_ONELINERS);
 	lcdEnable();
 	wait_till_game_start();
 
