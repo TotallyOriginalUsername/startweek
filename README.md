@@ -7,9 +7,9 @@ There are two parts to this project, the Zephyr project and Qt project.
 The Zephyr project is the code which will run on the hardware and the Qt project is the code which will run on the user's PC to provide an easy way to configure and communicate with the hardware.
 
 ## Zephyr
-This project has been made with Zephyr 3.7 and SDK version 16.5.
+This project has been made with Zephyr 3.6 and SDK version 16.8.
 
-To get started you can follow the [getting started](https://docs.zephyrproject.org/3.7.0/develop/getting_started/index.html) from Zephyr, which guides you to the install process and how you can build a project.
+To get started you can follow the [getting started](https://docs.zephyrproject.org/3.6.0/develop/getting_started/index.html) from Zephyr, which guides you to the install process and how you can build a project.
 
 ### Digital twin
 A digital twin of the hardware has been created which simulates large parts of the hardware, to allow coding and testing without the hardware. 
